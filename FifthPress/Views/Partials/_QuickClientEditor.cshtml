@@ -1,0 +1,283 @@
+﻿<style>
+    .client-editor-modal .modal-dialog {
+        width: 650px;
+    }
+
+    .client-editor-modal .form-group {
+        margin-bottom: 15px;
+    }
+
+    .client-editor-modal .checkbox-group {
+        display: flex;
+        gap: 20px;
+        margin-top: 10px;
+    }
+
+        .client-editor-modal .checkbox-group .checkbox {
+            margin: 0;
+        }
+
+    .client-editor-modal .form-control {
+        border-radius: 3px;
+    }
+
+    .client-editor-modal .btn-group {
+        margin-top: 20px;
+    }
+
+    .client-editor-modal .required {
+        color: #d9534f;
+    }
+</style>
+
+<!-- Client Editor Modal -->
+<div class="modal fade client-editor-modal" id="clientEditorModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-modal-to-close="#">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Edit Client</h4>
+            </div>
+            <div class="modal-body">
+                <form id="clientEditorForm">
+                    <input type="hidden" id="clientId" name="Id" />
+
+                    <div class="form-group">
+                        <label for="title">Company Name</label>
+                        <input type="text" class="form-control" id="title" name="Title" readonly />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input type="text" class="form-control" id="address" name="Address" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="addressAlt">Address Line 2</label>
+                        <input type="text" class="form-control" id="addressAlt" name="AddressAlt" />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <input type="text" class="form-control" id="city" name="City" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="zip">ZIP Code</label>
+                                <input type="text" class="form-control" id="zip" name="Zip" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea class="form-control" id="notes" name="Notes" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="arEmail">AR Email</label>
+                        <input type="text" class="form-control" id="arEmail" name="AREmail" />
+                        <small class="text-muted">Use commas to separate multiple emails</small>
+                    </div>
+
+                    <div class="checkbox-group">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="taxExempt" name="TaxExempt" value="true" /> Tax Exempt
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="blindShipping" name="BlindShipping" value="true" /> Blind Shipping
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="isGolfClient" name="IsGolfClient" value="true" /> Golf Client
+                            </label>
+                        </div>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="creditHold" name="CreditHold" value="true" /> Credit Hold
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Hidden fields for complex data we don't want to show in the modal -->
+                    <input type="hidden" id="priceLevelId" name="PriceLevelId" />
+                    <input type="hidden" id="usStateId" name="USStateId" />
+                    <input type="hidden" id="markup" name="Markup" />
+                    <input type="hidden" id="shippingAddress" name="ShippingAddress" />
+                    <input type="hidden" id="shippingCity" name="ShippingCity" />
+                    <input type="hidden" id="shippingZip" name="ShippingZip" />
+                    <input type="hidden" id="shippingUSState" name="ShippingUSState" />
+                    <input type="hidden" id="billingAddress" name="BillingAddress" />
+                    <input type="hidden" id="billingCity" name="BillingCity" />
+                    <input type="hidden" id="billingZip" name="BillingZip" />
+                    <input type="hidden" id="billingUSState" name="BillingUSState" />
+                    <input type="hidden" id="deleted" name="Deleted" />
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" data-modal-to-close="#">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveClient()">Save Client</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Function to load client data into the modal
+    function loadClientData(clientId) {
+        if (!clientId) {
+            // Clear form for new client
+            $('#clientEditorForm')[0].reset();
+            $('#clientId').val('');
+            return;
+        }
+
+        console.log('Loading client data for ID:', clientId); // Debug log
+
+        $.ajax({
+            url: ProcessUrl('Customers/GetClient2'),
+            type: 'GET',
+            data: { id: clientId },
+            success: function (client) {
+                console.log('Client data received:', client); // Debug log
+
+                if (client) {
+                    $('#clientId').val(client.Id);
+                    $('#title').val(client.Title);
+                    $('#address').val(client.Address);
+                    $('#addressAlt').val(client.AddressAlt);
+                    $('#city').val(client.City);
+                    $('#zip').val(client.Zip);
+                    $('#notes').val(client.Notes);
+
+                    // Set checkboxes
+                    $('#taxExempt').prop('checked', client.TaxExempt);
+                    $('#blindShipping').prop('checked', client.BlindShipping);
+                    $('#isGolfClient').prop('checked', client.IsGolfClient);
+                    $('#creditHold').prop('checked', client.CreditHold);
+
+                    // Set hidden fields
+                    $('#priceLevelId').val(client.PriceLevelId);
+                    $('#usStateId').val(client.USStateId);
+                    $('#markup').val(client.Markup);
+                    $('#shippingAddress').val(client.ShippingAddress);
+                    $('#shippingCity').val(client.ShippingCity);
+                    $('#shippingZip').val(client.ShippingZip);
+                    $('#shippingUSState').val(client.ShippingUSState);
+                    $('#billingAddress').val(client.BillingAddress);
+                    $('#billingCity').val(client.BillingCity);
+                    $('#billingZip').val(client.BillingZip);
+                    $('#billingUSState').val(client.BillingUSState);
+                    $('#arEmail').val(client.AREmail);
+                    $('#deleted').val(client.Deleted);
+                }
+            },
+            error: function (xhr, status, error) {
+                console.log('Error loading client data:', error); // Debug log
+                alert('Error loading client data: ' + error);
+            }
+        });
+    }
+
+    // Function to save client data
+    function saveClient() {
+        var formData = {
+            Id: $('#clientId').val(),
+            Title: $('#title').val(),
+            Address: $('#address').val(),
+            AddressAlt: $('#addressAlt').val(),
+            City: $('#city').val(),
+            Zip: $('#zip').val(),
+            Notes: $('#notes').val(),
+            TaxExempt: $('#taxExempt').is(':checked'),
+            BlindShipping: $('#blindShipping').is(':checked'),
+            IsGolfClient: $('#isGolfClient').is(':checked'),
+            CreditHold: $('#creditHold').is(':checked'),
+            PriceLevelId: $('#priceLevelId').val(),
+            USStateId: $('#usStateId').val(),
+            Markup: $('#markup').val(),
+            ShippingAddress: $('#shippingAddress').val(),
+            ShippingCity: $('#shippingCity').val(),
+            ShippingZip: $('#shippingZip').val(),
+            ShippingUSState: $('#shippingUSState').val(),
+            BillingAddress: $('#billingAddress').val(),
+            BillingCity: $('#billingCity').val(),
+            BillingZip: $('#billingZip').val(),
+            BillingUSState: $('#billingUSState').val(),
+            AREmail: $('#arEmail').val(),
+            Deleted: $('#deleted').val()
+        };
+
+        $.ajax({
+            url: ProcessUrl('Customers/SaveClient2'),
+            type: 'POST',
+            data: formData,
+            success: function (response) {
+                if (response.success) {
+                    $('#clientEditorModal').modal('hide');
+
+                    // Update credit hold banner and hidden field on parent page
+                    var onHold = formData.CreditHold === true;
+                    $('#client_credit_hold').val(onHold ? 'true' : 'false');
+                    if (onHold) {
+                        $('#credit-hold-banner').removeClass('d-none');
+                    } else {
+                        $('#credit-hold-banner').addClass('d-none');
+                    }
+
+                    alert('Client saved successfully');
+                } else {
+                    alert('Error saving client: ' + response.message);
+                }
+            },
+            error: function () {
+                alert('Error saving client');
+            }
+        });
+    }
+
+    // Event handler for when modal is about to be shown (using event delegation)
+    $(document).on('show.bs.modal', '#clientEditorModal', function (event) {
+        // Get the selected client ID from the hidden field
+        var clientId = null;
+
+        // Check for Job context
+        var jobClientField = $('input[name="VM_Job.Job.Client"]');
+        if (jobClientField.length > 0) {
+            clientId = jobClientField.val();
+            console.log('Found Job client ID:', clientId); // Debug log
+        }
+
+        // Check for Quote context if not found in Job
+        if (!clientId) {
+            var quoteClientField = $('input[name="VM_Quote.Quote.Client"]');
+            if (quoteClientField.length > 0) {
+                clientId = quoteClientField.val();
+                console.log('Found Quote client ID:', clientId); // Debug log
+            }
+        }
+
+        console.log('Final client ID to load:', clientId); // Debug log
+
+        // Prevent modal from opening if no client is selected
+        if (!clientId || clientId === '' || clientId === '0') {
+            console.log('No client selected, preventing modal from opening'); // Debug log
+            event.preventDefault(); // Prevent the modal from opening
+            alert('Please select a client first before editing.');
+            return false;
+        }
+
+        // Load the client data
+        loadClientData(clientId);
+    });
+</script>

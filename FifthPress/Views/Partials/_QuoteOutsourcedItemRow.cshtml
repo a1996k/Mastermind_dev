@@ -1,0 +1,76 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_QuoteOutsourcedItem
+
+<div class="quote-outsourced-item-row o-item-row container item-row @(Model.QuoteOutsourcedItem.SubitemOf.HasValue ? "sub-item" : "")" data-record-id="@Html.DisplayFor(model => model.QuoteOutsourcedItem.Id)" data-item-ordinal="@Html.DisplayFor(model => model.QuoteOutsourcedItem.Ordinal)">
+    <div class="doc-link">
+        <i class="fa-solid fa-book"></i>
+        <span>Documents</span>
+    </div>
+
+    <button type="button" class="btn btn-danger btn-sm remove-btn remove-os-btn"><i class="fas fa-times"></i></button>
+
+    @if (Model.QuoteOutsourcedItem.SubitemOf.HasValue)
+    {
+        <button type="button" class="btn btn-info btn-sm link-item-btn" style="display:none"><i class="fa-solid fa-up-right-from-square"></i><span class="ps-1">Link</span></button>
+        <button type="button" class="btn btn-info btn-sm unlink-item-btn"><i class="fa-solid fa-link-slash"></i><span class="ps-1">Unlink</span></button>
+    }
+    else
+    {
+        <button type="button" class="btn btn-info btn-sm link-item-btn"><i class="fa-solid fa-up-right-from-square"></i><span class="ps-1">Link</span></button>
+        <button type="button" class="btn btn-info btn-sm unlink-item-btn" style="display:none"><i class="fa-solid fa-link-slash"></i><span class="ps-1">Unlink</span></button>
+    }
+
+    <button type="button" class="btn btn-fc-info move-up-btn"><i class="fa-solid fa-square-up"></i></button>
+    <button type="button" class="btn btn-fc-info move-down-btn"><i class="fa-solid fa-square-down"></i></button>
+
+    <!-- <button type="button" class="btn btn-fc-caution copy-item-btn">Copy Item</button> -->
+    @Html.HiddenFor(model => model.QuoteOutsourcedItem.Id, htmlAttributes: new { @class = "quote-item-id" })
+    @Html.HiddenFor(model => model.QuoteOutsourcedItem.Quote, htmlAttributes: new { @class = "quote-id" })
+    @Html.HiddenFor(model => model.QuoteOutsourcedItem.Ordinal, htmlAttributes: new { @class = "itemordinal" })
+    @Html.HiddenFor(model => model.QuoteOutsourcedItem.SubitemOf, htmlAttributes: new { @class = "subitem-of" })
+
+    <div class="row justify-content-between">
+        <div class="field-binder-row-flex">
+            @Html.LabelFor(model => model.QuoteOutsourcedItem.Description)
+            @Html.TextAreaFor(model => model.QuoteOutsourcedItem.Description, htmlAttributes: new { @class = "item-description styled-input" })
+            @Html.LabelFor(model => model.QuoteOutsourcedItem.Notes)
+            @Html.TextAreaFor(model => model.QuoteOutsourcedItem.Notes, htmlAttributes: new { @class = "item-notes styled-input" })
+        </div>
+        <div class="field-binder-row-flex">
+            <label>Vendor</label>
+            @Html.DropDownList("QuoteOutsourcedItem.Vendor", ViewData["QuoteOutsourcedItem.Vendor"] as SelectList, htmlAttributes: new { @id = ("qoi_" + Model.QuoteOutsourcedItem.Id.ToString()), @class = "vendor styled-input" })
+            <button type="button" class="btn btn-fc-info add-vendor-btn" data-modal-to-open="#dynamic_vendor_modal">Add Vendor</button>
+            <script>
+                $('#qoi_' + '@Model.QuoteOutsourcedItem.Id.ToString()').val('@Model.QuoteOutsourcedItem.Vendor');
+            </script>
+        </div>
+    </div>
+
+    <div class="field-binder-row-flex">
+        <div class="field-binder-col-flex ms-5">
+            @Html.LabelFor(model => model.QuoteOutsourcedItem.Quantity)
+            @Html.EditorFor(model => model.QuoteOutsourcedItem.Quantity, new { htmlAttributes = new { @class = "o-item-qty styled-input" } })
+        </div>
+        <div class="field-binder-col-flex">
+            @Html.LabelFor(model => model.QuoteOutsourcedItem.ShippingCost)
+            <div><span class="fs-3">$</span>@Html.EditorFor(model => model.QuoteOutsourcedItem.ShippingCost, new { htmlAttributes = new { @class = "shipping-cost styled-input" } })</div>
+        </div>
+        <div class="field-binder-col-flex">
+            @Html.LabelFor(model => model.QuoteOutsourcedItem.JobCost)
+            <div><span class="fs-3">$</span>@Html.EditorFor(model => model.QuoteOutsourcedItem.JobCost, new { htmlAttributes = new { @class = "job-cost styled-input" } })</div>
+        </div>
+        <div class="field-binder-col-flex">
+            @Html.LabelFor(model => model.QuoteOutsourcedItem.JobPriceUnit)
+            @Html.DropDownList("QuoteOutsourcedItem.JobPriceUnit", ViewData["QuoteOutsourcedItem.JobPriceUnit"] as SelectList, htmlAttributes: new { @class = "job-price-unit styled-input" })
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        let costType = @Html.DisplayFor(model => model.QuoteOutsourcedItem.JobPriceUnit);
+        let rowId = @Html.DisplayFor(model => model.QuoteOutsourcedItem.Id);
+
+        $('.quote-outsourced-item-row[data-record-id="' + rowId + '"]').find('.job-price-unit').val(costType);
+    });
+</script>

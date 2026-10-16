@@ -1,0 +1,71 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_EditTimeEntry
+
+<div class="modal" tabindex="-1" id="edit_time_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title">Edit Job Time</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_time_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            @if (Model.HasPermission)
+            {
+                if (!Model.HasEndTime)
+                {
+
+
+                    <div class="modal-body">
+                        <h2 class="ff-dm-sans fs-18 fw-bold">Please end the time before editing.</h2>
+                    </div>
+
+
+                    <div class="modal-footer">
+                        <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#edit_time_modal">Cancel</button>
+                    </div>
+                }
+                else
+                {
+                    <div class="modal-body">
+                        @using (Html.BeginForm("SaveTimeEntry", "TimeTracking", FormMethod.Post, new { id = "editTimeEntryForm" }))
+                        {
+                            @Html.HiddenFor(m => m.Id)
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.JobDescription, new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.JobDescription, new { @class = "form-control", @readonly = "readonly" })
+                            </div>
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.ItemDescription, new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.ItemDescription, new { @class = "form-control", @readonly = "readonly" })
+                            </div>
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.ServiceTitle, new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.ServiceTitle, new { @class = "form-control", @readonly = "readonly" })
+                            </div>
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.StartTime, new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.StartTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local" })
+                            </div>
+                            <div class="mb-3">
+                                @Html.LabelFor(m => m.EndTime, new { @class = "form-label" })
+                                @Html.TextBoxFor(m => m.EndTime, "{0:yyyy-MM-ddTHH:mm}", new { @class = "form-control", type = "datetime-local" })
+                            </div>
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#edit_time_modal">Cancel</button>
+                        <button class="btn btn-fc-success submit-time-edit-btn" data-modal-to-close="#edit_time_modal">Save</button>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="modal-body">
+                    <h2 class="ff-dm-sans fs-18 fw-bold">You do not have permission to edit this.</h2>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#edit_time_modal">Cancel</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

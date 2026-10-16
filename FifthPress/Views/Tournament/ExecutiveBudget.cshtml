@@ -1,0 +1,593 @@
+@{
+    ViewBag.Title = "Executive Budget Dashboard";
+}
+
+<style>
+    .metric-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .metric-card.success { background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%); }
+    .metric-card.warning { background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); }
+    .metric-card.info { background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%); }
+    .metric-card.danger { background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%); }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .metric-label {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        min-height: 400px;
+    }
+    
+    .filter-panel {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .tournament-table {
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .status-planned { background-color: #e3f2fd; color: #1976d2; }
+    .status-active { background-color: #e8f5e8; color: #2e7d32; }
+    .status-completed { background-color: #f3e5f5; color: #7b1fa2; }
+    .status-cancelled { background-color: #ffebee; color: #d32f2f; }
+    
+    .loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="fas fa-chart-line"></i> Executive Budget Dashboard</h1>
+        <div>
+            <button type="button" class="btn btn-outline-primary" onclick="exportToCSV()">
+                <i class="fas fa-download"></i> Export CSV
+            </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="refreshData()">
+                <i class="fas fa-sync"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Panel -->
+    <div class="filter-panel">
+        <div class="row align-items-end">
+            <div class="col-md-3">
+                <label for="yearFilter" class="form-label">Year</label>
+                <select class="form-select" id="yearFilter">
+                    <option value="2024">2024</option>
+                    <option value="2025" selected>2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="clientFilter" class="form-label">Client</label>
+                <select class="form-select" id="clientFilter">
+                    <option value="">All Clients</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label">Status</label>
+                <select class="form-select" id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="1">Planned</option>
+                    <option value="2">Active</option>
+                    <option value="3">Completed</option>
+                    <option value="4">Cancelled</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary w-100" onclick="loadBudgetData()">
+                    <i class="fas fa-filter"></i> Apply Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div class="row" id="metricsCards">
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card">
+                <div class="metric-value" id="totalBudget">$0</div>
+                <div class="metric-label">Total Budget</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card success">
+                <div class="metric-value" id="totalDirectCosts">$0</div>
+                <div class="metric-label">Direct Costs</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card info">
+                <div class="metric-value" id="totalLaborCosts">$0</div>
+                <div class="metric-label">Labor Costs</div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="metric-card warning">
+                <div class="metric-value" id="totalTournaments">0</div>
+                <div class="metric-label">Tournaments</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <div class="chart-container" style="position: relative;">
+                <h5 class="mb-3">Cost Breakdown by Tournament</h5>
+                <div style="position: relative; height: 400px;">
+                    <canvas id="costBreakdownChart"></canvas>
+                </div>
+                <div class="loading-overlay" id="chartLoading" style="display: none;">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-lg-5">
+            <div class="chart-container" style="position: relative;">
+                <h5 class="mb-3">Cost Distribution</h5>
+                <div style="position: relative; height: 350px;">
+                    <canvas id="costDistributionChart"></canvas>
+                </div>
+                <div class="loading-overlay" id="pieChartLoading" style="display: none;">
+                    <div class="spinner-border text-primary" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tournament Details Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="tournament-table">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="tournamentTable">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Tournament</th>
+                                <th>Client</th>
+                                <th>Dates</th>
+                                <th>Status</th>
+                                <th class="text-end">Labor Cost</th>
+                                <th class="text-end">Material Cost</th>
+                                <th class="text-end">Freight Cost</th>
+                                <th class="text-end">Total Cost</th>
+                                <th class="text-end">Budget</th>
+                                <th class="text-center">Staff</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tournamentTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let budgetData = null;
+    let costBreakdownChart = null;
+    let costDistributionChart = null;
+
+    // Initialize page
+    $(document).ready(function() {
+        loadGolfClients();
+        loadBudgetData();
+    });
+
+    // Load golf clients for filter
+    async function loadGolfClients() {
+        try {
+            const response = await fetch(ProcessUrl('Tournament/GetCreateData'));
+            if (response.ok) {
+                const data = await response.json();
+                const clientSelect = document.getElementById('clientFilter');
+                
+                if (data.AvailableClients) {
+                    data.AvailableClients.forEach(client => {
+                        if (client.Value) {
+                            const option = document.createElement('option');
+                            option.value = client.Value;
+                            option.textContent = client.Text;
+                            clientSelect.appendChild(option);
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error loading clients:', error);
+        }
+    }
+
+    // Load budget data
+    async function loadBudgetData() {
+        const year = document.getElementById('yearFilter').value;
+        const clientId = document.getElementById('clientFilter').value;
+        const status = document.getElementById('statusFilter').value;
+
+        try {
+            showLoading();
+            
+            let url = `Tournament/GetExecutiveBudgetSummary?year=${year}`;
+            if (clientId) url += `&clientId=${clientId}`;
+
+            const response = await fetch(ProcessUrl(url));
+            if (response.ok) {
+                budgetData = await response.json();
+                
+                if (budgetData.success === false) {
+                    throw new Error(budgetData.message || 'Failed to load budget data');
+                }
+
+                // Filter by status if selected
+                if (status) {
+                    budgetData.Tournaments = budgetData.Tournaments.filter(t => t.Status == status);
+                    // Recalculate totals
+                    recalculateTotals();
+                }
+
+                updateMetrics();
+                updateCharts();
+                updateTable();
+            } else {
+                throw new Error('Failed to fetch budget data');
+            }
+        } catch (error) {
+            console.error('Error loading budget data:', error);
+            alert('Error loading budget data: ' + error.message);
+        } finally {
+            hideLoading();
+        }
+    }
+
+    // Recalculate totals after filtering
+    function recalculateTotals() {
+        if (!budgetData || !budgetData.Tournaments) return;
+
+        budgetData.TotalTournaments = budgetData.Tournaments.length;
+        budgetData.TotalBudget = budgetData.Tournaments.reduce((sum, t) => sum + t.ProfitabilityIndex, 0);
+        budgetData.TotalDirectCosts = budgetData.Tournaments.reduce((sum, t) => sum + t.TotalDirectCosts, 0);
+        budgetData.TotalLaborCosts = budgetData.Tournaments.reduce((sum, t) => sum + t.TotalLaborCost, 0);
+        budgetData.TotalMaterialCosts = budgetData.Tournaments.reduce((sum, t) => sum + t.MaterialCosts, 0);
+        budgetData.TotalFreightCosts = budgetData.Tournaments.reduce((sum, t) => sum + t.FreightCosts, 0);
+    }
+
+    // Update metrics cards
+    function updateMetrics() {
+        if (!budgetData) return;
+
+        document.getElementById('totalBudget').textContent = formatCurrency(budgetData.TotalBudget);
+        document.getElementById('totalDirectCosts').textContent = formatCurrency(budgetData.TotalDirectCosts);
+        document.getElementById('totalLaborCosts').textContent = formatCurrency(budgetData.TotalLaborCosts);
+        document.getElementById('totalTournaments').textContent = budgetData.TotalTournaments;
+    }
+
+    // Update charts
+    function updateCharts() {
+        if (!budgetData || !budgetData.Tournaments) return;
+
+        updateCostBreakdownChart();
+        updateCostDistributionChart();
+    }
+
+    // Cost breakdown bar chart
+    function updateCostBreakdownChart() {
+        const ctx = document.getElementById('costBreakdownChart').getContext('2d');
+        
+        if (costBreakdownChart) {
+            costBreakdownChart.destroy();
+            costBreakdownChart = null;
+        }
+        
+        // Reset canvas size to prevent growing
+        ctx.canvas.width = ctx.canvas.parentNode.offsetWidth;
+        ctx.canvas.height = 400;
+
+        const tournaments = budgetData.Tournaments.slice(0, 10); // Top 10 tournaments
+        
+        costBreakdownChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: tournaments.map(t => truncateText(t.TournamentName, 20)),
+                datasets: [
+                    {
+                        label: 'Labor Costs',
+                        data: tournaments.map(t => t.TotalLaborCost),
+                        backgroundColor: '#4CAF50',
+                        borderColor: '#45a049',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Material Costs',
+                        data: tournaments.map(t => t.MaterialCosts),
+                        backgroundColor: '#2196F3',
+                        borderColor: '#1976D2',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Freight Costs',
+                        data: tournaments.map(t => t.FreightCosts),
+                        backgroundColor: '#ff9800',
+                        borderColor: '#f57c00',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resize: true,
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': $' + context.parsed.y.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                onResize: function(chart, size) {
+                    // Prevent infinite resizing
+                    if (size.height > 400) {
+                        chart.canvas.parentNode.style.height = '400px';
+                    }
+                }
+            }
+        });
+    }
+
+    // Cost distribution pie chart
+    function updateCostDistributionChart() {
+        const ctx = document.getElementById('costDistributionChart').getContext('2d');
+        
+        if (costDistributionChart) {
+            costDistributionChart.destroy();
+            costDistributionChart = null;
+        }
+        
+        // Reset canvas size to prevent growing
+        ctx.canvas.width = ctx.canvas.parentNode.offsetWidth;
+        ctx.canvas.height = 350;
+
+        costDistributionChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Labor Costs', 'Material Costs', 'Freight Costs'],
+                datasets: [{
+                    data: [
+                        budgetData.TotalLaborCosts,
+                        budgetData.TotalMaterialCosts,
+                        budgetData.TotalFreightCosts
+                    ],
+                    backgroundColor: ['#4CAF50', '#2196F3', '#ff9800'],
+                    borderColor: ['#45a049', '#1976D2', '#f57c00'],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                resize: true,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                return context.label + ': $' + context.parsed.toLocaleString() + ' (' + percentage + '%)';
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'bottom',
+                    }
+                },
+                onResize: function(chart, size) {
+                    // Prevent infinite resizing
+                    if (size.height > 350) {
+                        chart.canvas.parentNode.style.height = '350px';
+                    }
+                }
+            }
+        });
+    }
+
+    // Update table
+    function updateTable() {
+        if (!budgetData || !budgetData.Tournaments) return;
+
+        const tbody = document.getElementById('tournamentTableBody');
+        tbody.innerHTML = '';
+
+        budgetData.Tournaments.forEach(tournament => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <div><strong>${tournament.TournamentName}</strong></div>
+                    <small class="text-muted">${tournament.Location}</small>
+                </td>
+                <td>${tournament.ClientName}</td>
+                <td>
+                    <div>${formatDate(tournament.StartDate)}</div>
+                    <small class="text-muted">to ${formatDate(tournament.EndDate)}</small>
+                </td>
+                <td><span class="status-badge status-${getStatusClass(tournament.Status)}">${getStatusText(tournament.Status)}</span></td>
+                <td class="text-end">${formatCurrency(tournament.TotalLaborCost)}</td>
+                <td class="text-end">${formatCurrency(tournament.MaterialCosts)}</td>
+                <td class="text-end">${formatCurrency(tournament.FreightCosts)}</td>
+                <td class="text-end"><strong>${formatCurrency(tournament.TotalDirectCosts)}</strong></td>
+                <td class="text-end"><strong>${formatCurrency(tournament.ProfitabilityIndex)}</strong></td>
+                <td class="text-center">${tournament.TotalStaffCount}</td>
+                <td class="text-center">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="viewTournamentDetails(${tournament.TournamentId})" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Utility functions
+    function formatCurrency(value) {
+        return '$' + (value || 0).toLocaleString('en-US', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        });
+    }
+
+    function formatDate(dateStr) {
+        return new Date(dateStr).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    }
+
+    function getStatusClass(status) {
+        switch(status) {
+            case 1: return 'planned';
+            case 2: return 'active';
+            case 3: return 'completed';
+            case 4: return 'cancelled';
+            default: return 'planned';
+        }
+    }
+
+    function getStatusText(status) {
+        switch(status) {
+            case 1: return 'Planned';
+            case 2: return 'Active';
+            case 3: return 'Completed';
+            case 4: return 'Cancelled';
+            default: return 'Unknown';
+        }
+    }
+
+    function truncateText(text, maxLength) {
+        return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    }
+
+    function showLoading() {
+        document.getElementById('chartLoading').style.display = 'flex';
+        document.getElementById('pieChartLoading').style.display = 'flex';
+    }
+
+    function hideLoading() {
+        document.getElementById('chartLoading').style.display = 'none';
+        document.getElementById('pieChartLoading').style.display = 'none';
+    }
+
+    function refreshData() {
+        loadBudgetData();
+    }
+
+    function viewTournamentDetails(tournamentId) {
+        window.open(ProcessUrl(`Tournament/GetTournamentCosts/${tournamentId}`), '_blank');
+    }
+
+    function exportToCSV() {
+        if (!budgetData || !budgetData.Tournaments) {
+            alert('No data to export');
+            return;
+        }
+
+        const headers = [
+            'Tournament Name', 'Client', 'Start Date', 'End Date', 'Status',
+            'Labor Cost', 'Material Cost', 'Freight Cost', 'Total Direct Cost', 
+            'Budget', 'Staff Count', 'Labor Days'
+        ];
+
+        const csvContent = [
+            headers.join(','),
+            ...budgetData.Tournaments.map(t => [
+                `"${t.TournamentName}"`,
+                `"${t.ClientName}"`,
+                formatDate(t.StartDate),
+                formatDate(t.EndDate),
+                getStatusText(t.Status),
+                t.TotalLaborCost,
+                t.MaterialCosts,
+                t.FreightCosts,
+                t.TotalDirectCosts,
+                t.ProfitabilityIndex,
+                t.TotalStaffCount,
+                t.TotalLaborDays
+            ].join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `executive-budget-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }
+
+    // Event listeners
+    document.getElementById('yearFilter').addEventListener('change', loadBudgetData);
+    document.getElementById('clientFilter').addEventListener('change', loadBudgetData);
+    document.getElementById('statusFilter').addEventListener('change', loadBudgetData);
+</script>

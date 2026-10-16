@@ -1,0 +1,60 @@
+﻿@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_QuoteMetrics
+
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "q01")
+
+<div class="field-binder-row-flex chart-icon-wrapper">
+    <!--<i class="fa-solid fa-users"></i>-->
+    <i class="fa-solid fa-circle-info"></i>
+</div>
+
+<div class="field-binder-col-flex card-user-list-wrapper">
+    <h3>(Debug) User List</h3>
+    <ul class="q01-user-list"></ul>
+</div>
+
+<div class="informational-block">
+    <p>This chart summarizes key metrics on quotes and conversions, providing a clear picture of sales activity within the selected date range. The data is sourced directly from the database by aggregating records in two steps.</p>
+    <p>First, we calculate the total number of unique quotes and their combined price by querying quotes created within the specified date range, linking them with corresponding prices. Next, we assess conversions by identifying quotes that have been successfully converted into jobs, counting them for the same period.</p>
+    <p>The final chart combines these figures, showing the <strong>Total Quotes</strong>, <strong>Total Quote Value</strong>, and <strong>Converted Quotes</strong>. Additionally, a <strong>Conversion Rate</strong> metric is derived by calculating the percentage of quotes that were converted into jobs, which helps gauge the effectiveness of our quote-to-job conversion. Where no data is found, metrics default to zero for accuracy and consistency.</p>
+</div>
+
+<canvas class="quote-metrics-chart metric-chart" id="pq01"></canvas>
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <!-- # of Quotes -->
+            <span class="fs-4"># of Quotes: <span>@Html.DisplayFor(model => model.Aggregates.NumberOfQuotes)</span></span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <!-- Quotes Total Price -->
+            <span class="fs-4">Quotes Total Price: <span>@Html.DisplayFor(model => model.Aggregates.TotalQuotePrice, "Currency")</span></span>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <!-- Percentage of Quotes to Jobs -->
+            <span class="fs-4">% Quotes -> Jobs: <span>@Html.DisplayFor(model => model.Aggregates.PercentConverted, "Percent")</span></span>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('.q01-user-list').append(
+        `<li class="user-list-entry pt-2" data-user-id="-1">
+            <div class="field-binder-row-flex justify-content-between">
+                <label for="ulcb_-1" class="ff-poppins fs-16 fw-bold fst-italic">Select All</label>
+                <input type="checkbox" id="ulcb_-1" checked />
+            </div>
+         </li>`);
+        @foreach(FifthPress.Models.ViewModels.VMMUserChartPermissions v in Model.UserPermissions)
+{
+    <text>$('.q01-user-list').append('<li data-user-id="@Html.DisplayFor(model => v.UserId )">@Html.DisplayFor(model => v.FirstName) @Html.DisplayFor(model => v.LastName)</li>')</text>
+}
+
+    $('.range-selector[data-card-ajax-id="q01"] select[name="Range"]').val('@Model.RangeOverride');
+    $('.range-selector[data-card-ajax-id="q01"] input[name="Locked"]').prop('checked', '@Model.IsLocked' === 'True');
+</script>

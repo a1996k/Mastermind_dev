@@ -1,0 +1,225 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_POIndex
+
+@Styles.Render("~/Content/pocss")
+@Scripts.Render("~/bundles/pojs")
+
+@{ bool isInternals = (bool)ViewData["IsInternals"]; }
+
+<div class="container-fluid">
+    <div class="row pb-5 pt-3 mt-5">
+        <div class="col-lg-12">
+            <button type="button" class="btn btn-lg btn-fc-info new-po">New Purchase Order</button>
+        </div>
+    </div>
+    <div class="row sortable-row">
+        @if (ViewData["UserRole"].ToString() == "Approver" || ViewData["UserRole"].ToString() == "Admin")
+        {
+            <div class="col-lg-12 mb-3 p-5 bg-white">
+                <h3>Orders Awaiting Approval</h3>
+                <!-- Awaiting approval (all) -->
+                <table class="table table-bordered fs-3" id="awaiting_approval_table">
+                    <thead>
+                        <tr>
+                            <th>PO #</th>
+                            <th>Job #</th>
+                            <th>Needed By</th>
+                            <th>Vendor</th>
+                            <th>Status</th>
+                            <th>Requestor</th>
+                            <th>Approver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (VM_PO_Orders o in Model.AwaitingApproval)
+                        {
+                            <tr class="parent-row" data-record-id="@Html.DisplayFor(model => o.Order.Id)" data-partner-id="@Html.DisplayFor(model => o.Order.Id)">
+                                @if (isInternals)
+                                {
+                                    <td><i class="fa-solid fa-plus expand-row-btn"></i><i class="fa-solid fa-minus collapse-row-btn" style="display:none"></i><a href="PurchaseOrders/Edit/@Html.DisplayFor(model => o.Order.Id)" class="po-link ps-3">@Html.DisplayFor(model => o.Order.PONumber)</a></td>
+                                    <td><a href="Job/Edit/@Html.DisplayFor(model => o.Order.Job)" class="job-link ps-3">@Html.DisplayFor(model => o.Order.Job1.JobNumber)</a></td>
+
+                                }
+                                else
+                                {
+                                    <td><i class="fa-solid fa-plus expand-row-btn"></i><i class="fa-solid fa-minus collapse-row-btn" style="display:none"></i><a href="PurchaseOrders/Edit/@Html.DisplayFor(model => o.Order.Id)" class="po-link ps-3">@Html.DisplayFor(model => o.Order.PONumber)</a></td>
+                                    <td><a href="Job/Edit/@Html.DisplayFor(model => o.Order.Job)" class="job-link ps-3">@Html.DisplayFor(model => o.Order.Job1.JobNumber)</a></td>
+
+                                }
+                                <td>@Html.DisplayFor(model => o.Order.NeededBy, "{0:M-d-yyyy}", null)</td>
+                                <td>@Html.DisplayFor(model => o.Order.Vendor1.Title)</td>
+                                <td>@Html.DisplayFor(model => o.Order.Status)</td>
+                                <td>@Html.DisplayFor(model => o.Order.User.FirstName) @Html.DisplayFor(model => o.Order.User.LastName)</td>
+                                <td></td>
+                            </tr>
+
+                            foreach (VM_PO_Items i in o.Items.Where(x => x.Item.PurchaseOrder == o.Order.Id))
+                            {
+                                <tr data-record-id="@Html.DisplayFor(model => i.Item.Id)" data-partner-id="@Html.DisplayFor(model => o.Order.Id)" class="bg-body-secondary" style="display:none">
+                                    <td><!-- PO Number (on parent) --></td>
+                                    @if (isInternals)
+                                    {
+                                        <td><a href="Job/Edit/@Html.DisplayFor(model => i.Item.Job)" class="job-link ps-3">@Html.DisplayFor(model => i.Item.Job1.JobNumber)</a></td>
+                                    }
+                                    else
+                                    {
+                                        <td><a href="Job/Edit/@Html.DisplayFor(model => i.Item.Job)" class="job-link ps-3">@Html.DisplayFor(model => i.Item.Job1.JobNumber)</a></td>
+                                    }
+                                    <td>@Html.DisplayFor(model => i.Item.ItemTitle)</td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        <div class="col-lg-12 mb-3 p-5 bg-white">
+            <h3>My Orders</h3>
+            <!-- My Orders -->
+            <table class="table table-bordered fs-3" id="my_orders_table">
+                <thead>
+                    <tr>
+                        <th>PO #</th>
+                        <th>Job #</th>
+                        <th>Needed By</th>
+                        <th>Vendor</th>
+                        <th>Status</th>
+                        <th>Requestor</th>
+                        <th>Approver</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (VM_PO_Orders o in Model.MyOrders)
+                    {
+                        <tr class="parent-row" data-record-id="@Html.DisplayFor(model => o.Order.Id)" data-partner-id="@Html.DisplayFor(model => o.Order.Id)">
+                            @if (isInternals)
+                            {
+                                <td><i class="fa-solid fa-plus expand-row-btn"></i><i class="fa-solid fa-minus collapse-row-btn" style="display:none"></i><a href="PurchaseOrders/Edit/@Html.DisplayFor(model => o.Order.Id)" class="po-link ps-3">@Html.DisplayFor(model => o.Order.PONumber)</a></td>
+                                <td><a href="Job/Edit/@Html.DisplayFor(model => o.Order.Job)" class="job-link ps-3">@Html.DisplayFor(model => o.Order.Job1.JobNumber)</a></td>
+
+                            }
+                            else
+                            {
+                                if ((o.Order.Status == "approved" || o.Order.Status == "denied") && (ViewData["UserRole"].ToString() != "Admin"))
+                                {
+                                    <td><i class="fa-solid fa-plus expand-row-btn"></i><i class="fa-solid fa-minus collapse-row-btn" style="display:none"></i><a href="PurchaseOrders/View/@Html.DisplayFor(model => o.Order.Id)" class="po-link ps-3">@Html.DisplayFor(model => o.Order.PONumber)</a></td>
+                                }
+                                else
+                                {
+                                    <td><i class="fa-solid fa-plus expand-row-btn"></i><i class="fa-solid fa-minus collapse-row-btn" style="display:none"></i><a href="PurchaseOrders/Edit/@Html.DisplayFor(model => o.Order.Id)" class="po-link ps-3">@Html.DisplayFor(model => o.Order.PONumber)</a></td>
+                                }
+                                <td><a href="Job/Edit/@Html.DisplayFor(model => o.Order.Job)" class="job-link ps-3">@Html.DisplayFor(model => o.Order.Job1.JobNumber)</a></td>
+
+                            }
+                            <td>@Html.DisplayFor(model => o.Order.NeededBy, "{0:M-d-yyyy}", null)</td>
+                            <td>@Html.DisplayFor(model => o.Order.Vendor1.Title)</td>
+                            <td>@Html.DisplayFor(model => o.Order.Status)</td>
+                            <td>@Html.DisplayFor(model => o.Order.User.FirstName) @Html.DisplayFor(model => o.Order.User.LastName)</td>
+                            @if (o.Order.PO_Approvals.Count > 0)
+                            {
+                                <td>@Html.DisplayFor(model => o.Order.PO_Approvals.First().User.FirstName) @Html.DisplayFor(model => o.Order.PO_Approvals.First().User.LastName)</td>
+                            }
+                            else
+                            {
+                                <td></td>
+                            }
+                        </tr>
+
+                        foreach (VM_PO_Items i in o.Items.Where(x => x.Item.PurchaseOrder == o.Order.Id))
+                        {
+                            <tr data-record-id="@Html.DisplayFor(model => i.Item.Id)" data-partner-id="@Html.DisplayFor(model => o.Order.Id)" class="bg-body-secondary" style="display:none">
+                                <td><!-- PO Number (on parent) --></td>
+                                @if (isInternals)
+                                {
+                                    <td><a href="Job/Edit/@Html.DisplayFor(model => i.Item.Job)" class="job-link ps-3">@Html.DisplayFor(model => i.Item.Job1.JobNumber)</a></td>
+                                }
+                                else
+                                {
+                                    <td><a href="Job/Edit/@Html.DisplayFor(model => i.Item.Job)" class="job-link ps-3">@Html.DisplayFor(model => i.Item.Job1.JobNumber)</a></td>
+
+                                }
+                                <td>@Html.DisplayFor(model => i.Item.ItemTitle)</td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if (ViewData["UserRole"].ToString() == "Approver" || ViewData["UserRole"].ToString() == "Admin")
+        {
+            <div class="col-lg-12 mb-3 p-5 bg-white">
+                <h3>All Orders</h3>
+                <!-- All Orders -->
+                <table class="table table-bordered fs-3" id="all_orders_table">
+                    <thead>
+                        <tr>
+                            <th>PO #</th>
+                            <th>Job #</th>
+                            <th>Needed By</th>
+                            <th>Vendor</th>
+                            <th>Status</th>
+                            <th>Requestor</th>
+                            <th>Approver</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (VM_PO_Orders o in Model.AllOrders)
+                        {
+                            <tr class="parent-row" data-record-id="@Html.DisplayFor(model => o.Order.Id)" data-partner-id="@Html.DisplayFor(model => o.Order.Id)">
+                                @if (isInternals)
+                                {
+                                    <td><i class="fa-solid fa-plus expand-row-btn"></i><i class="fa-solid fa-minus collapse-row-btn" style="display:none"></i><a href="PurchaseOrders/Edit/@Html.DisplayFor(model => o.Order.Id)" class="po-link ps-3">@Html.DisplayFor(model => o.Order.PONumber)</a></td>
+                                    <td><a href="Job/Edit/@Html.DisplayFor(model => o.Order.Job)" class="job-link ps-3">@Html.DisplayFor(model => o.Order.Job1.JobNumber)</a></td>
+
+                                }
+                                else
+                                {
+                                    if ((o.Order.Status == "approved" || o.Order.Status == "denied") && (ViewData["UserRole"].ToString() != "Admin"))
+                                    {
+                                        <td><i class="fa-solid fa-plus expand-row-btn"></i><i class="fa-solid fa-minus collapse-row-btn" style="display:none"></i><a href="PurchaseOrders/View/@Html.DisplayFor(model => o.Order.Id)" class="po-link ps-3">@Html.DisplayFor(model => o.Order.PONumber)</a></td>
+                                    }
+                                    else
+                                    {
+                                        <td><i class="fa-solid fa-plus expand-row-btn"></i><i class="fa-solid fa-minus collapse-row-btn" style="display:none"></i><a href="PurchaseOrders/Edit/@Html.DisplayFor(model => o.Order.Id)" class="po-link ps-3">@Html.DisplayFor(model => o.Order.PONumber)</a></td>
+                                    }
+                                    <td><a href="Job/Edit/@Html.DisplayFor(model => o.Order.Job)" class="job-link ps-3">@Html.DisplayFor(model => o.Order.Job1.JobNumber)</a></td>
+
+                                }
+                                <td>@Html.DisplayFor(model => o.Order.NeededBy, "{0:M-d-yyyy}", null)</td>
+                                <td>@Html.DisplayFor(model => o.Order.Vendor1.Title)</td>
+                                <td>@Html.DisplayFor(model => o.Order.Status)</td>
+                                <td>@Html.DisplayFor(model => o.Order.User.FirstName) @Html.DisplayFor(model => o.Order.User.LastName)</td>
+                                @if (o.Order.PO_Approvals.Count > 0)
+                                {
+                                    <td>@Html.DisplayFor(model => o.Order.PO_Approvals.First().User.FirstName) @Html.DisplayFor(model => o.Order.PO_Approvals.First().User.LastName)</td>
+                                }
+                                else
+                                {
+                                    <td></td>
+                                }
+                            </tr>
+
+                            foreach (VM_PO_Items i in o.Items.Where(x => x.Item.PurchaseOrder == o.Order.Id))
+                            {
+                                <tr data-record-id="@Html.DisplayFor(model => i.Item.Id)" data-partner-id="@Html.DisplayFor(model => o.Order.Id)" class="bg-body-secondary" style="display:none">
+                                    <td><!-- PO Number (on parent) --></td>
+                                    <td><a href="Job/Edit/@Html.DisplayFor(model => i.Item.Job)" class="job-link ps-3">@Html.DisplayFor(model => i.Item.Job1.JobNumber)</a></td>
+
+                                    <td>@Html.DisplayFor(model => i.Item.ItemTitle)</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

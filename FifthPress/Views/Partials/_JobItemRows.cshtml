@@ -1,0 +1,9 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<JobItem>
+
+@* intended to be used post item-reorder *@
+
+@foreach (JobItem ji in Model.OrderBy(x => x.Ordinal))
+{
+    @Html.Partial("~/Views/Partials/_JobItemRow.cshtml", new VM_JobItem { JobItem = ji })
+}

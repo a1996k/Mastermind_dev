@@ -1,0 +1,127 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_FinishingMaterials
+
+<style>
+    .popup-table-styles {
+        width: 100%;
+    }
+    .popup-table-styles thead {
+        background-color: #ccc;
+        width: 100%;
+        /* text-align: center; */
+        font-family: 'poppins';
+        font-style: italic;
+        font-weight: 500;
+    }
+
+
+    .selected-mat {
+        font-size: 1.1em;
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+    }
+    .remove-mat {
+        font-size: 1.5em;
+        cursor: pointer;
+        padding: 0 8px;
+    }
+
+</style>
+
+
+
+<div class="modal" tabindex="-1" id="finishing_material_select_modal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content popup-modal-fc">
+            <div class="modal-header">
+                <h3 class="modal-title fc-popup">Select Finishing Materials</h3>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#" aria-label="Cancel">X Cancel</button>
+            </div>
+
+            <div class="modal-body ms-modal-body">
+                <div class="nu-viewport container p-0">
+                    <div class="row">
+                        <div class="col-3">
+                            <div class="sidebar-container">
+                                <ul class="fs-3 p-0">
+
+                                    @foreach(string s in Model.MaterialCategories)
+                                    {
+                                        <li>@Html.DisplayFor(model => s)</li>
+                                    }
+
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <table class="popup-table-styles" id="finishing_material_select_table">
+                                <thead>
+                                    <tr>
+                                        <th>Select</th>
+                                        <th>Material</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (Material m in Model.Materials.OrderBy(x => x.Title))
+                                    {
+                                        <tr data-cat-name="@Html.DisplayFor(model => m.MaterialCategory.Title)" class="fin-material-row" style="display:none">
+                                            <td>
+                                                <input type="checkbox"
+                                                       data-material-id="@Html.DisplayFor(model => m.Id)"
+                                                       data-config-label="@Html.DisplayFor(model => m.ConfigLabel)"
+                                                       data-config-value="@Html.DisplayFor(model => m.ConfigValue)"
+                                                       @*id="mcb_@Html.DisplayFor(model => m.Id)"*@ />
+                                            </td>
+                                            <td>
+                                                <span>@Html.DisplayFor(model => m.Title)</span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-3">
+                            <span class="d-block ff-dm-sans fs-4 fw-medium mb-3">Selected:</span>
+                            <div id="finishing_selected_mats">
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-fc-caution" data-modal-to-close="#">Cancel</button>
+                <button type="button" class="builder-finishing-materials-add btn btn-fc-primary" data-modal-to-close="#">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    $(function () {})
+    .on('click', '.remove-mat', function () {
+        $(this).parent().remove();
+    })
+    .on('change', '#finishing_material_select_table input[type="checkbox"]', {
+        table: $('#finishing_material_select_table'),
+        selectedMats: $('#finishing-selected-mats')
+    }, function (e) {
+        var table = e.data.table;
+        var selectedMats = e.data.selectedMats;
+        var selectedMat = $(this).closest('tr').find('td:nth-child(2)').text();
+        var selectedMatId = $(this).data('material-id');
+        var selectedMatConfigLabel = $(this).data('config-label');
+        var selectedMatConfigValue = $(this).data('config-value');
+
+        if ($(this).is(':checked')) {
+            selectedMats.append('<div class="selected-mat" data-material-id="' + selectedMatId + '" data-config-label="' + selectedMatConfigLabel + '" data-config-value="' + selectedMatConfigValue + '"><div>' + selectedMat + '</div><div class="remove-mat"><i class="fa fa-close"></i></div></div>');
+        } else {
+            selectedMats.find('div[data-material-id="' + selectedMatId + '"]').remove();
+        }
+    });
+</script>
+

@@ -1,0 +1,403 @@
+﻿@model FifthPress.Models.ViewModels2.PO25.CreateRecurringOrderViewModel
+
+@{
+    ViewBag.Title = "Create Recurring Order";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fa fa-repeat"></i> Create Recurring Order</h2>
+            <hr />
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    @TempData["Error"]
+                </div>
+            }
+
+            @using (Html.BeginForm("CreateRecurring", "PO25", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-info-circle"></i> Order Information</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.VendorId, "Vendor", new { @class = "control-label" })
+                                    <div class="input-group">
+                                        @Html.DropDownListFor(m => m.VendorId, Model.Vendors, "-- Select Vendor --", new { @class = "form-control", id = "VendorDropdown", required = "required" })
+                                        <div class="input-group-btn">
+                                            <button type="button" class="btn btn-success" id="addVendorBtn" title="Add New Vendor">
+                                                <i class="fa fa-plus"></i> Add
+                                            </button>
+                                        </div>
+                                    </div>
+                                    @Html.ValidationMessageFor(m => m.VendorId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.DepartmentId, "Department", new { @class = "control-label" })
+                                    @Html.DropDownListFor(m => m.DepartmentId, Model.Departments, "Select Department...", new { @class = "form-control", required = "required" })
+                                    @Html.ValidationMessageFor(m => m.DepartmentId, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.OrderDescription, "Order Description", new { @class = "control-label" })
+                                    @Html.TextBoxFor(m => m.OrderDescription, new { @class = "form-control", placeholder = "Optional description for this recurring order" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-list"></i> Recurring Items</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div id="lineItemsContainer">
+                            <!-- Line items will be added here -->
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <button type="button" id="addLineItem" class="btn btn-success">
+                                    <i class="fa fa-plus"></i> Add Recurring Item
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-body text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fa fa-save"></i> Create Recurring Order
+                        </button>
+                        @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-default btn-lg" })
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Line Item Template -->
+<script type="text/html" id="lineItemTemplate">
+    <div class="panel panel-default line-item-panel" data-index="{{index}}">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                Recurring Item {{displayIndex}}
+                <button type="button" class="btn btn-xs btn-danger pull-right remove-line-item">
+                    <i class="fa fa-trash"></i> Remove
+                </button>
+            </h4>
+        </div>
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label">Description *</label>
+                        <input type="text" name="LineItems[{{index}}].Description" class="form-control" placeholder="e.g., Google Adwords, Hubspot Subscription" required />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Monthly Amount *</label>
+                        <div class="input-group">
+                            <span class="input-group-addon">$</span>
+                            <input type="number" name="LineItems[{{index}}].MonthlyAmount" class="form-control" step="0.01" min="0" required />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="control-label">Recurrence *</label>
+                        <select name="LineItems[{{index}}].RecurrenceType" class="form-control" required>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Quarterly">Quarterly</option>
+                            <option value="Annually">Annually</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="control-label">Start Date *</label>
+                        <input type="date" name="LineItems[{{index}}].StartDate" class="form-control" value="{{currentDate}}" required />
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="control-label">End Date</label>
+                        <input type="date" name="LineItems[{{index}}].EndDate" class="form-control" />
+                        <small class="text-muted">Leave blank for ongoing</small>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <div class="checkbox" style="margin-top: 25px;">
+                            <label>
+                                <input type="checkbox" name="LineItems[{{index}}].IsAllocation" value="true" />
+                                <input type="hidden" name="LineItems[{{index}}].IsAllocation" value="false" />
+                                <strong>This is an allocation</strong><br>
+                                <small class="text-muted">(requires monthly reconciliation)</small>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script>
+$(document).ready(function() {
+    var lineItemIndex = 0;
+    var currentDate = new Date().toISOString().split('T')[0];
+
+    // Add line item
+    $('#addLineItem').click(function() {
+        var template = $('#lineItemTemplate').html();
+        template = template.replace(/{{index}}/g, lineItemIndex);
+        template = template.replace(/{{displayIndex}}/g, lineItemIndex + 1);
+        template = template.replace(/{{currentDate}}/g, currentDate);
+
+        $('#lineItemsContainer').append(template);
+        lineItemIndex++;
+
+        updateRemoveButtons();
+    });
+
+    // Remove line item
+    $(document).on('click', '.remove-line-item', function() {
+        $(this).closest('.line-item-panel').remove();
+        updateLineItemIndices();
+        updateRemoveButtons();
+    });
+
+    function updateLineItemIndices() {
+        $('.line-item-panel').each(function(index) {
+            var panel = $(this);
+            var inputs = panel.find('input, select');
+
+            inputs.each(function() {
+                var input = $(this);
+                var name = input.attr('name');
+                if (name) {
+                    name = name.replace(/LineItems\[\d+\]/, 'LineItems[' + index + ']');
+                    input.attr('name', name);
+                }
+            });
+
+            panel.find('.panel-title').html('Recurring Item ' + (index + 1) +
+                '<button type="button" class="btn btn-xs btn-danger pull-right remove-line-item">' +
+                '<i class="fa fa-trash"></i> Remove</button>');
+        });
+    }
+
+    function updateRemoveButtons() {
+        var itemCount = $('.line-item-panel').length;
+        $('.remove-line-item').toggle(itemCount > 1);
+    }
+
+    // Add first line item automatically
+    $('#addLineItem').click();
+
+    // Vendor addition functionality
+    $('#addVendorBtn').click(function() {
+        // Load states dropdown if not already loaded
+        if ($('#vendorState option').length === 1) {
+            $.ajax({
+                url: '@Url.Action("GetStates", "Vendors")',
+                type: 'GET',
+                success: function(states) {
+                    $.each(states, function(index, state) {
+                        $('#vendorState').append($('<option></option>')
+                            .attr('value', state.Value)
+                            .text(state.Text));
+                    });
+                },
+                error: function() {
+                    console.error('Failed to load states');
+                }
+            });
+        }
+        $('#addVendorModal').modal('show');
+    });
+
+    $('#saveVendorBtn').click(function() {
+        var vendorData = {
+            Title: $('#vendorTitle').val(),
+            ContactName: $('#vendorContactName').val(),
+            Phone: $('#vendorPhone').val(),
+            Address: $('#vendorAddress').val(),
+            City: $('#vendorCity').val(),
+            State: $('#vendorState').val(),
+            Zip: $('#vendorZip').val(),
+            Email: $('#vendorEmail').val(),
+            WebAddress: $('#vendorWebAddress').val(),
+            Notes: $('#vendorNotes').val()
+        };
+
+        if (!vendorData.Title) {
+            alert('Vendor name is required.');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("AddVendor", "Vendors")',
+            type: 'POST',
+            data: vendorData,
+            success: function(response) {
+                if (response.success) {
+                    // Add new option to dropdown
+                    var newOption = new Option(response.vendor.title, response.vendor.id, true, true);
+                    $('#VendorDropdown').append(newOption).trigger('change');
+
+                    // Close modal and reset form
+                    $('#addVendorModal').modal('hide');
+                    $('#addVendorForm')[0].reset();
+
+                    alert(response.message);
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('An error occurred while adding the vendor.');
+            }
+        });
+    });
+});
+</script>
+
+<!-- Add Vendor Modal -->
+<div class="modal fade" id="addVendorModal" tabindex="-1" role="dialog" aria-labelledby="addVendorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="addVendorModalLabel"><i class="fa fa-plus-circle"></i> Add New Vendor</h4>
+            </div>
+            <div class="modal-body">
+                <form id="addVendorForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="vendorTitle">Vendor Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="vendorTitle" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="vendorContactName">Contact Name</label>
+                                <input type="text" class="form-control" id="vendorContactName">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="vendorPhone">Phone</label>
+                                <input type="tel" class="form-control" id="vendorPhone">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="vendorEmail">Email</label>
+                                <input type="email" class="form-control" id="vendorEmail">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="vendorAddress">Address</label>
+                                <input type="text" class="form-control" id="vendorAddress">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label for="vendorCity">City</label>
+                                <input type="text" class="form-control" id="vendorCity">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="vendorState">State</label>
+                                <select class="form-control" id="vendorState">
+                                    <option value="">-- Select State --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="vendorZip">Zip Code</label>
+                                <input type="text" class="form-control" id="vendorZip">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="vendorWebAddress">Website</label>
+                                <input type="url" class="form-control" id="vendorWebAddress" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="vendorNotes">Notes</label>
+                                <textarea class="form-control" id="vendorNotes" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveVendorBtn">
+                    <i class="fa fa-save"></i> Save Vendor
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .line-item-panel {
+        margin-bottom: 15px;
+    }
+
+    .panel-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .input-group-addon {
+        background-color: #f5f5f5;
+    }
+
+    .checkbox {
+        padding-top: 7px;
+    }
+</style>

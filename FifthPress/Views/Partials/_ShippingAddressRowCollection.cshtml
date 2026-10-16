@@ -1,0 +1,45 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_ShippingAddressCollection
+
+@foreach (ShippingAddress sa in Model.ShippingAddresses)
+{
+<li data-record-id="@Html.DisplayFor(model => sa.Id)">
+    @Html.HiddenFor(model => sa.Id)
+    @Html.HiddenFor(model => sa.Client)
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col ff-poppins fs-14">
+                <input type="radio" name="add_radio" id="sa_@sa.Id" @if(sa.Id == (Model.SelectedAddressId ?? 0)){@("checked");} />
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => sa.CustomerName)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => sa.Address)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => sa.Address2)
+            </div>
+            <div class="col ff-poppins fs-14">
+                Attn: @Html.DisplayFor(model => sa.Attention)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => sa.City)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => sa.USState.Abbreviation)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => sa.Zip)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => sa.Phone)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => sa.Notes)
+            </div>
+        </div>
+        <hr/>
+    </div>
+</li>
+}

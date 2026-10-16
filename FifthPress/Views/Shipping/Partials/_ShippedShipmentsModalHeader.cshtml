@@ -1,0 +1,14 @@
+﻿@model Tuple<string, string>
+
+@*Model: Tuple 1 is Shipment Title, Tuple 2 are Shipment Notes *@
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h5 class="modal-title">@Html.DisplayFor(model => model.Item1)</h5>
+            <p class="ff-dm-sans fs-16">@Html.DisplayFor(model => model.Item2)</p>
+        </div>
+    </div>
+</div>
+
+<button type="button" data-bs-dismiss="modal" data-modal-to-close="#shipped_shipments_modal" aria-label="Cancel">X</button>

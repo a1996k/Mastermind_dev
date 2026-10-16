@@ -1,0 +1,264 @@
+﻿@using FifthPress.Models;
+@model JobPriceInformation
+
+<div class="pricing-wrapper d-none spinner-parent-container" id="spinnerParent">
+    <div id="spinner" class="spinner-container"></div>
+
+    <!-- SQFT Pricing Toggle -->
+    <div class="field-binder-row-flex mt-3 w-100 justify-content-between align-items-center">
+        <span class="ff-dm-sans fs-14">Standard</span>
+        <label class="switch">
+            <input type="checkbox" id="sqftPricingToggle"
+                   data-record-id="@Model.JobId"
+                   data-record-type="JOB"
+                   @(Model.UseSqftPricing ? "checked" : "")>
+            <span class="slider round"></span>
+        </label>
+        <span class="ff-dm-sans fs-14">SQFT</span>
+    </div>
+
+    <!-- SQFT Price Override Input (shown only in SQFT mode) -->
+    <div id="sqftPriceOverrideContainer" class="field-binder-row-flex mt-2 w-100 justify-content-between" style="display: @(Model.UseSqftPricing ? "flex" : "none");">
+        <span class="ff-dm-sans fs-14">$/SQFT:</span>
+        <input type="number" step="0.01" id="sqftPriceOverride"
+               class="styled-input"
+               style="width: 80px;"
+               value="@Model.SqftPriceOverride"
+               placeholder="0.00">
+    </div>
+
+    <div class="field-binder-row-flex mt-3 w-100 justify-content-between">
+        <span class="ff-dm-sans fs-16">Markup</span>
+        <input type="number" class="styled-input markup-input" />
+        <span class="ff-dm-sans fs-16">%</span>
+    </div>
+    <div class="price">
+        @foreach (JobParentItemTotals_Result r in Model.ItemTotals.OrderBy(x => x.Ordinal))
+        {
+            string priceFmt = r.Total_Price.HasValue ?
+                r.Total_Price.Value.ToString("C") :
+                "$0.00";
+            decimal rawPrice = r.Total_Price ?? 0m;
+
+            <div class="price-entry" data-jump-to-id="@Html.DisplayFor(model => r.JobItem)" data-item-id="@r.JobItem">
+                <span class="ff-dm-sans">Item <span class="ff-lato">@Html.DisplayFor(model => r.Ordinal)</span>:</span>
+                <span class="item-price-display ff-lato" style="cursor:pointer;" title="Click to override price">@Html.DisplayFor(model => priceFmt)</span>
+                <input type="number" class="item-price-input styled-input" style="display:none; width:100px;" step="0.01" value="@rawPrice" />
+                <i class="fa-solid fa-arrow-rotate-left revert-price-icon" title="Clear manual override" style="display:none; cursor:pointer; margin-left:4px;"></i>
+                @if (Model.ServiceOverrideItemIds.Contains(r.JobItem ?? 0))
+                {
+                    <i class="fa-solid fa-pen markup-override-icon" title="Service markup adjusted in Cost Comparison" style="color:orange; margin-left:4px;"></i>
+                }
+            </div>
+        }
+    </div>
+    <div class="total">
+        <div class="field-binder-row-flex justify-content-between total-entry">
+            <span class="ff-dm-sans fs-16">Total: </span>
+            <span class="ff-lato fs-16">@Html.DisplayFor(model => model.TotalString)</span>
+        </div>
+    </div>
+    <div class="button-row field-binder-col-flex justify-content-center">
+        <button type="button" class="btn r-red-action-btn run-calcs">Calculate</button>
+        <button type="button" class="btn r-navy-action-btn" data-modal-to-open="#priceListModal">Cost Comparison</button>
+    </div>
+</div>
+
+<style>
+    /* Toggle Switch Styles */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 24px;
+        margin: 0 8px;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+        }
+
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+    .slider.round {
+        border-radius: 24px;
+    }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+    /* Disabled state */
+    input:disabled + .slider {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        // Watch for client selection changes and update SQFT price
+        $('input[name="VM_Job.Job.Client"]').on('change', function () {
+            const clientId = $(this).val();
+            if (clientId) {
+                $.ajax({
+                    url: '/Job/GetClientSqftPrice',
+                    type: 'GET',
+                    data: { clientId: clientId },
+                    dataType: 'json',
+                    success: function (response) {
+                        if (response && response.sqftPrice !== null && response.sqftPrice !== undefined) {
+                            $('#sqftPriceOverride').val(response.sqftPrice);
+                            // Set markup to 0 when sq.ft price is loaded
+                            $('.markup-input').val(0);
+                        } else {
+                            $('#sqftPriceOverride').val('');
+                        }
+                    }
+                });
+            }
+        });
+
+        // Handle SQFT pricing toggle - just updates the flag, no calculation
+        let toggleRequest = null;
+
+        $('#sqftPricingToggle').parent('.switch').on('click', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // If request is in progress, ignore
+            if (toggleRequest != null) {
+                return false;
+            }
+
+            const $toggle = $('#sqftPricingToggle');
+
+            // If disabled, ignore
+            if ($toggle.prop('disabled')) {
+                return false;
+            }
+
+            // Get current state and flip it
+            const currentState = $toggle.is(':checked');
+            const newState = !currentState;
+            const recordId = $toggle.data('record-id');
+            const recordType = $toggle.data('record-type');
+
+            // Disable all controls immediately
+            const $slider = $toggle.siblings('.slider');
+            $toggle.prop('disabled', true);
+            $slider.css('pointer-events', 'none');
+            $('.run-calcs').prop('disabled', true);
+            $('button[data-modal-to-open="#priceListModal"]').prop('disabled', true);
+
+            // Update UI immediately
+            $toggle.prop('checked', newState);
+            if (newState) {
+                $('#sqftPriceOverrideContainer').show();
+            } else {
+                $('#sqftPriceOverrideContainer').hide();
+            }
+
+            const url = ProcessUrl('Job/ToggleJobSqftPricing');
+
+            const data = recordType === 'JOB'
+                ? { jobId: recordId, useSqftPricing: newState }
+                : { quoteId: recordId, useSqftPricing: newState };
+
+            toggleRequest = $.ajax({
+                url: url,
+                type: 'POST',
+                data: data,
+                dataType: 'json',
+                success: function () {
+                    // Re-enable controls on success
+                    $toggle.prop('disabled', false);
+                    $slider.css('pointer-events', '');
+                    $('.run-calcs').prop('disabled', false);
+                    $('button[data-modal-to-open="#priceListModal"]').prop('disabled', false);
+                    toggleRequest = null;
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error saving SQFT pricing mode:', error);
+                    alert('Error changing pricing mode. Please try again.');
+
+                    // Revert the toggle to previous state
+                    $toggle.prop('checked', currentState);
+
+                    // Revert the UI to match previous state
+                    if (currentState) {
+                        $('#sqftPriceOverrideContainer').show();
+                    } else {
+                        $('#sqftPriceOverrideContainer').hide();
+                    }
+
+                    // Re-enable controls on error
+                    $toggle.prop('disabled', false);
+                    $slider.css('pointer-events', '');
+                    $('.run-calcs').prop('disabled', false);
+                    $('button[data-modal-to-open="#priceListModal"]').prop('disabled', false);
+                    toggleRequest = null;
+                }
+            });
+
+            return false;
+        });
+
+        // Handle SQFT price override input change - just saves the value
+        $('#sqftPriceOverride').on('blur', function () {
+            const sqftPrice = parseFloat($(this).val());
+            const recordId = $('#sqftPricingToggle').data('record-id');
+            const recordType = $('#sqftPricingToggle').data('record-type');
+
+            if (isNaN(sqftPrice) || sqftPrice < 0) {
+                return; // Just ignore invalid input
+            }
+
+            const url = ProcessUrl('Job/UpdateJobSqftPrice');
+
+            const data = recordType === 'JOB'
+                ? { jobId: recordId, sqftPrice: sqftPrice }
+                : { quoteId: recordId, sqftPrice: sqftPrice };
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: data,
+                dataType: 'json',
+                error: function (xhr, status, error) {
+                    console.error('Error saving SQFT price:', error);
+                }
+            });
+        });
+    });
+</script>

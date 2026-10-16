@@ -1,0 +1,104 @@
+﻿<div class="modal dynamic-material-modal" tabindex="-1" id="dynamic_material_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cost Comparison</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#dynamic_material_modal" aria-label="Cancel">X Close</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            @using (Html.BeginForm("DynamicMaterialAddition", "Material", FormMethod.Post, htmlAttributes: new { @class = "gy-3", @id = "material_adder" }))
+                            {
+                                <div class="field-binder-row-flex flex-wrap justify-content-evenly">
+                                    <div class="field-binder-col-flex">
+                                        <label>Title</label>
+                                        <input type="text" name="Title" class="styled-input" maxlength="250" />
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <label>Friendly Name</label>
+                                        <input type="text" name="FriendlyName" class="styled-input" maxlength="250" />
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <label>Category</label>
+                                        @Html.DropDownList("Category", ViewData["Category"] as SelectList, htmlAttributes: new { @class = "styled-input", @id = "dynamic_material_category", @onchange = "checkDynamicFinishingCategory()" })
+                                    </div>
+                                    <div class="field-binder-col-flex" id="dynamicFinishingFormulaContainer" style="display: none;">
+                                        <label>Finishing Formula</label>
+                                        <select name="FinishingMaterialFormula" id="dynamic_finishing_formula" class="styled-input">
+                                            <option value="">-- Select Formula --</option>
+                                            @{
+                                                var formulaItems = ViewData["FinishingMaterialFormula"] as IEnumerable<SelectListItem>;
+                                                if (formulaItems != null)
+                                                {
+                                                    foreach (var item in formulaItems)
+                                                    {
+                                                        <option value="@item.Value">@item.Text</option>
+                                                    }
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+                                    <input type="hidden" id="dynamicFinishingCategoryIds" value="@ViewData["FinishingCategoryIds"]" />
+
+                                    <div class="field-binder-col-flex">
+                                        <label>Caliper</label>
+                                        <input type="text" maxlength="10" name="Caliper" class="styled-input" />
+                                    </div>
+
+                                    <div class="field-binder-row-flex">
+                                        <div class="field-binder-col-flex">
+                                            <label>Cost</label>
+                                            <input type="text" class="styled-input" name="Cost" />
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            <label>Cost Type</label>
+                                            @Html.DropDownList("CostType", ViewData["CostType"] as SelectList, htmlAttributes: new { @class = "styled-input" })
+                                        </div>
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <label>Size</label>
+                                        <input type="text" class="styled-input" name="Size" maxlength="10" />
+                                        <p>Enter as {L}x{W}. If rollstock, enter as 0x{W}</p>
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <label>Quantity</label>
+                                        <input type="number" name="Quantity" class="styled-input" />
+                                    </div>
+
+                                    <input type="button" class="btn r-red-action-btn save-dynamic-material" data-modal-to-close="#dynamic_material_modal" value="Save" />
+                                    <input type="button" class="btn btn-fc-caution" value="Cancel" data-modal-to-close="#dynamic_material_modal" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function checkDynamicFinishingCategory() {
+        var categoryDropdown = document.getElementById('dynamic_material_category');
+        var finishingContainer = document.getElementById('dynamicFinishingFormulaContainer');
+        var finishingCategoryIdsStr = document.getElementById('dynamicFinishingCategoryIds').value;
+
+        if (!finishingCategoryIdsStr || !categoryDropdown || !finishingContainer) return;
+
+        var finishingCategoryIds = finishingCategoryIdsStr.split(',').map(function(id) { return id.trim(); });
+        var selectedCategory = categoryDropdown.value;
+
+        if (finishingCategoryIds.indexOf(selectedCategory) !== -1) {
+            finishingContainer.style.display = 'block';
+        } else {
+            finishingContainer.style.display = 'none';
+        }
+    }
+
+    // Run on modal show to reset state
+    $(document).on('shown.bs.modal', '#dynamic_material_modal', function() {
+        checkDynamicFinishingCategory();
+    });
+</script>

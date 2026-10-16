@@ -1,0 +1,131 @@
+﻿@{
+    ViewBag.Title = "Debug User Roles";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fa fa-bug"></i> Debug User Roles</h2>
+            <hr />
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Current User Information</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-striped">
+                        <tr>
+                            <td><strong>Username:</strong></td>
+                            <td>@ViewBag.Username</td>
+                        </tr>
+                        <tr>
+                            <td><strong>User ID:</strong></td>
+                            <td>@ViewBag.UserId</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Is PO Admin:</strong></td>
+                            <td>
+                                <span class="label @(ViewBag.IsAdmin ? "label-success" : "label-danger")">
+                                    @(ViewBag.IsAdmin ? "YES" : "NO")
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title">PO System Roles</h3>
+                </div>
+                <div class="panel-body">
+                    @if (ViewBag.PORoles != null && ((string[])ViewBag.PORoles).Length > 0)
+                    {
+                        <ul class="list-group">
+                            @foreach (string role in (string[])ViewBag.PORoles)
+                            {
+                                <li class="list-group-item">
+                                    <span class="label label-primary">@role</span>
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fa fa-warning"></i> No PO system roles found for this user.
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="panel panel-warning">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Role-Specific Permissions</h3>
+                </div>
+                <div class="panel-body">
+                    <table class="table table-striped">
+                        <tr>
+                            <td><strong>Has Owner Role:</strong></td>
+                            <td>
+                                <span class="label @(ViewBag.HasOwner ? "label-success" : "label-default")">
+                                    @(ViewBag.HasOwner ? "YES" : "NO")
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Has Admin Role:</strong></td>
+                            <td>
+                                <span class="label @(ViewBag.HasAdmin ? "label-success" : "label-default")">
+                                    @(ViewBag.HasAdmin ? "YES" : "NO")
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Has Department Manager Role:</strong></td>
+                            <td>
+                                <span class="label @(ViewBag.HasDeptManager ? "label-info" : "label-default")">
+                                    @(ViewBag.HasDeptManager ? "YES" : "NO")
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Can Access Admin Dashboard:</strong></td>
+                            <td>
+                                <span class="label @(ViewBag.IsAdmin ? "label-success" : "label-danger")">
+                                    @(ViewBag.IsAdmin ? "ALLOWED" : "DENIED")
+                                </span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Test Links</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="btn-group">
+                        <a href="@Url.Action("Index")" class="btn btn-primary">
+                            <i class="fa fa-dashboard"></i> Try Admin Dashboard
+                        </a>
+                        <a href="@Url.Action("BudgetManagement")" class="btn btn-success">
+                            <i class="fa fa-money"></i> Try Budget Management
+                        </a>
+                        <a href="@Url.Action("SystemConfiguration")" class="btn btn-info">
+                            <i class="fa fa-cogs"></i> Try System Configuration
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fa fa-info-circle"></i>
+                <strong>Note:</strong> This debug page should be removed from production.
+                Only users with Owner or Admin roles should be able to access admin functions.
+            </div>
+        </div>
+    </div>
+</div>

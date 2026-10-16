@@ -1,0 +1,102 @@
+﻿@using FifthPress.Models.ViewModels.JobItemLabel;
+@model List<VM_JobItemLabel>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Print Job Labels</title>
+
+    <style>
+        /* Ensures the label size is exactly 8.5x5.5 inches */
+        .label-container {
+            width: 8.5in;
+            height: 5.5in;
+            display: flex;
+            padding: 20px;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            page-break-after: auto;
+        }
+
+        .left-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+            .left-column div {
+                margin-bottom: 10px;
+                font-size: 20px;
+            }
+
+        .right-column {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-code img {
+            width: 150px; /* Adjust size as needed */
+            height: 150px;
+        }
+
+        @@media print {
+            @@page {
+                size: 8.5in 11in;
+                margin: 0;
+            }
+            /* Ensures exactly 2 labels per printed page */
+            .label-wrapper {
+                display: flex;
+                flex-direction: column;
+                height: 11in;
+                
+            }
+            body .label-wrapper:not(:last-child) {
+                page-break-after: always;
+            }
+            .body-content{
+                padding-top: 0;
+                padding-bottom:0;
+            }
+        }
+    </style>
+</head>
+<body>
+    @foreach (var jobItem in Model)
+    {
+        <div class="label-wrapper">
+            <!-- First Copy -->
+            <div class="label-container">
+                <div class="left-column">
+                    <div class="ff-lato"><strong class="ff-poppins">Job #:</strong> @jobItem.JobNumber</div>
+                    <div class="ff-poppins"><strong>Client:</strong> @jobItem.ClientName</div>
+                    <div class="ff-poppins"><strong>Item:</strong> @jobItem.ItemDescription</div>
+                </div>
+                <div class="right-column">
+                    <div class="qr-code">
+                        <img src="@jobItem.QRCodeBase64" alt="QR Code" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Second Copy (Identical) -->
+            <div class="label-container">
+                <div class="left-column">
+                    <div><strong>Job #:</strong> @jobItem.JobNumber</div>
+                    <div><strong>Client:</strong> @jobItem.ClientName</div>
+                    <div><strong>Item:</strong> @jobItem.ItemDescription</div>
+                </div>
+                <div class="right-column">
+                    <div class="qr-code">
+                        <img src="@jobItem.QRCodeBase64" alt="QR Code" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</body>
+</html>

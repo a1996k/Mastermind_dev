@@ -1,0 +1,26 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Dashboard
+
+@Scripts.Render("~/bundles/daterangepicker")
+@Styles.Render("~/Content/daterangepicker")
+@Scripts.Render("~/bundles/dashboard")
+@Styles.Render("~/Content/dashboard")
+
+<div class="container-fluid">
+    <div class="filter-row d-flex flex-column-reverse flex-lg-row align-items-center justify-content-around">
+        <div class="tabs mt-3 mt-lg-0">
+            @foreach (DashboardTab dt in Model.Tabs)
+            {
+                <input type="button" class="db-@Html.DisplayFor(model => dt.TabSlug)-btn dashboard-button" value="@Html.DisplayFor(model => dt.Title)" data-record-id="@Html.DisplayFor(model => dt.Id)" />
+            }
+        </div>
+        <!--<div class="date-filter-wrapper">
+            <input type="text" id="range_filter" name="rangeFilter" />
+        </div>-->
+    </div>
+
+    <div class="dboard-ajax-tgt">
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_ChartUserListModal.cshtml")

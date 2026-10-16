@@ -1,0 +1,25 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_QuoteLayoutPlanning
+
+@*Styles.Render("~/Content/layoutplanning")*@
+@*Styles.Render("~/Content/arr_quote_css")*@
+
+@*Scripts.Render("~/bundles/layoutmgr")*@
+
+@*Scripts.Render("~/bundles/ccalc")*@
+
+@*Scripts.Render("~/bundles/quotelayout")*@
+
+@Html.HiddenFor(model => model.Quote.Id)
+
+<div class="container">
+    @Html.Partial("~/Views/Partials/_QuoteLayoutPlanning.cshtml", Model.VM_ItemMaterialLayouts.First());
+</div>
+
+<div class="container-fluid pt-5">
+    <div class="d-flex justify-content-center">
+        <button type="button" class="btn btn-fc-danger d-inline-block mx-2 back-btn">Cancel Changes</button>
+        <button type="button" class="btn btn-fc-info d-inline-block mx-2 save-btn">Save Changes</button>
+        <!--<button type="button" class="btn btn-fc-info d-inline-block mx-2 create-btn" data-modal-to-open="#convert_to_job_modal">Create Job</button>-->
+    </div>
+</div>

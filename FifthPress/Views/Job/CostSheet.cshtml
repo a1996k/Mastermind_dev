@@ -1,0 +1,317 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_JobCostSheet
+
+@Styles.Render("~/Content/costsheet")
+
+@{
+    int ctr = 1;
+
+    static decimal CalculatePercentDifference(decimal price, decimal cost, bool asMarkup = false)
+    {
+        if (asMarkup)
+            return (price - cost) / (price == 0m ? 1m : price) * 100;
+        else
+            return
+                (price - cost) / (cost == 0m ? 1m : cost) * 100;
+    }
+
+    static string DecimalHoursToFormatted(decimal? hours)
+    {
+        if (hours == null)
+        {
+            return "";
+        }
+        else
+        {
+            decimal pt = hours ?? 0.00m;
+
+            int wholeHours = (int)pt;
+            decimal fractionalHours = pt - wholeHours;
+
+            int minutes = (int)(fractionalHours * 60);
+
+            //one minute minimum
+            if (hours.Value > 0m && wholeHours == 0 && minutes == 0)
+            {
+                return "0:01";
+            }
+
+            return $"{wholeHours}:{minutes:D2}";
+        }
+    }
+}
+
+<div class="cost-sheet-wrapper-wrapper">
+
+    <div class="container-fluid pb-5">
+        <div class="row fs-16">
+            <h3 class="ff-dm-sans fs-18">Overall Job Metrics</h3>
+            <div class="col">
+                <div class="field-binder-col-flex">
+                    <div class="field-binder-row-flex justify-content-center">
+                        <span class="fw-bold ff-dm-sans pe-3">Quoted Price: </span>
+                        <span class="ff-lato">$@Html.DisplayFor(model => model.JobTotals.ChargedPriceString)</span>
+                    </div>
+                    <div class="field-binder-row-flex">
+                        <span class="fw-bold ff-dm-sans pe-3">Actual Price: </span>
+                        <span class="ff-lato">$@Html.DisplayFor(model => model.JobTotals.InternalCostString)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="field-binder-col-flex">
+                    <div class="field-binder-row-flex">
+                        <span class="fw-bold ff-dm-sans pe-3">Overall % Diff: </span>
+                        <span class="ff-lato @(Model.JobTotals.PositiveSpread ? "p-spread" : "n-spread")">@Html.DisplayFor(model => model.JobTotals.PercentDifferenceString)%</span>
+                    </div>
+                    <div class="field-binder-row-flex">
+                        <span class="fw-bold ff-dm-sans pe-3">Quoted Markup: </span>
+                        <span class="ff-lato">@Html.DisplayFor(model => model.JobTotals.TargetMarkupString)%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="field-binder-col-flex">
+                    <div class="field-binder-row-flex">
+                        <span class="fw-bold ff-dm-sans pe-3">Quoted Time (HH:MM)</span>
+                        <span class="ff-lato">@Html.DisplayFor(model => model.JobTotals.JobTimeChargedFormatted)</span>
+                    </div>
+                    <div class="field-binder-row-flex">
+                        <span class="fw-bold ff-dm-sans pe-3">Actual Time (HH:MM)</span>
+                        <span class="ff-lato">@Html.DisplayFor(model => model.JobTotals.JobTimeActualFormatted)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid">
+        <!--Roll ups-->
+        @foreach (IGrouping<string, GetJobCostSheetTVF_Result> rollup in Model.RollUps.OrderBy(x => x.Key))
+        {
+            decimal quotedTime = rollup.Sum(x => (x.ChargedTime ?? 0m));
+            string qtFmt = DecimalHoursToFormatted(quotedTime);
+
+            decimal actualTime = rollup.Sum(x => (x.ActualTime ?? 0m));
+            string atFmt = DecimalHoursToFormatted(actualTime);
+
+            decimal quotedPrice = rollup.Sum(x => (x.ChargedPrice ?? 0m));
+            decimal actualPrice = rollup.Sum(x => x.InternalCost);
+            decimal difference = (quotedPrice - actualPrice);
+            string diffFmt = difference.ToString("N2");
+            decimal pDiff = CalculatePercentDifference(quotedPrice, actualPrice, false);
+            string pDiffString = pDiff.ToString("N2");
+            bool posDiff = pDiff > 0m;
+
+            <span class="ff-dm-sans fw-bold fs-16">Rollups for <span class="fw-normal">@Html.DisplayFor(model => rollup.Key)</span></span>
+            <table class="table table-borderless table-striped fs-14">
+                <thead>
+                    <tr>
+                        <th>Item Description</th>
+                        <th>Quoted Time</th>
+                        <th>Actual Time</th>
+                        <th>Quoted Price</th>
+                        <th>Actual Price</th>
+                        <th>+/-</th>
+                        <th>% Diff.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (GetJobCostSheetTVF_Result res in rollup.OrderBy(x => x.Ordinal).ToList())
+                    {
+                        decimal costDiff = (res.ChargedPrice ?? 0m) - res.InternalCost;
+                        string costDiffString = costDiff.ToString("N2");
+                        decimal pDiff2 = CalculatePercentDifference(res.ChargedPrice ?? 0m, res.InternalCost, false);
+                        string pDiffString2 = pDiff2.ToString("N2");
+
+                        bool posDiff2 = pDiff2 > 0m;
+
+                        <tr>
+                            <td>@Html.DisplayFor(model => res.ItemDescription)</td>
+                            <td>@Html.DisplayFor(model => res.ChargeTimeFormatted)</td>
+                            <td>@Html.DisplayFor(model => res.ActualTimeFormatted)</td>
+                            <td>@Html.DisplayFor(model => res.ChargedPriceString)</td>
+                            <td>@Html.DisplayFor(model => res.InternalCostString)</td>
+                            <td class="@(posDiff2 ? "p-spread" : "n-spread")">@Html.DisplayFor(model => costDiffString)</td>
+                            <td class="@(posDiff2 ? "p-spread" : "n-spread")">@Html.DisplayFor(model => pDiffString2)</td>
+                        </tr>
+                    }
+                <tr>
+                    <td class="text-end fw-bold">TOTALS</td>
+                    <td>@Html.DisplayFor(model => qtFmt)</td>
+                    <td>@Html.DisplayFor(model => atFmt)</td>
+                    <td>@Html.DisplayFor(model => quotedPrice)</td>
+                    <td>@Html.DisplayFor(model => actualPrice)</td>
+                    <td class="@(posDiff ? "p-spread" : "n-spread")">@Html.DisplayFor(model => diffFmt)</td>
+                    <td class="@(posDiff ? "p-spread" : "n-spread")">@Html.DisplayFor(model => pDiffString)</td>
+                </tr>
+                </tbody>
+            </table>
+        }
+    </div>
+    @foreach (VM_JobCostSheetGroup g in Model.ItemGroups)
+    {
+        <div class="cost-sheet-wrapper">
+            <div class="row">
+                <div class="col-6">
+                    <div class="field-binder-row-flex">
+                        <h4 class="dont-wrap fw-bold job-number-header"><span class="ff-dm-sans">Job </span><span class="ff-lato">#@Html.DisplayFor(model => model.Job.JobNumber)</span></h4>
+
+                        <span class="item-print-count ff-dm-sans fs-14">Item @Html.DisplayFor(model => ctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</span>
+                    </div>
+                    <span class="job-description-text">@Html.DisplayFor(model => g.ItemDescription)</span>
+                </div>
+                <div class="col-6 d-flex justify-content-end flex-row">
+                    <div class="ff-dm-sans">
+                        <div class="field-binder-row-flex">
+                            <!-- FifthColor black logo PIPE Cost Sheet-->
+                            <img class="inv-fc-logo" src="~/Content/images/nb-logo.png" /> <span class="pipe">|</span> <span class="cost-sheet-pipe-text fs-14">Cost Sheet</span>
+                        </div>
+                        <div class="field-binder-row-flex">
+                            <span class="fw-bold fs-18 pe-1">Project Manager:</span>
+                            <span class="pm fs-16">@Html.DisplayFor(model => model.Job.User.FirstName) @Html.DisplayFor(model => model.Job.User.LastName)</span>
+                        </div>
+                        <span class="fs-14">@DateTime.Now.ToString("MM/d/yyyy hh:mm tt")</span>
+                    </div>
+                </div>
+            </div>
+            <div class="price-list-wrapper">
+
+                <table class="table table-borderless table-striped">
+                    <thead>
+                        <tr>
+                            <th class="fw-bold">Service Name</th>
+                            <th class="fw-bold">Cost Per Hr.</th>
+                            <th class="fw-bold">Quoted Time</th>
+                            <th class="fw-bold">Actual Time</th>
+                            <th class="fw-bold">Unit Cost</th>
+                            <th class="fw-bold">Per</th>
+                            <th class="fw-bold">Quoted Qty.</th>
+                            <th class="fw-bold">Actual Qty.</th>
+                            <th class="fw-bold">Quoted Price</th>
+                            <th class="fw-bold">Internal Cost</th>
+                            <th class="fw-bold">+/-</th>
+                            <th class="fw-bold">% Diff.</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach (GetJobCostSheetTVF_Result r in g.ItemPrices.OrderBy(x => x.Ordinal).ToList())
+                        {
+                            if (r.IsMaterial == 1)
+                            {
+                                <tr>
+                                    <td>@Html.DisplayFor(model => r.EntryTitle)</td>
+                                    <td>@Html.DisplayFor(model => r.HourlyRate)</td>
+                                    <td>N/A</td>
+                                    <td>N/A</td>
+                                    <td>@Html.DisplayFor(model => r.UnitCostString)</td>
+                                    <td>@Html.DisplayFor(model => r.Per)</td>
+                                    <td></td>
+                                    <td>@Html.DisplayFor(model => r.DurationHours)</td> @* Duration hours actually corresponds to material qty (See IsMaterial == 1 above)*@
+                                    <td>@Html.DisplayFor(model => r.ChargedPriceString)</td>
+                                    <td>@Html.DisplayFor(model => r.InternalCostString)</td>
+                                    <td class="@(r.PositiveSpread ? "p-spread" : "n-spread")">
+                                        @Html.DisplayFor(model => r.SpreadAmountString)
+                                    </td>
+                                    <td class="@(r.PositiveSpread ? "p-spread" : "n-spread")">
+                                        @Html.DisplayFor(model => r.PercentDifferenceString)%
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td>@Html.DisplayFor(model => r.EntryTitle)</td>
+                                    <td>@Html.DisplayFor(model => r.HourlyRate)</td>
+                                    <td>@Html.DisplayFor(model => r.ChargeTimeFormatted)</td>
+                                    <td>@Html.DisplayFor(model => r.ActualTimeFormatted)</td>
+                                    <td>@Html.DisplayFor(model => r.UnitCostString)</td>
+                                    <td>@Html.DisplayFor(model => r.Per)</td>
+                                    <td>1</td>
+                                    <td>1</td>
+                                    <td>@Html.DisplayFor(model => r.ChargedPriceString)</td>
+                                    <td>@Html.DisplayFor(model => r.InternalCostString)</td>
+                                    <td class="@(r.PositiveSpread ? "p-spread" : "n-spread")">
+                                        @Html.DisplayFor(model => r.SpreadAmountString)
+                                    </td>
+                                    <td class="@(r.PositiveSpread ? "p-spread" : "n-spread")">
+                                        @Html.DisplayFor(model => r.PercentDifferenceString)%
+                                    </td>
+                                </tr>
+                            }
+                        }
+
+                        @* Item Totals *@
+                        <tr class="fw-bold">
+                            <td class="text-end">TOTALS</td>
+                            <td></td>
+                            <td>@Html.DisplayFor(model => g.ItemTotals.ItemTimeChargedFormatted)</td>
+                            <td>@Html.DisplayFor(model => g.ItemTotals.ItemTimeActualFormatted)</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td>@Html.DisplayFor(model => g.ItemTotals.ChargedPriceString)</td> @*Charged Price*@
+                            <td>@Html.DisplayFor(model => g.ItemTotals.InternalCostString)</td> @*Internal cost*@
+                            <td class="@(g.ItemTotals.PositiveSpread ? "p-spread" : "n-spread")">@Html.DisplayFor(model => g.ItemTotals.TotalSpreadString)</td>
+                            <td class="@(g.ItemTotals.PositiveSpread ? "p-spread" : "n-spread")">@Html.DisplayFor(model => g.ItemTotals.PercentDifferenceString)%</td> @*% Diff*@
+                        </tr>
+                    </tbody>
+                </table>
+                <hr />
+            </div>
+        </div>
+        ctr++;
+    }
+
+    @if (Model.HasMultipleClients)
+    {
+        <div class="container-fluid mt-4">
+            <div class="row">
+                <div class="col-12">
+                    <div class="p-3" style="background-color: #f8f9fa; border-radius: 10px;">
+                        <h5 class="ff-dm-sans fw-bold mb-3">Client Cost Allocation</h5>
+                        <table class="table table-sm table-bordered">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Client</th>
+                                    <th class="text-center" style="width: 120px;">Allocation %</th>
+                                    <th class="text-end" style="width: 150px;">Charged Amount</th>
+                                    <th class="text-end" style="width: 150px;">Actual Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var split in Model.ClientCostSplits)
+                                {
+                                    var chargedAmount = Model.JobTotals.ChargedPrice * (split.SplitPercentage / 100);
+                                    var actualCost = Model.JobTotals.InternalCost * (split.SplitPercentage / 100);
+                                    <tr>
+                                        <td>
+                                            @split.ClientName
+                                            @if (split.IsBaseClient)
+                                            {
+                                                <span class="badge badge-primary ms-2">Primary</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">@split.SplitPercentage.ToString("F2")%</td>
+                                        <td class="text-end">$@chargedAmount.ToString("N2")</td>
+                                        <td class="text-end">$@actualCost.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-secondary fw-bold">
+                                    <td>Total</td>
+                                    <td class="text-center">100%</td>
+                                    <td class="text-end">$@Model.JobTotals.ChargedPriceString</td>
+                                    <td class="text-end">$@Model.JobTotals.InternalCostString</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

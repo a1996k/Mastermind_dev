@@ -1,0 +1,61 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_CuttingServices
+
+@{
+    int counter = 0;
+}
+
+<div class="modal" tabindex="-1" id="cutting_service_select_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Service(s)</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#service_select_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="nu-viewport">
+                    <table id="cutting_service_select_table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Service
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (string s in Model.ServiceCategories)
+                            {
+                                if (Model.Services.Where(x => x.ServiceCategory.Title == s).ToList().Count > 0)
+                                {
+                                <tr class="collapser-parent py-2 border-bottom" data-collapser-key="@Model.ServiceKeys[counter]">
+                                    <td class="d-flex justify-content-between">
+                                        @Html.DisplayFor(model => s)
+                                        <i class="fa-solid fa-chevrons-down"></i>
+                                    </td>
+                                </tr>
+                                }
+                                foreach (Service svc in Model.Services.Where(x => x.ServiceCategory.Title == s).OrderBy(x => x.Title))
+                                {
+                                    <tr class="d-none collapser-child" data-collapser-key="@Model.ServiceKeys[counter]">
+                                        <td>
+                                            <label class="d-flex flex-row justify-content-between py-2">
+                                                @Html.DisplayFor(model => svc.Title)
+                                                <input type="checkbox" class="btn btn-fc-primary btn-sm product-select-btn ms-3" data-item-title="@svc.Title" data-record-type="service" data-service-id="@svc.Id" />
+                                            </label>
+                                        </td>
+                                    </tr>
+                                }
+
+                                counter++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-fc-caution" data-modal-to-close="#cutting_service_select_modal">Cancel</button>
+                <button type="button" class="btn btn-fc-primary builder-cutting-service-add" data-modal-to-close="#cutting_service_select_modal">Update</button>
+            </div>
+        </div>
+    </div>
+</div>

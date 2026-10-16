@@ -1,0 +1,8 @@
+﻿﻿@model string
+<div class="d-flex flex-column flex-lg-row justify-content-end align-items-center range-period-selector" data-card-ajax-id="@Html.DisplayFor(model => model)">
+    @Html.DropDownList("Range", ViewData["Range"] as SelectList, htmlAttributes: new { })
+    <div class="field-binder-row-flex">
+        @Html.CheckBox("Locked")
+        @Html.Label("Lock", htmlAttributes: new { @class = "fs-4" })
+    </div>
+</div>

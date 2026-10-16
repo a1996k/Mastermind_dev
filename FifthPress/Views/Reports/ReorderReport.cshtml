@@ -1,0 +1,110 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_ReorderReport
+
+<style>
+    .data-d-row {
+        border-bottom: 1px solid black;
+    }
+
+    .header-d-row {
+        border-bottom: 1px solid black;
+    }
+</style>
+
+<div class="container fs-16">
+    <div class="row header-d-row">
+        <div class="col">
+            Material Code
+        </div>
+        <div class="col">
+            In Stock
+        </div>
+        <div class="col">
+            Allocated on Jobs
+        </div>
+        <div class="col">
+            Live Amount
+        </div>
+        <div class="col">
+            To Order
+        </div>
+        <div class="col">
+            Minimum Level
+        </div>
+        <div class="col">
+            On Order
+        </div>
+    </div>
+    @foreach (ReorderReportEntry l in Model.ReorderEntries.ToList())
+    {
+        <div class="row-dj-wrapper mt-3">
+            <div class="row data-d-row" data-record-id="@Html.DisplayFor(model => l.ReorderItem.Id)">
+                <div class="col">
+                    @Html.DisplayFor(model => l.ReorderItem.Title)
+                </div>
+                <div class="col">
+                    @Html.DisplayFor(model => l.ReorderItem.Stock) @Html.DisplayFor(model => l.ReorderItem.DisplayValue)
+                </div>
+                <div class="col">
+                    @Html.DisplayFor(model => l.ReorderItem.Allocated) @Html.DisplayFor(model => l.ReorderItem.DisplayValue)
+                </div>
+                <div class="col">
+                    @Html.DisplayFor(model => l.ReorderItem.Active_Count) @Html.DisplayFor(model => l.ReorderItem.DisplayValue)
+                </div>
+                <div class="col">
+                    @Html.DisplayFor(model => l.ReorderItem.Amount_to_Order) @Html.DisplayFor(model => l.ReorderItem.DisplayValue)
+                </div>
+                <div class="col">
+                    @Html.DisplayFor(model => l.ReorderItem.MinLevel) @Html.DisplayFor(model => l.ReorderItem.DisplayValue)
+                </div>
+                <div class="col">
+                    @Html.DisplayFor(model => l.ReorderItem.On_Order) @Html.DisplayFor(model => l.ReorderItem.DisplayValue)
+                </div>
+            </div>
+
+            @if (l.MaterialJobRecords.Count > 0)
+            {
+                foreach (JobMaterialCounts_Result j in l.MaterialJobRecords.ToList())
+                {
+                    <div class="row data-j-row fw-bold ps-5" style="display:none">
+                        <div class="col">
+                            @Html.DisplayFor(model => j.JobNumber)
+                        </div>
+                        <div class="col"></div>
+                        <div class="col">
+                            @Html.DisplayFor(model => j.Amount_Allocated)
+                        </div>
+                        <div class="col"></div>
+                        <div class="col">
+                            @Html.DisplayFor(model => j.Material_Pulled_)
+                        </div>
+                        <div class="col"></div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="row data-j-row fw-bold ps-5" style="display:none">
+                    <span class="ff-poppins">Nothing Found</span>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<script>
+    function ShowJRow() {
+        let $row = $(this);
+        let $parent = $row.parents('.row-dj-wrapper');
+        let shown = $parent.find('.data-j-row').is(':visible');
+        if (shown) {
+            $parent.find('.data-j-row').hide();
+        } else {
+            $parent.find('.data-j-row').show();
+        }
+    };
+    $(function () {
+
+    })
+        .on('click', '.data-d-row', ShowJRow);
+</script>

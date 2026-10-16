@@ -1,0 +1,34 @@
+﻿@model List<t_Jobs>
+
+<div class="container">
+    <h1>@Html.DisplayFor(model => model.Count) RECORDS</h1>
+
+
+    @foreach (t_Jobs j in Model)
+    {
+        <h3>JOB</h3>
+        <span>@Html.Display("Job Number: ") @Html.DisplayFor(model => j.JobNumber)</span>
+        <span>@Html.Display("Item Count: ") @Html.DisplayFor(model => j.t_JobItems.Count)</span>
+
+
+        foreach (t_JobItems ji in j.t_JobItems.OrderBy(x => x.Ordinal))
+        {
+            <h4>JOB ITEM</h4>
+            <span>@Html.Display("Description: ") @Html.DisplayFor(model => ji.Description)</span>
+            <span>@Html.Display("Item Ordinal: ") @Html.DisplayFor(model => ji.Ordinal)</span>
+            <span>@Html.Display("Service Count: ") @Html.DisplayFor(model => ji.t_JobItemServices.Count)</span>
+
+            <h5>JOB ITEM SERVICES</h5>
+            foreach (t_JobItemServices jis in ji.t_JobItemServices.OrderBy(x => x.ApexOrdinal))
+            {
+                <span>@Html.Display("Service Apex Ordinal: ") @Html.DisplayFor(model => jis.ApexOrdinal)</span>
+            }
+        }
+    }
+
+</div>
+<style>
+    span{
+        display: block !important;
+    }
+</style>

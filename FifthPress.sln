@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33110.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FifthPress", "FifthPress\FifthPress.csproj", "{E25DBF99-84FD-4044-BA6A-8BBDD26E2388}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E25DBF99-84FD-4044-BA6A-8BBDD26E2388}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E25DBF99-84FD-4044-BA6A-8BBDD26E2388}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E25DBF99-84FD-4044-BA6A-8BBDD26E2388}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E25DBF99-84FD-4044-BA6A-8BBDD26E2388}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0F042378-447D-4E28-8A18-18ACB06B2E3D}
+	EndGlobalSection
+EndGlobal

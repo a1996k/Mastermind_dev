@@ -1,0 +1,213 @@
+@{
+    ViewBag.Title = "BundleJobShipments_Index";
+}
+
+<style>
+    .new-shipment {
+        font-size: 1.75rem;
+        padding: 0.75rem 1.5rem;
+        margin: 2rem 0;
+        border-radius: 0.75rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        background-color: #007bff;
+        color: white;
+    }
+
+    .shipment-creator-container {
+        background-color: #fff;
+        border-radius: 1rem;
+        padding: 2rem;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+        margin-top: 2rem;
+    }
+
+        .shipment-creator-container label,
+        .shipment-creator-container input,
+        .shipment-creator-container textarea,
+        .shipment-creator-container .job-num-autocomplete,
+        .shipment-creator-container .list-group-item,
+        .shipment-creator-container h4,
+        .shipment-creator-container h5,
+        .shipment-creator-container .btn {
+            font-size: 1.75rem;
+        }
+
+        .shipment-creator-container input,
+        .shipment-creator-container textarea {
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .shipment-creator-container h4,
+        .shipment-creator-container h5 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+    .jobs-list {
+        border-radius: 0.5rem;
+        background: #f8f9fa;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        margin-bottom: 1.5rem;
+        min-height: 4rem;
+    }
+
+        .jobs-list .list-group-item {
+            border: none;
+            background-color: #ffffff;
+            padding: 1rem 1.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            color: #333;
+        }
+
+    .add-shipment-btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.75rem;
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+    }
+
+        .add-shipment-btn:hover {
+            transform: translateY(-2px);
+        }
+
+    .remove-job {
+        font-size: 1.5rem;
+        padding: 0.4rem 0.8rem;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <button class="btn btn-lg btn-fc-info new-shipment">Create New Shipment</button>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid shipment-creator-container" style="display:none">
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <label>Shipment Title</label>
+            <input class="form-control" name="Title" />
+
+            <label class="mt-3">Shipment Notes</label>
+            <textarea class="form-control" name="Notes" rows="4"></textarea>
+
+            <label class="mt-4">Add Job to Shipment</label>
+            <input type="text" class="form-control job-num-autocomplete" placeholder="Type job number..." />
+        </div>
+
+        <div class="col-md-6">
+            <h5>Jobs on Shipment</h5>
+            <ul class="jobs-list list-group"></ul>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <button class="btn btn-success me-2 add-shipment-btn" data-mode="save">Save Shipment</button>
+            <button class="btn btn-primary add-shipment-btn" data-mode="saveAndFinalize">Save and Finalize</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function JobNumAutocompleteSearch(request, response) {
+        const selectedIds = new Set($('.jobs-list li').map(function () {
+            return $(this).data('id');
+        }).get());
+
+        $.ajax({
+            url: ProcessUrl("AutocompleteJobsReadyToShip"),
+            type: 'GET',
+            data: { 'q': request.term },
+            success: function (data) {
+                const results = JSON.parse(data)
+                    .filter(item => !selectedIds.has(item.Id))
+                    .map(item => ({ label: item.JobNumber, value: item.JobNumber, recordId: item.Id }));
+                response(results);
+            }
+        });
+    }
+
+    function JobNumberAutocompleteSelect(event, ui) {
+        const id = ui.item.recordId;
+        const label = ui.item.label;
+
+        $('.job-num-autocomplete').val('');
+
+        if (!$(`.jobs-list li[data-id="${id}"]`).length) {
+            $('.jobs-list').append(`
+                <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${id}">
+                    ${label}
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-job">&times;</button>
+                </li>`);
+        }
+    }
+
+    function GetShipmentDetails() {
+        const s = {
+            Title: $('input[name="Title"]').val(),
+            Notes: $('textarea[name="Notes"]').val(),
+            JobIds: []
+        };
+
+        $('.jobs-list li').each(function () {
+            s.JobIds.push($(this).data('id'));
+        });
+
+        return s;
+    }
+
+    function AddShipment(e) {
+        const shipment = GetShipmentDetails();
+        const mode = $(e.target).data('mode');
+
+        if (!shipment.Title) {
+            alert('Please enter a shipment title.');
+            return;
+        }
+
+        if (shipment.JobIds.length === 0) {
+            alert('Please add at least one job to the shipment.');
+            return;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('Shipping/SaveJobShipment'),
+            data: { shipment, action: mode },
+            success: function (res) {
+                if (mode === 'saveAndFinalize') {
+                    window.location.href = ProcessUrl('Shipping/ReviewShipments');
+                } else {
+                    alert('Shipment saved successfully!');
+                    location.reload();
+                }
+            },
+            error: function () {
+                alert('Error saving shipment.');
+            }
+        });
+    }
+
+    $(document)
+        .on('click', '.new-shipment', function () {
+            $('.shipment-creator-container').show();
+
+            $('.job-num-autocomplete').autocomplete({
+                source: JobNumAutocompleteSearch,
+                select: JobNumberAutocompleteSelect
+            });
+        })
+
+        .on('click', '.add-shipment-btn', AddShipment)
+
+        .on('click', '.remove-job', function () {
+            $(this).closest('li').remove();
+        });
+</script>

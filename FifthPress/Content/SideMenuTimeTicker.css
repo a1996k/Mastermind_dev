@@ -1,0 +1,49 @@
+﻿.sm-tt-wrapper {
+    background: black;
+}
+
+.sm-tt {
+    padding: 10px;
+    background: white;
+    flex:1;
+}
+
+.sm-tt-wrapper i.fa-circle-stop {
+    font-size: 24px;
+    opacity: .5;
+}
+
+    .sm-tt-wrapper i.fa-circle-stop:hover {
+        opacity: 1.0;
+        cursor: pointer;
+    }
+/* Wrapper for the stack of cards */
+.sm-tt-ext-wrapper {
+    position: relative;
+    width: 100%; /* Full width within the side menu */
+    max-width: 300px; /* Adjust as needed */
+    overflow: visible; /* Ensure expanded cards are not clipped */
+    z-index: 1; /* Base z-index */
+}
+
+/* Each card within the stack */
+.sm-tt-wrapper {
+    position: absolute;
+    width: 100%; /* Full width */
+    padding: 10px;
+    background-color: #f3f3f3;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, z-index 0.3s ease;
+    z-index: 1; /* Base z-index */
+    top: calc(var(--card-index) * 10px); /* Initial vertical stacking */
+    min-height: 200px;
+}
+
+/* Higher z-index on hover to overlay main view */
+.sm-tt-ext-wrapper:hover .sm-tt-wrapper {
+    transform: translateX(calc(var(--card-index) * 101%)); /* Spread horizontally */
+    z-index: 1000; /* Ensures cards overlay the main view */
+    top: 0;
+}

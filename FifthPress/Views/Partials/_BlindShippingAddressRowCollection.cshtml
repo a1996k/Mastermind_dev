@@ -1,0 +1,42 @@
+@using FifthPress.Models.ViewModels;
+@model VM_BlindShippingAddressCollection
+
+@foreach (BlindShippingPivotTable bsa in Model.BlindShippingAddresses)
+{
+<li data-record-id="@Html.DisplayFor(model => bsa.Id)">
+    @Html.HiddenFor(model => bsa.Id)
+    @Html.HiddenFor(model => bsa.ClientId)
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col ff-poppins fs-14">
+                <input type="radio" name="blind_add_radio" id="bsa_@bsa.Id" @if(bsa.Id == (Model.SelectedAddressId ?? 0)){@("checked");} />
+            </div>
+            <div class="col ff-poppins fs-14">
+                <strong>From:</strong> @Html.DisplayFor(model => bsa.FromCompany)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => bsa.FromAddress)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => bsa.FromCity), @Html.DisplayFor(model => bsa.FromState) @Html.DisplayFor(model => bsa.FromZip)
+            </div>
+            <div class="col ff-poppins fs-14">
+                <strong>Ship To:</strong> @Html.DisplayFor(model => bsa.ShipCompany)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => bsa.ShipAddress)
+            </div>
+            <div class="col ff-poppins fs-14">
+                Attn: @Html.DisplayFor(model => bsa.ShipAttention)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => bsa.ShipCity), @Html.DisplayFor(model => bsa.ShipState) @Html.DisplayFor(model => bsa.ShipZip)
+            </div>
+            <div class="col ff-poppins fs-14">
+                @Html.DisplayFor(model => bsa.ShipPhoneNumber)
+            </div>
+        </div>
+        <hr/>
+    </div>
+</li>
+}

@@ -1,0 +1,79 @@
+@model ShippingAddress
+
+<style>
+#edit_sa_modal .single-line {
+    width: 100% !important;
+}
+</style>
+<div class="modal edit-sa-modal" tabindex="-1" id="edit_sa_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Shipping Address</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_sa_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <form id="shipping_address_editor">
+                                <input type="hidden" id="edit_sa_id" name="Id" />
+                                <input type="hidden" id="edit_sa_client" name="Client" />
+                                <div class="field-binder-row-flex justify-content-between flex-wrap">
+                                    <div class="field-binder-row-flex">
+                                        <div class="field-binder-col-flex">
+                                            <label for="edit_sa_customer_name">Customer Name</label>
+                                            <input type="text" id="edit_sa_customer_name" name="CustomerName" class="styled-input single-line" />
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            <label for="edit_sa_address">Address</label>
+                                            <input type="text" id="edit_sa_address" name="Address" class="styled-input single-line" />
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            <label for="edit_sa_address2">Address 2</label>
+                                            <input type="text" id="edit_sa_address2" name="Address2" class="styled-input single-line" />
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            <label for="edit_sa_city">City</label>
+                                            <input type="text" id="edit_sa_city" name="City" class="styled-input single-line" />
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            <label for="edit_sa_state">State</label>
+                                            @Html.DropDownList("State", ViewData["State"] as SelectList, htmlAttributes: new { @id = "edit_sa_state" })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            <label for="edit_sa_zip">Zip</label>
+                                            <input type="text" id="edit_sa_zip" name="Zip" class="styled-input single-line" />
+                                        </div>
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <label for="edit_sa_phone">Phone</label>
+                                        <input type="text" id="edit_sa_phone" name="Phone" class="styled-input single-line" />
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <label for="edit_sa_email">Email</label>
+                                        <input type="text" id="edit_sa_email" name="Email" class="styled-input single-line" />
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <label for="edit_sa_attention">Attention</label>
+                                        <input type="text" id="edit_sa_attention" name="Attention" class="styled-input single-line" />
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <button type="button" class="btn btn-fc-primary validate-edit-address-btn me-2">Validate Address</button>
+                                        <button type="button" class="btn btn-fc-info save-edit-address-btn">Save</button>
+                                        <button type="button" class="btn btn-fc-caution" data-bs-dismiss="modal">Cancel</button>
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <div class="edit-address-validation-feedback" style="display:none; padding: 10px; border-radius: 4px;"></div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

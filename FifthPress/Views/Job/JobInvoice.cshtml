@@ -1,0 +1,419 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Invoice
+<style>
+    .refresh-arrows{
+        display: none !important;
+    }
+    @@media print{
+        .invoice-wrapper{
+            padding-top: 95px !important;
+        }
+    }
+    .service-config-val-list li {
+        font-size: 14px !important
+    }
+
+    .vert-text {
+        transform: rotate(90deg);
+        display: flex;
+        justify-content: end;
+        align-items: center;
+        font-weight: bold;
+        right: 0;
+        white-space: nowrap;
+        height: 100%;
+    }
+
+    .major-padding {
+        padding-bottom: 100px;
+    }
+
+    .header-row {
+        font-weight: 700;
+        font-style: italic;
+        font-size: 16px !important;
+    }
+
+        .header-row h3 {
+            font-size: 16px !important;
+        }
+
+    .user-notes {
+        background-color: #c7c4c4;
+        padding: 7px 17px;
+        color: #000;
+        font-weight: bold;
+        display: inline;
+        border-radius: 20px;
+        font-size: 13px;
+    }
+
+    .ticket-wrapper {
+        width: 100%;
+        background-color: #fff;
+        border-radius: 40px;
+    }
+
+    .body-content {
+        padding: 100px 30px;
+    }
+
+    body {
+        padding-left: 0 !important;
+    }
+
+    .s-item-row {
+        background-color: #c7c4c4;
+    }
+
+    .table, th, td {
+        border: 1px solid black;
+    }
+
+    .job-invoice-header h4 {
+        font-family: poppins;
+        font-size: 30px;
+        font-weight: bold;
+    }
+
+    .ticket-wrapper > .row:not(.header-row) {
+        border-bottom: 2px solid #c7c4c4;
+        padding-top: 15px;
+    }
+
+    .na {
+        font-style: italic;
+    }
+
+        .na:after {
+            content: 'n/a';
+        }
+
+    .service-title.pull-mat {
+        text-decoration: underline;
+    }
+
+    .table-font {
+        font-size: 15px !important;
+    }
+
+    .type-title {
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 14px;
+    }
+
+    .service-title {
+        font-size: 14px;
+    }
+
+    .time-text {
+        font-size: 14px;
+    }
+
+    .material-sheet-count, .material-run-sheet-count, .material-name, .material-size {
+        font-size: 14px !important
+    }
+
+    .field-binder-col-flex {
+        font-size: 14px !important;
+    }
+
+        .field-binder-col-flex p {
+            font-size: 14px !important;
+        }
+
+    .header-wrapper {
+        padding-top: 10px;
+    }
+
+    .border-j-ticket p {
+        font-size: 14px;
+        margin-bottom: 0px;
+    }
+
+    .header-row h3 {
+        font-weight: bold;
+    }
+
+    .print-prev {
+        display: block;
+    }
+
+    :root {
+        font-size: 10px !important;
+    }
+
+    .border-j-ticket p {
+        font-size: 14px;
+        margin-bottom: 0px;
+    }
+
+    .print-area * {
+        transform: scale(x);
+    }
+
+    span.time-text {
+        font-size: 10px !important;
+    }
+
+    .navbar, .sidenav, .closebtn, .openbtn {
+        display: none !important;
+    }
+
+    .service-config-val-list li {
+        font-size: 14px !important
+    }
+
+    span.service-title {
+        font-size: 10px !important;
+    }
+
+    p.service-title.pull-mat {
+        font-size: 10px !important;
+    }
+
+    .header-row {
+        font-weight: 700;
+        font-style: italic;
+    }
+
+    span.type-title {
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .ticket-wrapper {
+        padding: 0 0 !important;
+        position: relative;
+        width: 670px
+    }
+
+    .ticket-testing {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: -1;
+        background: red;
+        width: 670px;
+        height: 910px;
+    }
+
+    .body-content, .ticket-wrapper {
+        background: white;
+    }
+
+
+    .body-content {
+        padding: 0;
+    }
+
+    body {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .user-notes {
+        background-color: #c7c4c4;
+        padding: 7px 17px;
+        color: #000;
+        font-weight: bold;
+        display: inline;
+        border-radius: 20px;
+        font-size: 13px;
+    }
+    .totals-wrapper{
+        padding-right: 15%;
+    }
+</style>
+
+@{
+    string jobDescFormatted = (Model.Job.Description ?? "").Replace("\r\n", "<br>");
+    string jobNotesFormatted = (Model.Job.Notes ?? "").Replace("\r\n", "<br>");
+    string jobInternalNotesFormatted = (Model.Job.InternalNotes ?? "").Replace("\r\n", "<br>");
+}
+
+<div class="invoice-wrapper p-5 fs-3">
+    <div class="print-page">
+        <!-- Header -->
+        <div class="job-invoice-header"><h4>FifthColor</h4></div>
+        <div class="row">
+            <div class="col-11 print-prev position-relative">
+                <div class="row justify-content-between mb-3 pb-3 border-j-ticket">
+                    <div class="col-3">
+                        <h4 class="dont-wrap fw-bold">Order #@Html.DisplayFor(model => model.Job.JobNumber)</h4>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <h4 class="print-prev">Date: @DateTime.Now.ToString("M/d/yyyy hh:mm tt")</h4>
+                        <h4>@Html.Raw(jobDescFormatted)</h4>
+                    </div>
+                </div>
+                <!-- Client info -->
+                <div class="header-wrapper">
+                    <div class="row header-row fs-3">
+                        <div class="col-3">
+                            Bill To
+                        </div>
+                        @if (!(Model.Job.IsPickup) ?? false)
+                        {
+                            <div class="col-3">
+                                Ship To
+                            </div>
+                        }
+                        <div class="col-3">
+                            Ordered By
+                        </div>
+                        <div class="col-3">
+                            Job Details
+                        </div>
+                    </div>
+                    <div class="row fs-3 border-j-ticket mb-3 pb-2">
+                        <div class="col-3">
+                            <div class="field-binder-col-flex">
+                                <div>@Html.DisplayFor(model => model.Job.Client1.Title)</div>
+                                <div>@Html.DisplayFor(model => model.Job.Client1.Address)</div>
+                                <div>@Html.DisplayFor(model => model.Job.Client1.AddressAlt)</div>
+                                <div>@Html.DisplayFor(model => model.Job.Client1.City) @Html.DisplayFor(model => model.Job.Client1.USState.Abbreviation) @Html.DisplayFor(model => model.Job.Client1.Zip)</div>
+                                <div class="pt-5">
+                                    <div>@Html.DisplayFor(model => model.Job.Client1.Notes)</div>
+                                    <div>@Html.DisplayFor(model => model.Job.Contact1.ContactNote)</div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!(Model.Job.IsPickup ?? false))
+                        {
+                            <div class="col-3">
+                                <div class="field-binder-col-flex">
+
+                                    <!-- Get Shipping Information -->
+                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.Attention)</div>
+                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.CustomerName)</div>
+                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.Address)</div>
+                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.Phone)</div>
+                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.City) @Html.DisplayFor(model => model.Job.ShippingAddress1.USState.Abbreviation) @Html.DisplayFor(model => model.Job.ShippingAddress1.Zip)</div>
+                                </div>
+                            </div>
+                        }
+                        <div class="col-3">
+                            <div class="field-binder-col-flex">
+                                <div>@Html.DisplayFor(model => model.Job.Contact1.First) @Html.DisplayFor(model => model.Job.Contact1.Last)</div>
+                                <div>Phone: @Html.DisplayFor(model => model.Job.Contact1.Phone)</div>
+                                <div>Cell: @Html.DisplayFor(model => model.Job.Contact1.Cell)</div>
+                                <div>Email: <a href="mailto:@Html.DisplayFor(model => model.Job.Contact1.Email)">@Html.DisplayFor(model => model.Job.Contact1.Email)</a></div>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            @{
+                                string dueDate = Model.Job.DueDate.HasValue ?
+                                    Model.Job.DueDate.Value.ToString("M/d/yyyy") :
+                                    "No Due Date";
+                            }
+                            <p class="print-prev">Due: @Html.DisplayFor(model => dueDate)</p>
+                            @if (Model.Job.Shipped.HasValue)
+                            {
+                                <p class="print-prev">Shipped: @Model.Job.Shipped.Value.ToString("M/d/yyyy")</p>
+                            }
+                            <p class="print-prev">@Html.DisplayFor(model => model.Job.User.FirstName) @Html.DisplayFor(model => model.Job.User.LastName)</p>
+                            @if (Model.Job.IsPickup ?? false)
+                            {
+                                <div>PICKUP</div>
+                            }
+                            else
+                            {
+                                <div>@Html.DisplayFor(model => model.Job.ShippingOption.Title)</div>
+                            }
+                            PO: @Html.DisplayFor(model => model.Job.PurchaseOrderNumber)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-1">
+                <div class="vert-text fs-1">@Html.DisplayFor(model => model.Job.JobNumber)</div>
+            </div>
+        </div>
+    </div>
+    <div class="price-list-wrapper">
+        <div class="row">
+            <div class="col fw-bold">
+                Item
+            </div>
+            <div class="col fw-bold">
+                Quantity
+            </div>
+            <div class="col fw-bold">
+                Unit Cost
+            </div>
+            <div class="col fw-bold">
+                Total Cost
+            </div>
+        </div>
+        <hr />
+        @foreach (VM_InvoiceRow ir in Model.Rows)
+        {
+            <div class="row">
+                <div class="col">
+                    @Html.DisplayFor(model => ir.Description)
+                </div>
+                <div class="col">
+                    @Html.DisplayFor(model => ir.Quantity)
+                </div>
+                <div class="col">
+                    $@Html.DisplayFor(model => ir.UnitCost)/ea.
+                </div>
+                <div class="col">
+                    $@Html.DisplayFor(model => ir.TotalCost)
+                </div>
+            </div>
+
+            <hr />
+        }
+    </div>
+    <div class="totals-wrapper">
+        <div class="row">
+            <div class="col text-end">
+                $@Html.DisplayFor(model => model.TotalPrice)
+            </div>
+        </div>
+    </div>
+
+    @if (Model.HasMultipleClients)
+    {
+        <div class="client-allocation-wrapper mt-4 p-3" style="background-color: #f8f9fa; border-radius: 10px;">
+            <h5 class="mb-3"><strong>Client Cost Allocation</strong></h5>
+            <table class="table table-sm table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>Client</th>
+                        <th class="text-center" style="width: 120px;">Allocation %</th>
+                        <th class="text-end" style="width: 150px;">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var split in Model.ClientCostSplits)
+                    {
+                        <tr>
+                            <td>
+                                @split.ClientName
+                                @if (split.IsBaseClient)
+                                {
+                                    <span class="badge badge-primary ms-2">Primary</span>
+                                }
+                            </td>
+                            <td class="text-center">@split.SplitPercentage.ToString("F2")%</td>
+                            <td class="text-end">$@split.CalculatedAmount.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="table-secondary">
+                        <td><strong>Total</strong></td>
+                        <td class="text-center"><strong>100%</strong></td>
+                        <td class="text-end"><strong>$@Model.TotalPrice.ToString("N2")</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+</div>

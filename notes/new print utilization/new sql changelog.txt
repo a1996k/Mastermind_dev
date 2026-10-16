@@ -1,0 +1,21 @@
+08:55am-12pm
+
+new print utilization
+
+creating fn_AgencyOverview2
+creating fn_GetEmployeeStats2
+create TimeOnInternalBillableJobs*
+create TimeOnExternalBillableJobs*
+create TimeOnNonBillableJobs*
+*incorporate into fn_GetEmployeeStats2
+[scripts created and saved to repository]
+adding a new card into DashboardCards table (follows)
+17	u02	Print Utilization	50	PrintUtilizationFull.cshtml	NULL	True	2
+added records for card data permissions for me
+select
+	Id,
+	28, --replace this line with the person who needs access to the overall production data
+	17
+from Users where [Disabled] = 0 and IsProductionEmployee = 1
+
+{New utilization working at this point}

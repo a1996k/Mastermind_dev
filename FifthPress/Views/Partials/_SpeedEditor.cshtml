@@ -1,0 +1,36 @@
+﻿@using FifthPress.Models.ViewModels;
+@model PressSpeed
+
+<form method="post" action="save-press-speed" enctype="multipart/form-data" data-item-type="PressSpeed">
+    @Html.HiddenFor(model => model.Id)
+    <!-- Note: Press is not included here because we retrive it on the formsubmitoverride -->
+    @Html.HiddenFor(model => model.Ordinal)
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="field-binder-row-flex">
+                    @Html.LabelFor(model => model.SpeedNumerator)
+                    @Html.EditorFor(model => model.SpeedNumerator)
+                </div>
+                <div class="field-binder-row-flex">
+                    @Html.LabelFor(model => model.SpeedDenominator)
+                    @Html.DropDownListFor(model => model.SpeedDenominator, ViewData["SpeedDenominator"] as SelectList, htmlAttributes: new { })
+                </div>
+                <div class="field-binder-row-flex">
+                    @Html.LabelFor(model => model.Notes)
+                    @Html.TextAreaFor(model => model.Notes)
+                </div>
+                <div class="field-binder-row-flex">
+                    @Html.LabelFor(model => model.IsDefault)
+                    @Html.CheckBoxFor(model => model.IsDefault.Value)
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <input type="submit" value="Save" />
+                <input type="button" value="Cancel" class="cancel-speed" />
+            </div>
+        </div>
+    </div>
+</form>

@@ -1,0 +1,129 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_MaterialConfig
+
+<div class="modal" tabindex="-1" id="material_config_modal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content  popup-modal-fc">
+            <div class="modal-header fc-popup">
+                <h5 class="modal-title fc-model-title">Configure Material</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#material_config_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <h3 class="py-3 text-decoration-underline">Color Settings</h3>
+                        <div class="field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.ColorFrontProfile)
+                                @Html.EditorFor(model => model.ColorFrontProfile, new { htmlAttributes = new { @class = "styled-input press-color-string-front" } })
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.ColorBackProfile)
+                                @Html.EditorFor(model => model.ColorBackProfile, new { htmlAttributes = new { @class = "styled-input press-color-string-back" } })
+                            </div>
+                        </div>
+                        <div class="field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.ColorFrontCount)
+                                @Html.EditorFor(model => model.ColorFrontCount, new { htmlAttributes = new { @class = "styled-input press-color-count-front-inp" } })
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.ColorBackCount)
+                                @Html.EditorFor(model => model.ColorBackCount, new { htmlAttributes = new { @class = "styled-input press-color-count-back-inp" } })
+                            </div>
+                        </div>
+                        <div class="field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.ColorFrontNotes)
+                                @Html.TextAreaFor(model => model.ColorFrontNotes, htmlAttributes: new { @class = "styled-input press-color-notes-front-inp" })
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.ColorBackNotes)
+                                @Html.TextAreaFor(model => model.ColorBackNotes, htmlAttributes: new { @class = "styled-input press-color-notes-back-inp" })
+                            </div>
+                        </div>
+                        <h3 class="py-3 text-decoration-underline">Print Settings</h3>
+                        <div class="field-binder-row-flex">
+                            <div class="field-binder-row-flex fs-3 pe-3">
+                                @Html.LabelFor(model => model.DoubleInk)
+                                @Html.CheckBoxFor(model => model.DoubleInk, htmlAttributes: new { @class = "styled-input double-ink-checkbox" })
+                            </div>
+                            <div class="field-binder-row-flex fs-3 pe-3">
+                                @Html.LabelFor(model => model.Collate)
+                                @Html.CheckBoxFor(model => model.Collate, htmlAttributes: new { @class = "styled-input collate-checkbox" })
+                            </div>
+                            <div class="field-binder-row-flex fs-3 pe-3">
+                                @Html.LabelFor(model => model.Staple)
+                                @Html.CheckBoxFor(model => model.Staple, htmlAttributes: new { @class = "styled-input staple-checkbox" })
+                            </div>
+                            <div class="field-binder-row-flex fs-3 pe-3">
+                                @Html.LabelFor(model => model.Numbering)
+                                @Html.CheckBoxFor(model => model.Numbering, htmlAttributes: new { @class = "styled-input numbering-checkbox" })
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.MaterialCost)
+                                <div class="field-binder-row-flex">
+                                    @Html.EditorFor(model => model.MaterialCost, new { htmlAttributes = new { @class = "single-line styled-input material-cpu" } })
+                                    <span class="mct-display fs-3">@Html.DisplayFor(model => model.MaterialCostType)</span>
+                                    <button type="button" class="btn btn-sm btn-fc-caution revert-material-price-btn">Revert Price</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <h3 class="py-3 text-decoration-underline">Sheet Settings</h3>
+                    <div class="col-lg-12">
+                        <div class="field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.RunLength)
+                                @Html.EditorFor(model => model.RunLength, new { htmlAttributes = new { @class = "styled-input material-run-size-l" } })
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.RunWidth)
+                                @Html.EditorFor(model => model.RunWidth, new { htmlAttributes = new { @class = "styled-input material-run-size-w" } })
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.Out)
+                                @Html.EditorFor(model => model.Out, new { htmlAttributes = new { @class = "styled-input mc-out" } })
+                            </div>
+                        </div>
+                        <div class="field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.Sheets)
+                                @Html.EditorFor(model => model.Sheets, new { htmlAttributes = new { @class = "styled-input sheets" } })
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.ScrapSheets)
+                                @Html.EditorFor(model => model.ScrapSheets, new { htmlAttributes = new { @class = "styled-input scrap-sheets" } })
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.RunSheets)
+                                @Html.EditorFor(model => model.RunSheets, new { htmlAttributes = new { @class = "styled-input run-sheets" } })
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.BuySheets)
+                                @Html.EditorFor(model => model.BuySheets, new { htmlAttributes = new { @class = "styled-input buy-sheets" } })
+                            </div>
+                        </div>
+                        <div class="field-binder-col-flex">
+                            <span class="clear-sheet-override text-decoration-underline" style="display:none" title="Allows the sheets to be automatically calculated after a user override">Clear Sheet Override</span>
+                        </div>
+                        <div class="field-binder-col-flex">
+                            @Html.LabelFor(model => model.Up)
+                            @Html.EditorFor(model => model.Up, new { htmlAttributes = new { @class = "styled-input up-value", @type = "number" } })
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-fc-caution" data-modal-to-close="#material_config_modal"><i class="fa-solid fa-chevron-left"></i> Back</button>
+                <button type="button" class="btn btn-fc-primary material-config-finish" data-modal-to-close="#material_config_modal">Update</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+﻿@model List<List<ValueTuple<string, bool>>>
+
+@foreach (List<ValueTuple<string, bool>> l in Model)
+{
+    <tr>
+        @foreach (ValueTuple<string, bool> v in l)
+        {
+            if (v.Item2 == false)
+            {
+                <td>
+                    @v.Item1
+                </td>
+            }
+            else
+            {
+                <td>
+                    @Html.Raw(v.Item1)
+                </td>
+            }
+        }
+    </tr>
+}

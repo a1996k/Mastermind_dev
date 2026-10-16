@@ -1,0 +1,280 @@
+@model FifthPress.Quote
+
+@{
+    ViewBag.Title = "Quote #" + Model.JobNumber;
+}
+
+<style>
+    .quote-view-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .quote-view-header {
+        border-bottom: 2px solid #17a2b8;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .info-row {
+        display: flex;
+        padding: 8px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        font-weight: 600;
+        width: 180px;
+        color: #555;
+    }
+
+    .info-value {
+        flex: 1;
+        color: #333;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .item-card {
+        background: #f9f9f9;
+        border-left: 4px solid #17a2b8;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+        .action-buttons .btn {
+            white-space: nowrap;
+        }
+</style>
+
+<div class="container mt-4">
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+        <a href="@Url.Action("EditQuote", "Job", new { quoteId = Model.Id })" class="btn btn-primary">
+            <i class="fa fa-edit"></i> Edit Quote
+        </a>
+        <a href="#" class="btn btn-info" onclick="$('#quote_total_price_modal').modal('show'); return false;">
+            <i class="fa fa-file-text"></i> Printable Quote
+        </a>
+        <button type="button" class="btn btn-warning" onclick="$.ajax({ type: 'POST', url: ProcessUrl('quote/duplicate'), data: { id: @Model.Id }, success: function(data) { window.location = ProcessUrl('quote/edit/' + data); } });">
+            <i class="fa fa-copy"></i> Duplicate Quote
+        </button>
+        <button type="button" class="btn btn-info" onclick="if(confirm('Please confirm converting this quote to a job')) { $.ajax({ type: 'POST', url: ProcessUrl('Job/CreateJobFromQuote'), data: { quoteId: @Model.Id }, success: function(data) { try { let res = JSON.parse(data); window.location = ProcessUrl('Job/Edit/' + res); } catch(e) {} } }); }">
+            <i class="fa fa-file"></i> Convert To Job
+        </button>
+    </div>
+
+    <!-- Quote Header -->
+    <div class="quote-view-card">
+        <div class="quote-view-header">
+            <h2>Quote #@Model.JobNumber</h2>
+            @if (!string.IsNullOrWhiteSpace(Model.Title))
+            {
+                <h4 class="text-muted">@Model.Title</h4>
+            }
+        </div>
+
+        <!-- Quote Information -->
+        <div class="info-row">
+            <div class="info-label">Client:</div>
+            <div class="info-value">
+                @if (Model.Client1 != null)
+                {
+                    <strong>@Model.Client1.Title</strong>
+                }
+                else
+                {
+                    <span class="text-muted">No client assigned</span>
+                }
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div class="info-label">Contact:</div>
+            <div class="info-value">
+                @if (Model.Contact1 != null)
+                {
+                    string fullName = Model.Contact1.First + " " + Model.Contact1.Last;
+                    Html.DisplayFor(model => fullName);
+
+                    if (!string.IsNullOrWhiteSpace(Model.Contact1.Email))
+                    {
+                        <span class="text-muted">(@Model.Contact1.Email)</span>
+                    }
+                }
+                else
+                {
+                    <span class="text-muted">No contact assigned</span>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Description))
+        {
+            <div class="info-row">
+                <div class="info-label">Description:</div>
+                <div class="info-value">@Model.Description</div>
+            </div>
+        }
+
+        @if (ViewBag.MarkupOverridePercent != null)
+        {
+            <div class="info-row">
+                <div class="info-label">Markup:</div>
+                <div class="info-value">
+                    <strong>@ViewBag.MarkupOverridePercent</strong>
+                </div>
+            </div>
+        }
+
+        <div class="info-row">
+            <div class="info-label">Total Sell:</div>
+            <div class="info-value">
+                <strong style="font-size: 1.2em; color: #28a745;">@ViewBag.FormattedTotalCost</strong>
+            </div>
+        </div>
+
+        @if (Model.CreatedAt.HasValue)
+        {
+            <div class="info-row">
+                <div class="info-label">Created:</div>
+                <div class="info-value">@Model.CreatedAt.Value.ToString("MMMM dd, yyyy h:mm tt")</div>
+            </div>
+        }
+    </div>
+
+    <!-- Quote Items -->
+    @if (Model.QuoteItems != null && Model.QuoteItems.Any(qi => qi.Deleted == null))
+    {
+        <div class="quote-view-card">
+            <h4 class="mb-3">Quote Items (@Model.QuoteItems.Count(qi => qi.Deleted == null))</h4>
+
+            @foreach (var item in Model.QuoteItems.Where(qi => qi.Deleted == null).OrderBy(qi => qi.Ordinal))
+            {
+                var itemCost = item.QuotePrices?.Sum(qp => qp.Price ?? 0) ?? 0;
+
+                <div class="item-card">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div style="flex: 1;">
+                            <h6>
+                                @if (!string.IsNullOrWhiteSpace(item.Title))
+                                {
+                                    <strong>@item.Title</strong>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(item.Description))
+                                {
+                                    <strong>@item.Description</strong>
+                                }
+                                else
+                                {
+                                    <strong>Item #@item.Id</strong>
+                                }
+                            </h6>
+
+                            @if (!string.IsNullOrWhiteSpace(item.Description) && !string.IsNullOrWhiteSpace(item.Title))
+                            {
+                                <p class="mb-2">@item.Description</p>
+                            }
+
+                            <div class="mt-2">
+                                @if (item.Quantity.HasValue)
+                                {
+                                    <span class="badge badge-secondary">Qty: @item.Quantity.Value</span>
+                                }
+
+                                @if (item.Material1 != null)
+                                {
+                                    <span class="badge badge-info">@item.Material1.Title</span>
+                                }
+
+                                @if (!String.IsNullOrEmpty(item.Width) && !String.IsNullOrEmpty(item.Length))
+                                {
+                                    <span class="badge badge-light">@item.Width" × @item.Length"</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <strong style="font-size: 1.1em;">@itemCost.ToString("C")</strong>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Notes -->
+    @if (!string.IsNullOrWhiteSpace(Model.Notes) || !string.IsNullOrWhiteSpace(Model.InternalNotes))
+    {
+        <div class="quote-view-card">
+            <h4 class="mb-3">Notes</h4>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Notes))
+            {
+                <div class="mb-3">
+                    <strong>Customer Notes:</strong>
+                    <p class="mt-2">@Model.Notes</p>
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.InternalNotes))
+            {
+                <div>
+                    <strong>Internal Notes:</strong>
+                    <p class="mt-2">@Model.InternalNotes</p>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- Quote Total Price Modal -->
+<div class="modal yn-modal quote-total-price-modal" tabindex="-1" id="quote_total_price_modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="field-binder-col-flex">
+                    <p class="question-text">Show the total price on the quote?</p>
+                    <div class="field-binder-row-flex justify-content-around py-3 w-100">
+                        <i class="fa-solid fa-thumbs-up yes"></i>
+                        <i class="fa-solid fa-thumbs-down no"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function() {
+        // Handle quote generation with yes/no for total price
+        $('.quote-total-price-modal .yes, .quote-total-price-modal .no').on('click', function() {
+            let showTotal = $(this).hasClass('yes');
+            let recordId = @Model.Id;
+
+            $('#quote_total_price_modal').modal('hide');
+            window.open(ProcessUrl('generate-customer-quote4') + '/' + recordId + '/' + showTotal, "_blank");
+        });
+    });
+</script>

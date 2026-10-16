@@ -1,0 +1,418 @@
+﻿@model FifthPress.Models.ViewModels2.PO25.VM_SystemConfiguration25
+
+@{
+    ViewBag.Title = "System Configuration";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fa fa-cogs"></i> System Configuration</h2>
+            <hr />
+            <a href="@Url.Action("Index")" class="btn btn-default">
+                <i class="fa fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="@Url.Action("ConfigurationList")" class="btn btn-info">
+                <i class="fa fa-list"></i> View All Configurations
+            </a>
+            <a href="@Url.Action("InitializeConfig")" class="btn btn-warning"
+               onclick="return confirm('Initialize default configurations? This will add missing default settings.')">
+                <i class="fa fa-refresh"></i> Initialize Defaults
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @using (Html.BeginForm("UpdateSystemConfiguration", "PO25Admin", FormMethod.Post, new { @class = "form-horizontal" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <!-- SLA Configuration -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-clock-o"></i> SLA Configuration</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.SLAConfiguration.StandardApprovalHours, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    @Html.TextBoxFor(m => m.SLAConfiguration.StandardApprovalHours, new { @class = "form-control", @type = "number", @min = "1", @max = "168" })
+                                    <span class="input-group-addon">hours</span>
+                                </div>
+                                @Html.ValidationMessageFor(m => m.SLAConfiguration.StandardApprovalHours, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.SLAConfiguration.OwnerApprovalHours, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    @Html.TextBoxFor(m => m.SLAConfiguration.OwnerApprovalHours, new { @class = "form-control", @type = "number", @min = "1", @max = "168" })
+                                    <span class="input-group-addon">hours</span>
+                                </div>
+                                @Html.ValidationMessageFor(m => m.SLAConfiguration.OwnerApprovalHours, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.SLAConfiguration.WarningThresholdHours, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    @Html.TextBoxFor(m => m.SLAConfiguration.WarningThresholdHours, new { @class = "form-control", @type = "number", @min = "1", @max = "48" })
+                                    <span class="input-group-addon">hours</span>
+                                </div>
+                                @Html.ValidationMessageFor(m => m.SLAConfiguration.WarningThresholdHours, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-offset-6 col-sm-6">
+                                <div class="checkbox">
+                                    <label>
+                                        @Html.CheckBoxFor(m => m.SLAConfiguration.EscalationEnabled)
+                                        @Html.DisplayNameFor(m => m.SLAConfiguration.EscalationEnabled)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Budget Configuration -->
+            <div class="col-md-6">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-money"></i> Budget Configuration</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.BudgetConfiguration.BudgetAlertThresholdPercent, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    @Html.TextBoxFor(m => m.BudgetConfiguration.BudgetAlertThresholdPercent, new { @class = "form-control", @type = "number", @min = "50", @max = "100" })
+                                    <span class="input-group-addon">%</span>
+                                </div>
+                                @Html.ValidationMessageFor(m => m.BudgetConfiguration.BudgetAlertThresholdPercent, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.BudgetConfiguration.BudgetYearStartMonth, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                @Html.DropDownListFor(m => m.BudgetConfiguration.BudgetYearStartMonth,
+                                    new List<SelectListItem>
+                                    {
+                                        new SelectListItem { Value = "1", Text = "January" },
+                                        new SelectListItem { Value = "2", Text = "February" },
+                                        new SelectListItem { Value = "3", Text = "March" },
+                                        new SelectListItem { Value = "4", Text = "April" },
+                                        new SelectListItem { Value = "5", Text = "May" },
+                                        new SelectListItem { Value = "6", Text = "June" },
+                                        new SelectListItem { Value = "7", Text = "July" },
+                                        new SelectListItem { Value = "8", Text = "August" },
+                                        new SelectListItem { Value = "9", Text = "September" },
+                                        new SelectListItem { Value = "10", Text = "October" },
+                                        new SelectListItem { Value = "11", Text = "November" },
+                                        new SelectListItem { Value = "12", Text = "December" }
+                                    }, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(m => m.BudgetConfiguration.BudgetYearStartMonth, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-sm-offset-6 col-sm-6">
+                                <div class="checkbox">
+                                    <label>
+                                        @Html.CheckBoxFor(m => m.BudgetConfiguration.AllowBudgetOveragesByDefault)
+                                        @Html.DisplayNameFor(m => m.BudgetConfiguration.AllowBudgetOveragesByDefault)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Approval Configuration -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-gavel"></i> Approval Configuration</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.ApprovalConfiguration.DepartmentApproverLimit, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">$</span>
+                                    @Html.TextBoxFor(m => m.ApprovalConfiguration.DepartmentApproverLimit, new { @class = "form-control", @type = "number", @min = "0", @step = "0.01" })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.ApprovalConfiguration.DepartmentApproverLimit, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.ApprovalConfiguration.DepartmentManagerLimit, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">$</span>
+                                    @Html.TextBoxFor(m => m.ApprovalConfiguration.DepartmentManagerLimit, new { @class = "form-control", @type = "number", @min = "0", @step = "0.01" })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.ApprovalConfiguration.DepartmentManagerLimit, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.ApprovalConfiguration.RequireOwnerApprovalAmount, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">$</span>
+                                    @Html.TextBoxFor(m => m.ApprovalConfiguration.RequireOwnerApprovalAmount, new { @class = "form-control", @type = "number", @min = "0", @step = "0.01" })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.ApprovalConfiguration.RequireOwnerApprovalAmount, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <hr />
+                        <h5><i class="fa fa-bolt"></i> Auto-Approve Thresholds</h5>
+                        <p class="text-muted small">Users with these roles can auto-approve POs up to their threshold amount.</p>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.ApprovalConfiguration.AutoApproveExecutiveUnder, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">$</span>
+                                    @Html.TextBoxFor(m => m.ApprovalConfiguration.AutoApproveExecutiveUnder, new { @class = "form-control", @type = "number", @min = "0", @step = "0.01" })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.ApprovalConfiguration.AutoApproveExecutiveUnder, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.ApprovalConfiguration.AutoApproveAccountingUnder, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">$</span>
+                                    @Html.TextBoxFor(m => m.ApprovalConfiguration.AutoApproveAccountingUnder, new { @class = "form-control", @type = "number", @min = "0", @step = "0.01" })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.ApprovalConfiguration.AutoApproveAccountingUnder, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.ApprovalConfiguration.AutoApprovePurchasingUnder, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                <div class="input-group">
+                                    <span class="input-group-addon">$</span>
+                                    @Html.TextBoxFor(m => m.ApprovalConfiguration.AutoApprovePurchasingUnder, new { @class = "form-control", @type = "number", @min = "0", @step = "0.01" })
+                                </div>
+                                @Html.ValidationMessageFor(m => m.ApprovalConfiguration.AutoApprovePurchasingUnder, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Configuration -->
+            <div class="col-md-6">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-envelope"></i> Email Configuration</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="form-group">
+                            <div class="col-sm-offset-6 col-sm-6">
+                                <div class="checkbox">
+                                    <label>
+                                        @Html.CheckBoxFor(m => m.EmailConfiguration.NotificationsEnabled)
+                                        @Html.DisplayNameFor(m => m.EmailConfiguration.NotificationsEnabled)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.EmailConfiguration.AdminEmailAddress, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                @Html.TextBoxFor(m => m.EmailConfiguration.AdminEmailAddress, new { @class = "form-control", @type = "email" })
+                                @Html.ValidationMessageFor(m => m.EmailConfiguration.AdminEmailAddress, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.EmailConfiguration.EmailFromAddress, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                @Html.TextBoxFor(m => m.EmailConfiguration.EmailFromAddress, new { @class = "form-control", @type = "email" })
+                                @Html.ValidationMessageFor(m => m.EmailConfiguration.EmailFromAddress, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(m => m.EmailConfiguration.EmailSignature, new { @class = "col-sm-6 control-label" })
+                            <div class="col-sm-6">
+                                @Html.TextAreaFor(m => m.EmailConfiguration.EmailSignature, new { @class = "form-control", @rows = "3" })
+                                @Html.ValidationMessageFor(m => m.EmailConfiguration.EmailSignature, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- General Configuration -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-wrench"></i> General Configuration</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.GeneralConfiguration.MaxLineItemsPerPO, new { @class = "col-sm-6 control-label" })
+                                    <div class="col-sm-6">
+                                        @Html.TextBoxFor(m => m.GeneralConfiguration.MaxLineItemsPerPO, new { @class = "form-control", @type = "number", @min = "1", @max = "100" })
+                                        @Html.ValidationMessageFor(m => m.GeneralConfiguration.MaxLineItemsPerPO, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.GeneralConfiguration.DefaultTaxRate, new { @class = "col-sm-6 control-label" })
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            @Html.TextBoxFor(m => m.GeneralConfiguration.DefaultTaxRate, new { @class = "form-control", @type = "number", @min = "0", @max = "1", @step = "0.0001" })
+                                            <span class="input-group-addon">%</span>
+                                        </div>
+                                        @Html.ValidationMessageFor(m => m.GeneralConfiguration.DefaultTaxRate, "", new { @class = "text-danger" })
+                                        <span class="help-block">Enter as decimal (e.g., 0.0875 for 8.75%)</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-sm-offset-6 col-sm-6">
+                                        <div class="checkbox">
+                                            <label>
+                                                @Html.CheckBoxFor(m => m.GeneralConfiguration.SystemMaintenanceMode)
+                                                @Html.DisplayNameFor(m => m.GeneralConfiguration.SystemMaintenanceMode)
+                                            </label>
+                                        </div>
+                                        <span class="help-block">Enables maintenance mode for system updates</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.GeneralConfiguration.MaxFileUploadSizeMB, new { @class = "col-sm-6 control-label" })
+                                    <div class="col-sm-6">
+                                        <div class="input-group">
+                                            @Html.TextBoxFor(m => m.GeneralConfiguration.MaxFileUploadSizeMB, new { @class = "form-control", @type = "number", @min = "1", @max = "100" })
+                                            <span class="input-group-addon">MB</span>
+                                        </div>
+                                        @Html.ValidationMessageFor(m => m.GeneralConfiguration.MaxFileUploadSizeMB, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    @Html.LabelFor(m => m.GeneralConfiguration.AllowedFileExtensions, new { @class = "col-sm-6 control-label" })
+                                    <div class="col-sm-6">
+                                        @Html.TextBoxFor(m => m.GeneralConfiguration.AllowedFileExtensions, new { @class = "form-control" })
+                                        @Html.ValidationMessageFor(m => m.GeneralConfiguration.AllowedFileExtensions, "", new { @class = "text-danger" })
+                                        <span class="help-block">Comma-separated list (e.g., .pdf,.doc,.jpg)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-body text-center">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fa fa-save"></i> Save All Configuration Settings
+                        </button>
+                        <button type="button" class="btn btn-default btn-lg" onclick="resetForm()">
+                            <i class="fa fa-refresh"></i> Reset Form
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+$(document).ready(function() {
+    // Auto-dismiss alerts
+    setTimeout(function() {
+        $('.alert').fadeOut('slow');
+    }, 5000);
+
+    // Form validation
+    $('form').submit(function() {
+        var isValid = true;
+
+        // Custom validation for approval limits
+        var deptApprover = parseFloat($('#ApprovalConfiguration_DepartmentApproverLimit').val());
+        var deptManager = parseFloat($('#ApprovalConfiguration_DepartmentManagerLimit').val());
+        var ownerRequired = parseFloat($('#ApprovalConfiguration_RequireOwnerApprovalAmount').val());
+
+        if (deptManager <= deptApprover) {
+            alert('Department Manager limit must be greater than Department Approver limit.');
+            isValid = false;
+        }
+
+        if (ownerRequired <= deptManager) {
+            alert('Owner approval amount should be greater than Department Manager limit.');
+            isValid = false;
+        }
+
+        return isValid;
+    });
+});
+
+function resetForm() {
+    if (confirm('Are you sure you want to reset all changes? Any unsaved changes will be lost.')) {
+        location.reload();
+    }
+}
+</script>
+
+<style>
+.panel-body .form-group {
+    margin-bottom: 15px;
+}
+.help-block {
+    font-size: 11px;
+    color: #777;
+}
+</style>

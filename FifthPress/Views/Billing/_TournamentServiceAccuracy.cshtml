@@ -1,0 +1,188 @@
+@using FifthPress.Models.ViewModels2;
+@model VM_TournamentAccuracyFilter
+
+<style>
+    .t-ser-a-cont {
+        font-size: 2.1rem;
+    }
+
+    #accuracyTable {
+        font-size: 2rem;
+    }
+
+        #accuracyTable th,
+        #accuracyTable td {
+            padding: 1.75rem;
+        }
+
+    .t-ser-a-cont label {
+        font-weight: bold;
+        font-size: 2.1rem;
+    }
+</style>
+
+<div id="loadingOverlay" style="
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(255,255,255,0.7);
+    z-index: 9999;
+    text-align: center;
+    padding-top: 20%;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;">
+    Loading report...
+</div>
+
+<div class="container-fluid p-3 t-ser-a-cont">
+    <h2>Tournament Service Accuracy Report</h2>
+
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="clientSelect">Select Client(s):</label>
+            <select id="clientSelect" class="form-control" multiple style="min-height: 200px; font-size: 2rem;">
+                @if (Model.Clients != null && Model.Clients.Any())
+                {
+                    foreach (var client in Model.Clients)
+                    {
+                        int id;
+                        bool parsed = int.TryParse(client.Value, out id);
+
+                        if (parsed && !string.IsNullOrWhiteSpace(client.Text))
+                        {
+                            <option value="@id">@Html.Encode(client.Text)</option>
+                        }
+                    }
+                }
+                else
+                {
+                    <option disabled>No clients available</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label for="reportType">Report Type:</label>
+            <select id="reportType" class="form-control" style="font-size: 2rem;">
+                <option value="summary">Service-Level Summary</option>
+                <option value="byjob">Job-Level Breakdown</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-3">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" class="form-control" style="font-size: 2rem;"
+                   value="@(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")" />
+        </div>
+        <div class="col-md-3">
+            <label for="endDate">End Date:</label>
+            <input type="date" id="endDate" class="form-control" style="font-size: 2rem;"
+                   value="@(Model.EndDate?.ToString("yyyy-MM-dd") ?? "")" />
+        </div>
+    </div>
+
+    <hr />
+
+    <table id="accuracyTable" class="table table-bordered display nowrap" style="width:100%">
+        <thead><tr><th>Waiting for input...</th></tr></thead>
+    </table>
+</div>
+
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script>
+    function generateExportFilename() {
+        const now = new Date();
+        const timestamp = now.toISOString().slice(0, 19).replace(/[-:T]/g, '');
+        return `TournamentAccuracy_${timestamp}`;
+    }
+
+    function loadReport() {
+        const clientIds = $('#clientSelect').val();
+        const reportType = $('#reportType').val();
+        const startDate = $('#startDate').val();
+        const endDate = $('#endDate').val();
+
+        if (!clientIds || clientIds.length === 0 || !reportType) return;
+
+        $('#loadingOverlay').show();
+
+        // Prepare data object
+        const data = {
+            clientIds: clientIds,
+            reportType: reportType
+        };
+
+        // Add dates if they are provided
+        if (startDate) {
+            data.start = startDate;
+        }
+        if (endDate) {
+            data.end = endDate;
+        }
+
+        $.ajax({
+            type: "POST",
+            url: '@Url.Action("GetAccuracyReport", "Billing")',
+            data: data,
+            traditional: true,
+            success: function (res) {
+                const data = res.data;
+
+                if (!data || data.length === 0 || !data[0]) {
+                    $('#accuracyTable').html("<thead><tr><th>No data returned</th></tr></thead>");
+                    $('#loadingOverlay').hide();
+                    return;
+                }
+
+                const columns = Object.keys(data[0])
+                    .filter(key => key !== "AccuracyPercent") // exclude the column
+                    .map(key => ({
+                        title: key.replace(/_/g, ' '),
+                        data: key
+                    }));
+
+                if ($.fn.DataTable.isDataTable('#accuracyTable')) {
+                    $('#accuracyTable').DataTable().clear().destroy();
+                }
+
+                $('#accuracyTable').empty();
+
+                const theadHtml = '<thead><tr>' + columns.map(c => `<th>${c.title}</th>`).join('') + '</tr></thead>';
+                $('#accuracyTable').html(theadHtml);
+
+                $('#accuracyTable').DataTable({
+                    data: data,
+                    columns: columns,
+                    scrollX: true,
+                    responsive: true,
+                    destroy: true,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'csv',
+                            text: 'Export CSV',
+                            filename: generateExportFilename(),
+                            exportOptions: {
+                                columns: ':visible'
+                            }
+                        }
+                    ]
+                });
+
+                $('#loadingOverlay').hide();
+            },
+            error: function () {
+                alert('Error loading report.');
+                $('#loadingOverlay').hide();
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $('#clientSelect, #reportType, #startDate, #endDate').on('change', loadReport);
+    });
+</script>

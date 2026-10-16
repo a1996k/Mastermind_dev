@@ -1,0 +1,19 @@
+﻿@model List<FifthPress.Models.ViewModels.VM_ServiceAndCuttingConfigurations>
+
+<ul class="cutting-service-list fs-3 px-4">
+    @foreach (FifthPress.Models.ViewModels.VM_ServiceAndCuttingConfigurations v in Model)
+    {
+        <li data-record-id="@Html.DisplayFor(model => v.Service.Id)">
+            <span class="service-title" data-record-id="@Html.DisplayFor(model => v.Service.Id)">@Html.DisplayFor(model => v.Service.Title)</span>
+            <ul class="config-list">
+                @foreach(CuttingConfiguration cc in v.Configurations)
+                {
+                    <li class="service-config-option" data-record-id="@Html.DisplayFor(model => cc.Id)">
+                        <span class="service-config-checkbox"></span>
+                        <span>@Html.DisplayFor(model => cc.DisplayText)</span>
+                    </li>
+                }
+            </ul>
+        </li>
+    }
+</ul>

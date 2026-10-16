@@ -1,0 +1,536 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_QuoteTicket
+
+@{ bool skipMe = false; }
+
+<style>
+    .vert-text {
+        transform: rotate(90deg);
+        display: inline-block;
+        position: relative;
+        top: 50px;
+        right: 15px;
+    }
+
+    .major-padding {
+        padding-bottom: 100px;
+    }
+
+    .header-row {
+        background: #dcdcdc;
+        font-weight: 700;
+    }
+
+    .ticket-wrapper {
+        padding: 0 100px;
+    }
+
+    .na {
+        font-style: italic;
+    }
+
+        .na:after {
+            content: 'n/a';
+        }
+
+    @@media print {
+
+        .ticket-wrapper {
+            padding: 0 20px !important;
+        }
+
+        .body-content, .ticket-wrapper {
+            background: white;
+        }
+
+        .fs-3 {
+            font-size: 12px !important;
+        }
+
+        .fs-2 {
+            font-size: 12px !important;
+        }
+
+        .fs-4 {
+            font-size: 16px !important;
+        }
+    }
+</style>
+
+<div class="ticket-wrapper pt-5">
+
+    <!-- Header -->
+    <div class="row">
+        <div class="col-4">
+            <h4>@DateTime.Now.ToString("M/d/yyyy hh:mm tt")</h4>
+        </div>
+        <div class="col-4 text-center">
+            <h4>FifthColor</h4>
+            <h4 class="dont-wrap">Work Order - Order @Html.DisplayFor(model => model.Quote.JobNumber)</h4>
+            <h4>@Html.DisplayFor(model => model.Quote.Description)</h4>
+        </div>
+        <div class="col-4 text-end major-padding">
+            <div class="vert-text fs-3">@Html.DisplayFor(model => model.Quote.JobNumber)</div>
+        </div>
+    </div>
+
+    <!-- Client info -->
+    <div class="header-wrapper">
+        <div class="row header-row fs-2">
+            <div class="col-3">
+                Bill To
+            </div>
+            <div class="col-3">
+                Ship To
+            </div>
+            <div class="col-3">
+                Ordered By
+            </div>
+            <div class="col-3">
+                When
+            </div>
+        </div>
+        <div class="row fs-3">
+            <div class="col-3">
+                <div class="field-binder-col-flex">
+                    <div>@Html.DisplayFor(model => model.Quote.Client1.Title)</div>
+                    <div>@Html.DisplayFor(model => model.Quote.Client1.Address)</div>
+                    <div>@Html.DisplayFor(model => model.Quote.Client1.AddressAlt)</div>
+                    <div>@Html.DisplayFor(model => model.Quote.Contact1.Phone)</div>
+                    <div>@Html.DisplayFor(model => model.Quote.Client1.City) @Html.DisplayFor(model => model.Quote.Client1.USState.Abbreviation) @Html.DisplayFor(model => model.Quote.Client1.Zip)</div>
+                    <div class="pt-5">
+                        <div>@Html.DisplayFor(model => model.Quote.Client1.Notes)</div>
+                        <div>@Html.DisplayFor(model => model.Quote.Contact1.ContactNote)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="field-binder-col-flex">
+                    @if (Model.Quote.IsPickup ?? false)
+                    {
+                        <div>PICKUP</div>
+                    }
+                    else
+                    {
+                        <div>@Html.DisplayFor(model => model.Quote.ShippingOption.Title)</div>
+                        <div>@Html.DisplayFor(model => model.Quote.Client1.Title)</div>
+                        <div>@Html.DisplayFor(model => model.Quote.ShippingAddress1.Address)</div>
+                        <div>@Html.DisplayFor(model => model.Quote.Contact1.Phone)</div>
+                        <div>@Html.DisplayFor(model => model.Quote.ShippingAddress1.City) @Html.DisplayFor(model => model.Quote.ShippingAddress1.USState.Abbreviation) @Html.DisplayFor(model => model.Quote.ShippingAddress1.Zip)</div>
+                    }
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="field-binder-col-flex">
+                    <div>@Html.DisplayFor(model => model.Quote.Contact1.First) @Html.DisplayFor(model => model.Quote.Contact1.Last)</div>
+                    <div>Phone: @Html.DisplayFor(model => model.Quote.Contact1.Phone)</div>
+                    <div>Cell: @Html.DisplayFor(model => model.Quote.Contact1.Cell)</div>
+                    <div>Email: <a href="mailto:@Html.DisplayFor(model => model.Quote.Contact1.Email)">@Html.DisplayFor(model => model.Quote.Contact1.Email)</a></div>
+                </div>
+            </div>
+            <div class="col-3">
+            </div>
+        </div>
+
+        <!-- Special Instructions and Notes -->
+        <div class="row header-row fs-4">
+            <div class="col-12">
+                Special Instructions and Notes
+            </div>
+        </div>
+
+        <div class="row mb-3 fs-3">
+            <div class="col-12">
+                @Html.DisplayFor(model => model.Quote.Notes)
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Item list -->
+    <div class="row fs-2 header-row">
+        <div class="col-8">
+            @*Specs - This job has @Html.DisplayFor(model => model.Quote.QuoteItems.Count) Items*@
+        </div>
+        <div class="col-4">
+            <div class="row">
+                <div class="col-3 text-center">Time</div>
+                <div class="col-3 text-center">ActualT</div>
+                <div class="col-3 text-center">Quantity</div>
+                <div class="col-3 text-center">ActualQ</div>
+            </div>
+        </div>
+    </div>
+    @{ int ctr = 1; }
+    @foreach (FifthPress.Models.QuoteItemGroup qig in Model.ItemGroups.OrderBy(x => x.ParentItem.Ordinal))
+    {
+        int subctr = 1;
+        switch (qig.ParentItem.RowType.ToUpper())
+        {
+            case "STANDARD":
+
+
+                QuoteItem qi = Model.Quote.QuoteItems.Single(x => x.Id == qig.ParentItem.Id);
+
+
+                <div class="row pb-3 fs-3">
+                    <div class="col-2">
+                        @if (qig.SubItems.Count > 0)
+                        {
+                            <b class="ps-2">ITEM @Html.DisplayFor(model => ctr)<text>.</text>@Html.DisplayFor(model => subctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</b>
+                        }
+                        else
+                        {
+                            <b class="ps-2">ITEM @Html.DisplayFor(model => ctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</b>
+                        }
+                    </div>
+                    <div class="col-6">
+                        <b>@Html.DisplayFor(model => qi.Quantity) @Html.DisplayFor(model => qi.Description) @Html.DisplayFor(model => qi.Width)@Html.Raw("x")@Html.DisplayFor(model => qi.Length)</b>
+                    </div>
+                    <div class="col-4">
+                        <div class="row fs-3">
+                            <div class="col-3 text-center"><span class="na"></span></div>
+                            <div class="col-3 text-center"><span class="na"></span></div>
+                            <div class="col-3 text-center">@Html.DisplayFor(model => qi.Quantity)</div>
+                            <div class="col-3 text-center"><span class="na"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+
+                foreach (ServiceType st in Model.ServiceTypes)
+                {
+                    int stCounter = 0;
+                    foreach (QuoteItemService qis in qi.QuoteItemServices.Where(x => x.Service.ServiceCategory.ServiceType1.Title == st.Title).OrderBy(x => x.ApexOrdinal).ToList())
+                    {
+                        skipMe = false;
+                        <div class="row fs-3">
+                            <div class="col-2">
+                                @if (stCounter == 0)
+                                {<span class="type-title text-decoration-underline">@Html.DisplayFor(model => st.Title)</span>}
+                            </div>
+                            <div class="col-6">
+                                @if (qis.Service.Title == "Print" && qis.QuoteItem.Press.HasValue)
+                                {
+                                    <span class="service-title">@Html.DisplayFor(model => qis.QuoteItem.Press1.Title): @Html.DisplayFor(model => qis.QuoteItem.PressSpeedNumerator) @Html.DisplayFor(model => qis.QuoteItem.SpeedDenominator.Text)</span>
+                                    if ((qis.QuoteItem.DoubleHit ?? false) || (qis.QuoteItem.Collate ?? false) || (qis.QuoteItem.Staple ?? false))
+                                    {
+                                        <div class="field-binder-row-flex">
+                                            @if (qis.QuoteItem.DoubleHit ?? false)
+                                            {
+                                                <span class="double-hit fw-bold fs-12 ff-poppins pe-2">Double Ink</span>
+                                            }
+                                            @if (qis.QuoteItem.Staple ?? false)
+                                            {
+                                                <span class="staple fw-bold fs-12 ff-poppins pe-2">Staple</span>
+                                            }
+                                            @if (qis.QuoteItem.Collate ?? false)
+                                            {
+                                                <span class="collate fw-bold fs-12 ff-poppins pe-2">Collate</span>
+                                            }
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    if (qis.Service.Title == "Pull Material")
+                                    {
+                                        <div class="d-block">
+                                            <span class="service-title">@Html.DisplayFor(model => qis.Service.Title): </span>
+
+                                            <span class="material-name">@Html.DisplayFor(model => qis.QuoteItem.Material1.Title)</span>
+
+                                            <b class="material-size">@Html.DisplayFor(model => qis.QuoteItem.Material1.ParsedLength) x @Html.DisplayFor(model => qis.QuoteItem.Material1.ParsedWidth)</b>
+                                            <span class="material-sheet-ct">Sheets: @Html.DisplayFor(model => qis.QuoteItem.Sheets) (@Html.DisplayFor(model => qis.QuoteItem.Quantity) Sets of @Html.DisplayFor(model => qis.QuoteItem.QuantityBy))</span>
+                                        </div>
+                                        if (qis.QuoteItem.RunSheets.HasValue)
+                                        {
+                                            <div class="d-block">
+                                                <b class="material-sheet-count">
+                                                    Run:
+                                                    @Html.DisplayFor(model => qis.QuoteItem.RunLength)@Html.Raw("x")@Html.DisplayFor(model => qis.QuoteItem.RunWidth) @Html.DisplayFor(model => qis.QuoteItem.RunSheets) sheets (@Html.DisplayFor(model => qis.QuoteItem.Out) Out, @Html.DisplayFor(model => qis.QuoteItem.Up) Up)
+                                                </b>
+                                            </div>
+                                            <div class="d-block">
+                                                <b class="material-run-sheet-count">Finish: @Html.DisplayFor(model => qis.QuoteItem.Length)@Html.Raw("x")@Html.DisplayFor(model => qis.QuoteItem.Width) @Html.DisplayFor(model => qis.QuoteItem.TotalQuantity) Sheets</b>
+                                            </div>
+                                        }
+
+
+                                        <div class="d-block">
+                                            Front: @Html.DisplayFor(model => qis.QuoteItem.PressColorProfileFront) @Html.DisplayFor(model => qis.QuoteItem.PressColorNotesFront)
+                                        </div>
+                                        <div class="d-block">
+                                            Back: @Html.DisplayFor(model => qis.QuoteItem.PressColorProfileBack) @Html.DisplayFor(model => qis.QuoteItem.PressColorNotesBack)
+                                        </div>
+                                    }
+                                    else if (qis.Service.Title != "Print")
+                                    {
+                                        if (qis.QuoteItemFinishingMaterial.HasValue)
+                                        {
+                                            <span class="service-title">@Html.DisplayFor(model => qis.QuoteItemFinishingMaterial1.Material1.Title)</span>
+                                            <span class="finishing-count">Quantity: @Html.DisplayFor(model => qis.QuoteItemFinishingMaterial1.FinalCount)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="service-title">@Html.DisplayFor(model => qis.Service.Title)</span>
+
+                                            if (qis.Service.TimeFormula.HasValue)
+                                            {
+                                                switch (qis.Service.Title.ToUpper())
+                                                {
+                                                    case "ZUND":
+                                                        <div class="d-block">
+                                                            <span class="service-configuration">Cut Speed: @Html.DisplayFor(model => qis.ServiceConfigg.GetKeyValue("cutSpeed").Item2) @Enum.GetName(typeof(Press.PressSpeedDenominator), qis.ServiceConfigg.GetKeyValue("cutSpeed").Item1)</span>
+                                                        </div>
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                    else
+                                    {
+                                        skipMe = true;
+                                    }
+
+                                    <p>@Html.DisplayFor(model => qis.Notes)</p>
+                                }
+                            </div>
+                            <div class="col-4">
+                                @if (!skipMe)
+                                {
+                                    <div class="row py-3">
+                                        <div class="col-3 text-center">
+                                            @if (qis.ServiceTime > 0m)
+                                            {<span>@Html.DisplayFor(model => qis.FormattedServiceTime)</span>}
+                                        </div>
+                                        <div class="col-3 text-center">
+                                            @if (qis.ServiceTime > 0m)
+                                            {<p class="fillable-line"></p>}
+                                        </div>
+                                        <div class="col-3 text-center"></div>
+                                        <div class="col-3 text-center"></div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        stCounter++;
+                    }
+                }
+
+                subctr++;
+                foreach (FifthPress.Models.GenericItemOrganizer gio in qig.SubItems.OrderBy(x => x.Ordinal).ToList())
+                {
+                    switch (gio.RowType.ToUpper())
+                    {
+                        case "STANDARD":
+
+
+                            QuoteItem qi2 = Model.Quote.QuoteItems.Single(x => x.Id == gio.Id);
+
+                            <div class="row pb-3 fs-3">
+                                <div class="col-2">
+                                    @if (qig.SubItems.Count > 0)
+                                    {
+                                        <b class="ps-2">ITEM @Html.DisplayFor(model => ctr)<text>.</text>@Html.DisplayFor(model => subctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</b>
+                                    }
+                                    else
+                                    {
+                                        <b class="ps-2">ITEM @Html.DisplayFor(model => ctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</b>
+                                    }
+                                </div>
+                                <div class="col-6">
+                                    <b>@Html.DisplayFor(model => qi2.Quantity) @Html.DisplayFor(model => qi2.Description) @Html.DisplayFor(model => qi2.Width)@Html.Raw("x")@Html.DisplayFor(model => qi2.Length)</b>
+                                </div>
+                                <div class="col-4">
+                                    <div class="row fs-3">
+                                        <div class="col-3 text-center"><span class="na"></span></div>
+                                        <div class="col-3 text-center"><span class="na"></span></div>
+                                        <div class="col-3 text-center">@Html.DisplayFor(model => qi2.Quantity)</div>
+                                        <div class="col-3 text-center"><span class="na"></span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            foreach (ServiceType st in Model.ServiceTypes)
+                            {
+                                int stCounter = 0;
+                                foreach (QuoteItemService qis in qi2.QuoteItemServices.Where(x => x.Service.ServiceCategory.ServiceType1.Title == st.Title).OrderBy(x => x.ApexOrdinal).ToList())
+                                {
+                                    skipMe = false;
+                                    <div class="row fs-3">
+                                        <div class="col-2">
+                                            @if (stCounter == 0)
+                                            {<span class="type-title text-decoration-underline">@Html.DisplayFor(model => st.Title)</span>}
+                                        </div>
+                                        <div class="col-6">
+                                            @if (qis.Service.Title == "Print" && qis.QuoteItem.Press.HasValue)
+                                            {
+                                                <span class="service-title">@Html.DisplayFor(model => qis.QuoteItem.Press1.Title): @Html.DisplayFor(model => qis.QuoteItem.PressSpeedNumerator) @Html.DisplayFor(model => qis.QuoteItem.SpeedDenominator.Text)</span>
+                                                if ((qis.QuoteItem.DoubleHit ?? false) || (qis.QuoteItem.Collate ?? false) || (qis.QuoteItem.Staple ?? false))
+                                                {
+                                                    <div class="field-binder-row-flex">
+                                                        @if (qis.QuoteItem.DoubleHit ?? false)
+                                                        {
+                                                            <span class="double-hit fw-bold fs-12 ff-poppins pe-2">Double Ink</span>
+                                                        }
+                                                        @if (qis.QuoteItem.Staple ?? false)
+                                                        {
+                                                            <span class="staple fw-bold fs-12 ff-poppins pe-2">Staple</span>
+                                                        }
+                                                        @if (qis.QuoteItem.Collate ?? false)
+                                                        {
+                                                            <span class="collate fw-bold fs-12 ff-poppins pe-2">Collate</span>
+                                                        }
+                                                    </div>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                if (qis.Service.Title == "Pull Material")
+                                                {
+                                                    <div class="d-block">
+                                                        <span class="service-title">@Html.DisplayFor(model => qis.Service.Title): </span>
+
+                                                        <span class="material-name">@Html.DisplayFor(model => qis.QuoteItem.Material1.Title)</span>
+
+                                                        <b class="material-size">@Html.DisplayFor(model => qis.QuoteItem.Material1.ParsedLength) x @Html.DisplayFor(model => qis.QuoteItem.Material1.ParsedWidth)</b>
+                                                        <span class="material-sheet-ct">Sheets: @Html.DisplayFor(model => qis.QuoteItem.Sheets) (@Html.DisplayFor(model => qis.QuoteItem.Quantity) Sets of @Html.DisplayFor(model => qis.QuoteItem.QuantityBy))</span>
+                                                    </div>
+                                                    if (qis.QuoteItem.RunSheets.HasValue)
+                                                    {
+                                                        <div class="d-block">
+                                                            <b class="material-sheet-count">
+                                                                Run:
+                                                                @Html.DisplayFor(model => qis.QuoteItem.RunLength)@Html.Raw("x")@Html.DisplayFor(model => qis.QuoteItem.RunWidth) @Html.DisplayFor(model => qis.QuoteItem.RunSheets) sheets (@Html.DisplayFor(model => qis.QuoteItem.Out) Out, @Html.DisplayFor(model => qis.QuoteItem.Up) Up)
+                                                            </b>
+                                                        </div>
+                                                        <div class="d-block">
+                                                            <b class="material-run-sheet-count">Finish: @Html.DisplayFor(model => qis.QuoteItem.Length)@Html.Raw("x")@Html.DisplayFor(model => qis.QuoteItem.Width) @Html.DisplayFor(model => qis.QuoteItem.TotalQuantity) Sheets</b>
+                                                        </div>
+                                                    }
+
+
+                                                    <div class="d-block">
+                                                        Front: @Html.DisplayFor(model => qis.QuoteItem.PressColorProfileFront) @Html.DisplayFor(model => qis.QuoteItem.PressColorNotesFront)
+                                                    </div>
+                                                    <div class="d-block">
+                                                        Back: @Html.DisplayFor(model => qis.QuoteItem.PressColorProfileBack) @Html.DisplayFor(model => qis.QuoteItem.PressColorNotesBack)
+                                                    </div>
+                                                }
+                                                else if (qis.Service.Title != "Print")
+                                                {
+                                                    if (qis.QuoteItemFinishingMaterial.HasValue)
+                                                    {
+                                                        <span class="service-title">@Html.DisplayFor(model => qis.QuoteItemFinishingMaterial1.Material1.Title)</span>
+                                                        <span class="finishing-count">Quantity: @Html.DisplayFor(model => qis.QuoteItemFinishingMaterial1.FinalCount)</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="service-title">@Html.DisplayFor(model => qis.Service.Title)</span>
+
+                                                        if (qis.Service.TimeFormula.HasValue)
+                                                        {
+                                                            switch (qis.Service.Title.ToUpper())
+                                                            {
+                                                                case "ZUND":
+                                                                    <div class="d-block">
+                                                                        <span class="service-configuration">Cut Speed: @Html.DisplayFor(model => qis.ServiceConfigg.GetKeyValue("cutSpeed").Item2) @Enum.GetName(typeof(Press.PressSpeedDenominator), qis.ServiceConfigg.GetKeyValue("cutSpeed").Item1)</span>
+                                                                    </div>
+                                                                    break;
+                                                                default:
+                                                                    break;
+                                                            }
+                                                        }
+
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    skipMe = true;
+                                                }
+
+                                                <p>@Html.DisplayFor(model => qis.Notes)</p>
+                                            }
+                                        </div>
+                                        <div class="col-4">
+                                            @if (!skipMe)
+                                            {
+                                                <div class="row py-3">
+                                                    <div class="col-3 text-center">
+                                                        @if (qis.ServiceTime > 0m)
+                                                        {<span>@Html.DisplayFor(model => qis.FormattedServiceTime)</span>}
+                                                    </div>
+                                                    <div class="col-3 text-center">
+                                                        @if (qis.ServiceTime > 0m)
+                                                        {<p class="fillable-line"></p>}
+                                                    </div>
+                                                    <div class="col-3 text-center"></div>
+                                                    <div class="col-3 text-center"></div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    stCounter++;
+                                }
+
+                            }
+
+                            break;
+                        case "OUTSOURCED":
+                            QuoteOutsourcedItem qoi2 = Model.Quote.QuoteOutsourcedItems.Single(x => x.Id == gio.Id);
+
+                            <div class="row fs-3 pb-3">
+                                <div class="col-lg-2">
+                                    <b class="ps-2">ITEM @Html.DisplayFor(model => ctr)<text>.</text>@Html.DisplayFor(model => subctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</b>
+                                </div>
+                                <div class="col-lg-6">
+                                    <p>@Html.DisplayFor(model => qoi2.Description)</p>
+                                    <p>@Html.DisplayFor(model => qoi2.Notes)</p>
+                                    @if (qoi2.Vendor.HasValue)
+                                    {
+                                        <text>Outsourced To: </text><b>@Html.DisplayFor(model => qoi2.Vendor1.Title)</b>
+                                    }
+                                </div>
+                                <div class="col-lg-4"><!-- Empty --></div>
+                            </div>
+
+                            break;
+                        default: break;
+                    }
+                    subctr++;
+                }
+
+
+                break;
+            case "OUTSOURCED":
+
+
+                QuoteOutsourcedItem qoi = Model.Quote.QuoteOutsourcedItems.Single(x => x.Id == qig.ParentItem.Id);
+
+                <div class="row fs-3 pb-3">
+                    <div class="col-lg-2">
+                        <b class="ps-2">ITEM @Html.DisplayFor(model => ctr)<text>.</text>@Html.DisplayFor(model => subctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</b>
+                    </div>
+                    <div class="col-lg-6">
+                        <p>@Html.DisplayFor(model => qoi.Description)</p>
+                        <p>@Html.DisplayFor(model => qoi.Notes)</p>
+                        @if (qoi.Vendor.HasValue)
+                        {
+                            <text>Outsourced To: </text><b>@Html.DisplayFor(model => qoi.Vendor1.Title)</b>
+                        }
+                    </div>
+                    <div class="col-lg-4"><!-- Empty --></div>
+                </div>
+
+                break;
+            default: break;
+        }
+
+        ctr++;
+    }
+</div>

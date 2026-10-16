@@ -1,0 +1,30 @@
+﻿<div class="modal" tabindex="-1" id="invoice_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Invoices</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#invoice_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    @using (Html.BeginForm("AttachInvoice", "PurchaseOrder", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                    <div class="row">
+                        <div class="col-12">
+                            <input type="hidden" class="item-id" name="ItemId" />
+                            <label for="file_inp">Select Invoice</label>
+                            <input type="file" class="file-input" name="TheDoc" id="file_inp" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12 text-end">
+                            <button type="submit" class="btn btn-fc-primary" data-modal-to-close="#invoice_modal">Submit</button>
+                            <button type="button" class="btn btn-fc-caution cancel-add-doc" data-modal-to-close="#invoice_modal">Cancel</button>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

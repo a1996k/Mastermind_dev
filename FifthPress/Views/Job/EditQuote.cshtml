@@ -1,0 +1,910 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_QuoteWrapper
+
+@Styles.Render("~/Content/layoutplanning")
+@Styles.Render("~/Content/arr_quote_css")
+
+<style>
+    .edit-quote-w {
+        width: 40%;
+    }
+
+    .body-content {
+        padding-top: 90px !important;
+    }
+
+    .edit-quote-w h3 {
+        color: #fff;
+        font-size: 30px;
+    }
+
+    .edit-wrapper {
+        padding: 30px 190px 30px 0;
+    }
+
+    .edit-quote-wrapper {
+        background-color: #4f4f4f;
+        padding: 20px;
+        position: fixed;
+        top: 75px;
+        z-index: 99;
+    }
+
+        .edit-quote-wrapper button {
+            background-color: transparent;
+            color: #fff;
+            border: none;
+        }
+
+    .fa-solid.fa-file {
+        padding-right: 7px
+    }
+
+    .fa-file::before {
+        color: #b5cbd8;
+    }
+
+    .fa-solid.fa-copy {
+        padding-right: 7px
+    }
+
+    .fa-copy::before {
+        color: #b5cbd8;
+    }
+
+    fa-solid fa-eye {
+        padding-right: 7px
+    }
+
+    .fa-eye::before {
+        color: #b5cbd8;
+    }
+
+    .fa-solid.fa-print {
+        padding-right: 7px
+    }
+
+    .fa-print::before {
+        color: #b5cbd8;
+    }
+
+    .save-record {
+        background-color: #ff0000 !important;
+        border-radius: 50px;
+        padding: 10px 50px;
+        display: flex;
+    }
+
+    .btn:hover {
+        color: #fff;
+    }
+
+    .client-info-block {
+        padding: 30px;
+        background-color: #fff;
+        border-radius: 20px 0px 0px 20px;
+    }
+
+    .info-quote-wrapper {
+        display: flex;
+        background-color: #ddd;
+        border-radius: 20px;
+        margin-top: 100px;
+    }
+
+    .shipping-block {
+        padding: 30px;
+        width: 100%;
+    }
+
+    .single-line {
+        font-weight: bold;
+    }
+
+    .quote-box label {
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    .fa-solid.fa-pen-to-square {
+        font-size: 20px;
+    }
+
+    .quote-notes-wrapper {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 20px;
+    }
+
+    .text-box.multi-line {
+        border: 2px solid #b5cbd8;
+        border-radius: 7px;
+    }
+
+    .items-wrapper {
+        background-color: #fff;
+        width: 30%;
+        margin: auto;
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    .add-item-btn {
+        background-color: #ff0000;
+        color: #fff;
+        padding: 7px 40px;
+        border-radius: 50px;
+        font-weight: bold;
+    }
+
+        .add-item-btn:hover {
+            background-color: #ff0000;
+        }
+
+    .add-outsourced-item-btn {
+        font-weight: bold;
+        color: #000000;
+    }
+
+        .add-outsourced-item-btn:hover {
+            background-color: #fff;
+            color: #000;
+        }
+
+    #VM_Quote_Quote_ShippingMethod {
+        border: 2px solid #b5cbd8;
+        border-radius: 8px;
+        padding: 5px;
+        width: 60%;
+        font-weight: bold;
+    }
+
+    #VM_Quote_Quote_JobNumber:focus-visible {
+        border: none;
+    }
+
+    .job-num-valid {
+        width: 60%;
+        background-color: transparent;
+        border: none;
+    }
+
+    .single-line {
+        width: 60%;
+        background-color: transparent;
+    }
+
+    .ship-a {
+        font-family: aria;
+        font-size: 18px;
+    }
+
+    .ship-o {
+        font-family: aria;
+        font-size: 18px;
+    }
+
+    .quote-created {
+        font-size: 16px;
+        color: #000000;
+    }
+
+    .plus-sign {
+        color: #fff;
+        position: absolute;
+        top: -2px;
+        left: 75px;
+        font-size: 27px;
+    }
+
+    .job-type-wrapper {
+        display: flex;
+    }
+
+    .evt-job label {
+        margin-right: 8px;
+    }
+
+    .warh-job label {
+        margin-right: 8px;
+    }
+
+    #client_autocomplete {
+        background-color: #dadada;
+        border: none;
+        border-radius: 5px;
+    }
+
+    #material_config_modal label {
+        font-size: 20px;
+    }
+
+    ul .job-from-quote {
+        font-size: 20px;
+        cursor: pointer;
+    }
+
+    #item_reorder_modal .ui-sortable-handle {
+        border-top: none;
+        border-bottom: 2px solid #b5cbd8;
+    }
+</style>
+
+@{
+    ViewBag.Title = "Edit Quote";
+    string createdAtDate = Model.VM_Quote.Quote.CreatedAt.Value.ToLongDateString();
+}
+
+<style>
+    form label {
+        display: block;
+    }
+
+    .save-record {
+        background-color: #ff0000;
+        color: white;
+        font-family: 'poppins';
+        font-weight: bold;
+        padding: 7px 30px;
+        border-radius: 20px;
+        border: 2px solid #ff0000;
+    }
+</style>
+
+@Scripts.Render("~/bundles/ccalc")
+@Scripts.Render("~/bundles/timingparams")
+
+@{
+    string contactName = "";
+
+    if (Model.VM_Quote.Quote.Contact.HasValue)
+    {
+        contactName = Model.VM_Quote.Quote.Contact1.First + " " + Model.VM_Quote.Quote.Contact1.Last;
+    }
+}
+
+<script>
+    var oinvnivosn = ('@Model.RequiresValidator' === 'True');
+</script>
+
+@Html.Partial("~/Views/Partials/_QuotePriceListDisplay.cshtml", Model.ItemTotals)
+
+<input type="hidden" id="sp_adder_helper" />
+<input type="hidden" id="cut_config_helper" />
+<input type="hidden" id="press_add_helper" />
+
+<select class="d-none" id="print_speed_ref_sl">
+    <option value="1">Sheets/Hr.</option>
+    <option value="2">Rolls/Hr.</option>
+    <option value="3">Sq.Ft./Hr.</option>
+    <option value="4">Ft./Hr.</option>
+    <option value="5">None</option>
+</select>
+
+@Html.DropDownList("FinishingFormulaApplications", ViewData["FinishingFormulaApplications"] as SelectList, htmlAttributes: new { @class = "base-ffa-sl d-none", @name = "applicationValue" })
+
+<div class="edit-wrapper container-fluid">
+    <div class="d-flex edit-quote-wrapper justify-content-between align-items-center">
+        <div class="edit-quote-w">
+            <h3>Edit Quote #@Html.DisplayFor(model => model.VM_Quote.Quote.JobNumber)</h3>
+        </div>
+        <button type="button" class="btn btn-lg btn-fc-danger view-customer-quote-btn" data-modal-to-open="#quote_total_price_modal">Printable Quote</button>
+        <button type="button" class="btn btn-lg btn-fc-caution duplicate-quote-btn"><i class="fa-solid fa-copy"></i>Duplicate Quote</button>
+        <button type="button" class="btn btn-lg btn-fc-info convert-to-job-btn"><i class="fa-solid fa-file"></i>Convert To Job</button>
+        <button type="button" class="btn btn-lg btn-fc-secondary import-items-btn" data-bs-toggle="modal" data-bs-target="#importItemsModal"><i class="fa-solid fa-download"></i>Import Items</button>
+        <button type="button" class="btn btn-lg btn-success save-record">Save <i class="fa-solid fa-check ms-2"></i></button>
+    </div>
+    <div class="container-fluid">
+        @using (Html.BeginForm("UpdateQuote", "Job", FormMethod.Post, htmlAttributes: new { @class = "gy-3", @id = "quote_builder" }))
+        {
+            @Html.HiddenFor(model => model.VM_Quote.Quote.Id)
+            @Html.HiddenFor(model => model.VM_Quote.Quote.Deleted)
+            @Html.HiddenFor(model => model.VM_Quote.Quote.Client)
+            @Html.HiddenFor(model => model.VM_Quote.Quote.Contact)
+            @Html.HiddenFor(model => model.VM_Quote.Quote.MarkupOverride)
+            @Html.HiddenFor(model => model.VM_Quote.Quote.ShippingAddress)
+            @Html.HiddenFor(model => model.VM_Quote.Quote.FreightAddress)
+            <input type="hidden" id="client_credit_hold"
+                value="@((Model.VM_Quote.Quote.Client1 != null && Model.VM_Quote.Quote.Client1.CreditHold == true).ToString().ToLower())" />
+
+            <div class="info-quote-wrapper">
+                <div class="client-info-block">
+                    <div class="d-flex align-items-center mb-5 quote-box">
+                        @Html.LabelFor(model => model.VM_Quote.Quote.JobNumber)
+                        @Html.EditorFor(model => model.VM_Quote.Quote.JobNumber, new { htmlAttributes = new { @data_changed = false, @placeholder = "Autopopulate?", @readonly = "readonly" } })
+                        <!--<i class="fa-solid fa-pen-to-square"></i>-->
+                    </div>
+                    <div class="d-flex align-items-center mb-5 quote-box">
+                        <label for="VM_Quote_Quote_ClientPONumber">Client PO #</label>
+                        @Html.EditorFor(model => model.VM_Quote.Quote.ClientPONumber, new { htmlAttributes = new { @data_changed = false } })
+                    </div>
+                    <div class="row flex-column flex-lg-row">
+                        <div class="d-inline-block">
+                            @Html.LabelFor(model => model.VM_Quote.Quote.Client)
+                            <input type="text" id="client_autocomplete" value="@Html.DisplayFor(model => model.VM_Quote.Quote.Client1.Title)" />
+                            <button type="button" class="btn btn-sm btn-fc-info add-client-btn" data-modal-to-open="#dynamic_client_modal">Add Client</button>
+                            <button type="button" class="btn btn-sm btn-primary" data-modal-to-open="#clientEditorModal">
+                                Edit Client
+                            </button>
+                            <button type="button" class="btn btn-sm btn-fc-info client-billing-btn" data-modal-to-open="#client_billing_modal">Client Billing</button>
+                        </div>
+                        <div class="d-inline-block mt-5"><h3>Contact</h3></div>
+                        <div class="d-inline-block">
+                            <input type="text" id="contact_autocomplete" value="@Html.DisplayFor(model => contactName)" disabled />
+                            <button type="button" class="btn btn-sm btn-fc-info add-contact-btn" data-modal-to-open="#dynamic_contact_modal">Add Contact</button>
+                            <button type="button" class="btn btn-sm btn-primary" data-modal-to-open="#contactEditorModal">
+                                Edit Contact
+                            </button>
+                            <button type="button" class="btn btn-sm btn-fc-danger clear-contact-btn">Clear Contact</button>
+                        </div>
+                        <div class="d-inline-block fs-14 d-contact-phone">
+                            Phone: @Html.DisplayFor(model => model.VM_Quote.Quote.Contact1.Phone)
+                        </div>
+                        <div class="d-inline-block fs-14 d-contact-email">
+                            Email: @Html.DisplayFor(model => model.VM_Quote.Quote.Contact1.Email)
+                        </div>
+                    </div>
+
+                    <div id="credit-hold-banner" class="alert alert-warning d-flex align-items-center mt-3 mb-3 @(Model.VM_Quote.Quote.Client1 != null && Model.VM_Quote.Quote.Client1.CreditHold == true ? "" : "d-none")"
+                         style="font-size: 18px !important; background-color: #ff9800; color: #fff; border-color: #ff9800;">
+                        <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                        <strong>ON HOLD</strong>
+                        <span class="ms-2">- This client is on credit hold</span>
+                    </div>
+
+                    <!-- Client Cost Splits Section -->
+                    <div class="mt-4" id="clientCostSplitsSection">
+                        <div class="d-flex align-items-center mb-2">
+                            <h5 class="mb-0">Client Cost Allocation</h5>
+                            <button type="button" class="btn btn-sm btn-link" data-toggle="collapse" data-target="#clientSplitsCollapse">
+                                <i class="fa fa-chevron-down"></i>
+                            </button>
+                        </div>
+                        <div class="collapse show" id="clientSplitsCollapse">
+                            <table class="table table-sm table-bordered" id="clientSplitsTable">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Client</th>
+                                        <th style="width:150px">Allocation %</th>
+                                        <th style="width:130px">Amount</th>
+                                        <th style="width:50px"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clientSplitsBody">
+                                    <!-- Dynamic rows populated by JavaScript -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-secondary">
+                                        <td><strong>Total:</strong></td>
+                                        <td><strong><span id="splitTotalPercent" class="text-danger">0%</span></strong></td>
+                                        <td><strong><span id="splitTotalAmount">$0.00</span></strong></td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <button type="button" class="btn btn-sm btn-success" id="addClientSplitBtn">
+                                    <i class="fa fa-plus"></i> Add Client
+                                </button>
+                                <button type="button" class="btn btn-sm btn-primary" id="saveClientSplitsBtn">
+                                    <i class="fa fa-save"></i> Save Splits
+                                </button>
+                            </div>
+                            <div id="splitValidationMessage" class="text-danger mt-2" style="display:none;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="shipping-block">
+                    <div class="text-end mb-3 quote-created ff-poppins fs-16">Quote Created by @Html.DisplayFor(model => model.VM_Quote.Quote.User.FirstName) @Html.DisplayFor(model => model.VM_Quote.Quote.User.LastName)</div>
+                    <div class="ff-poppins fs-16 ms-3 text-end mb-5">Quote Created on @Html.DisplayFor(model => createdAtDate)</div>
+                    @if (Model.VM_Quote.Quote.FromJob.HasValue)
+                    {
+                        <div class="text-end mb-5 created-from fs-14 ff-poppins" job-number="@Html.DisplayFor(model => model.VM_Quote.Quote.Job.Id)">Created from Job #@Html.DisplayFor(model => model.VM_Quote.Quote.Job.JobNumber)</div>
+                    }
+                    @if (Model.RelatedJobs.Count > 0)
+                    {
+                        <div class="field-binder-col-flex align-items-end">
+                            <h3 class="fw-bold">Jobs Created</h3>
+                            <ul class="jobs-from-quote">
+                                @foreach (FifthPress.Models.RelatedJob rj in Model.RelatedJobs)
+                                {
+                                    <li data-record-id="@Html.DisplayFor(model => rj.JobId)" class="job-from-quote">@Html.DisplayFor(model => rj.JobNumber)</li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-lg-3">
+                            <input type="radio" name="pickup_ship" id="rad_pickup" @if ((Model.VM_Quote.Quote.IsPickup ?? false)) { @("checked") ; } />
+                            <label for="rad_pickup">Pickup</label>
+                            <input type="radio" name="pickup_ship" id="rad_ship" @if (!(Model.VM_Quote.Quote.IsPickup ?? false)) { @("checked") ; } />
+                            <label for="rad_ship">Ship</label>
+                        </div>
+                        <div class="ship-select-row col-lg-9" @if ((Model.VM_Quote.Quote.IsPickup ?? false)) { @("style=display:none") ; }>
+                            <div class="col">
+                                <h5 class="ship-o">Shipping Options</h5>
+                                <div class="d-block ship-label">
+                                    @Html.DropDownListFor(model => model.VM_Quote.Quote.ShippingMethod, ViewData["VM_Quote.Quote.ShippingMethod"] as SelectList, htmlAttributes: new { })
+                                </div>
+
+                                <h5 class="ship-a mt-5">Shipping Address</h5>
+                                <div class="bg-white sa-display-wrapper p-3">
+                                    <div class="fs-12 ff-poppins sa-customer-name">@Html.DisplayFor(model => model.VM_Quote.Quote.ShippingAddress1.CustomerName)</div>
+                                    <div class="fs-12 ff-poppins sa-customer-address">@Html.DisplayFor(model => model.VM_Quote.Quote.ShippingAddress1.Address)</div>
+                                    <div class="fs-12 ff-poppins sa-customer-csz">@Html.DisplayFor(model => model.VM_Quote.Quote.FormattedShippingAddress)</div>
+                                </div>
+                                <div class="shipping-add-btn mt-3">
+                                    <div class="field-binder-row-flex">
+                                        <button type="button" class="btn btn-sm btn-fc-info select-address-btn fs-14" data-modal-to-open="#shipping_address_modal">Select Shipping Address</button>
+                                        <button type="button" class="btn btn-sm btn-fc-caution btn-fc-info dynamic-sa-add fs-14" data-modal-to-open="#dynamic_sa_modal">Add New Address</button>
+                                        <button type="button" class="btn btn-sm btn-fc-primary edit-address-btn fs-14" data-modal-to-open="#edit_sa_modal">Edit Address</button>
+                                        <button type="button" class="btn btn-sm btn-fc-danger clear-address-btn fs-14">Clear Shipping Address</button>
+                                    </div>
+                                </div>
+
+                                <h5 class="ship-a mt-5">Freight Address</h5>
+                                <div class="bg-white fsa-display-wrapper p-3">
+                                    <div class="fs-12 ff-poppins fsa-customer-name">@Html.DisplayFor(model => model.VM_Quote.Quote.FreightShippingAddress.CustomerName)</div>
+                                    <div class="fs-12 ff-poppins fsa-customer-address">@Html.DisplayFor(model => model.VM_Quote.Quote.FreightShippingAddress.Address)</div>
+                                    <div class="fs-12 ff-poppins fsa-customer-csz">@Html.DisplayFor(model => model.VM_Quote.Quote.FormattedFreightShippingAddress)</div>
+                                </div>
+                                <div class="shipping-add-btn mt-3">
+                                    <div class="field-binder-row-flex">
+                                        <button type="button" class="btn btn-sm btn-fc-info select-sp-address-btn fs-14" data-modal-to-open="#freight_shipping_address_modal">Select Freight Address</button>
+                                        <button type="button" class="btn btn-sm btn-fc-caution btn-fc-info dynamic-fsa-add fs-14" data-modal-to-open="#dynamic_fsa_modal">Add Freight Address</button>
+                                        <button type="button" class="btn btn-sm btn-fc-danger clear-freight-address-btn fs-14">Clear Freight Address</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row pt-5">
+                        <div class="col-12">
+                            <button type="button" class="btn btn-sm btn-fc-info reorder-items-btn" data-modal-to-open="#item_reorder_modal">Configure Items</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="job-type-wrapper mt-3">
+                <div class="warh-job d-flex mx-3">
+                    @Html.LabelFor(model => model.VM_Quote.Quote.IsWarehouseJob)
+                    @Html.CheckBoxFor(model => model.VM_Quote.Quote.IsWarehouseJob.Value)
+                </div>
+                <div class="evt-job d-flex mx-3">
+                    @Html.LabelFor(model => model.VM_Quote.Quote.IsEvent)
+                    @Html.CheckBoxFor(model => model.VM_Quote.Quote.IsEvent.Value)
+                </div>
+                <div class="release-client d-flex mx-3">
+                    <label for="ReleaseToClientView">Release to Client View</label>
+                    <div class="form-check form-switch ms-2">
+                        <input type="checkbox" class="form-check-input" role="switch" id="ReleaseToClientView"
+                               name="VM_Quote.Quote.ReleaseToClientView"
+                               value="true" @(Model.VM_Quote.Quote.ReleaseToClientView == true ? "checked" : "") />
+                    </div>
+                </div>
+            </div>
+            <div class="quote-notes-wrapper">
+                <div class="quote-note-header">
+                    <h3>Quote Notes</h3>
+                </div>
+                <div class="row">
+                    <div class="col-lg-3">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.LabelFor(model => model.VM_Quote.Quote.Description)
+                            @Html.EditorFor(model => model.VM_Quote.Quote.Description, new { htmlAttributes = new { @data_changed = false, @class = "no-auto-size" } })
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.LabelFor(model => model.VM_Quote.Quote.Notes)
+                            @Html.EditorFor(model => model.VM_Quote.Quote.Notes, new { htmlAttributes = new { @data_changed = false, @class = "no-auto-size" } })
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.LabelFor(model => model.VM_Quote.Quote.InternalNotes)
+                            @Html.EditorFor(model => model.VM_Quote.Quote.InternalNotes, new { htmlAttributes = new { @data_changed = false, @class = "no-auto-size" } })
+                        </div>
+                    </div>
+                    <div class="col-lg-3">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.LabelFor(model => model.VM_Quote.Quote.BillingNotes)
+                            @Html.EditorFor(model => model.VM_Quote.Quote.BillingNotes, new { htmlAttributes = new { @data_changed = false, @class = "no-auto-size" } })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row mt-3">
+            <div class="col-12" id="job_items">
+                @foreach (FifthPress.Models.GenericItemOrganizer gio in Model.GenericItemOrganizer.OrderBy(x => x.Ordinal))
+                {
+                    switch (gio.RowType)
+                    {
+                        case "Standard":
+                            QuoteItem qi = Model.VM_Quote.Quote.QuoteItems.Single(x => x.Id == gio.Id);
+                            try
+                            {
+                                @Html.Partial("~/Views/Partials/_QuoteItemRow.cshtml", new VM_QuoteItem { QuoteItem = qi });
+                            }
+                            catch (Exception e) { }
+                            break;
+                        case "Outsourced":
+                            QuoteOutsourcedItem qio = Model.VM_Quote.Quote.QuoteOutsourcedItems.Single(x => x.Id == gio.Id);
+                            @Html.Partial("~/Views/Partials/_QuoteOutsourcedItemRow.cshtml", new VM_QuoteOutsourcedItem { QuoteOutsourcedItem = qio });
+                            break;
+                    }
+                }
+            </div>
+        </div>
+        <div class="items-wrapper">
+            <div class="row">
+                <div class="col-lg-12 pt-3 text-center">
+                    <div class="position-relative">
+                        <input type="button" class="btn btn-fc-caution add-item-btn" value="Add Item" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="edit_service_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editing <span name="title"></span></h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_service_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal yn-modal quote-total-price-modal" tabindex="-1" id="quote_total_price_modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="field-binder-col-flex">
+                    <p class="question-text">Show the total price on the quote?</p>
+                    <div class="field-binder-row-flex justify-content-around py-3 w-100">
+                        <i class="fa-solid fa-thumbs-up yes"></i>
+                        <i class="fa-solid fa-thumbs-down no"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<button type="button" class="d-none" id="editservice" data-modal-to-open="#edit_service_modal">HiddenButton1</button>
+<button type="button" class="d-none" id="editpress" data-modal-to-open="#edit_press_modal">HiddenButton2</button>
+
+@Html.Partial("~/Views/Partials/_ClientEditor.cshtml")
+
+@Html.Partial("~/Views/Partials/_PricingBreakdownModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_CostComparisonModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_PressSpeedSelectModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_ServiceNotesModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_DocumentListModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_AddDocumentModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_DeleteDocumentModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_MaterialPriceOverrideModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_CuttingServiceModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_CuttingServiceConfigModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_SheetOverrideModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_FinishingMaterialSelectModal.cshtml", Model.AvailableFinishingMaterials)
+
+@Html.Partial("~/Views/Partials/_FinishingMaterialConfigurationModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_ShippingAddressSelectModal.cshtml", false)
+
+@Html.Partial("~/Views/Partials/_FreightShippingAddressSelectModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_PrintableQuoteOptionModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_DynamicVendorAdditionModal.cshtml", new Vendor())
+
+@Html.Partial("~/Views/Partials/_DynamicMaterialAdditionModal.cshtml", new Material())
+
+@Html.Partial("~/Views/Partials/_DynamicShippingAddressAdditionModal.cshtml", new ShippingAddress())
+
+@Html.Partial("~/Views/Partials/_EditShippingAddressModal.cshtml", new ShippingAddress())
+
+@Html.Partial("~/Views/Partials/_DynamicFreightShippingAddressAdditionModal.cshtml", new FreightShippingAddress())
+
+@Html.Partial("~/Views/Partials/_DynamicClientAdditionModal.cshtml", new VM_Customer { Client = new Client { BlindShipping = false, TaxExempt = false, IsGolfClient = false, Markup = .40m } })
+
+@Html.Partial("~/Views/Partials/_DynamicContactAdditionModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_ClientBillingDetailsModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_MaterialConfigModal.cshtml", new VM_MaterialConfig())
+
+@Html.Partial("~/Views/Partials/_PressSelectModal.cshtml", Model.VM_Presses)
+
+@Html.Partial("~/Views/Partials/_ReorderItemModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_PrepressServiceSelectModal.cshtml", Model.AvailablePrepressServices)
+@Html.Partial("~/Views/Partials/_CuttingServiceSelectModal.cshtml", Model.AvailableCuttingServices)
+@Html.Partial("~/Views/Partials/_FinishingServiceSelectModal.cshtml", Model.AvailableFinishingServices)
+
+@Html.Partial("~/Views/Partials/_ViewLayoutModal.cshtml")
+
+@Html.Partial("~/Views/NewPriceDisplay/_PriceListModal.cshtml", Model.PriceListViewModel)
+
+@Html.Partial("~/Views/Partials/_ContactEditorModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_QuickClientEditor.cshtml")
+
+@Scripts.Render("~/bundles/quotes")
+@Scripts.Render("~/bundles/layoutmgr2")
+<script src="~/Scripts/ClientCostSplits.js"></script>
+
+<!-- Import Items Modal -->
+<div class="modal fade" id="importItemsModal" tabindex="-1" aria-labelledby="importItemsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importItemsModalLabel">Import Items from Job/Quote</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="import-step-1">
+                    <div class="mb-3">
+                        <label for="sourceJobNumber" class="form-label">Job or Quote Number</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="sourceJobNumber" placeholder="Enter job or quote number">
+                            <button class="btn btn-primary" type="button" id="searchItemsBtn">Search</button>
+                        </div>
+                    </div>
+                    <div id="searchStatus" class="mt-2"></div>
+                </div>
+                <div id="import-step-2" style="display: none;">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <h6>Source: <span id="sourceRecordInfo"></span></h6>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="selectAllItemsBtn">Select All</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="deselectAllItemsBtn">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm">
+                            <thead class="sticky-top bg-light">
+                                <tr>
+                                    <th width="5%">
+                                        <input type="checkbox" id="selectAllCheckbox">
+                                    </th>
+                                    <th width="25%">Title</th>
+                                    <th width="30%">Description</th>
+                                    <th width="10%">Qty</th>
+                                    <th width="15%">Material</th>
+                                    <th width="10%">Cost</th>
+                                    <th width="5%">Type</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <div class="alert alert-info">
+                            <small>Selected items will be copied to this quote. Original items will remain unchanged.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="importSelectedBtn" style="display: none;">Import Selected Items</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#client_autocomplete').trigger('change');
+
+        UpdateMarkupPercentage('@Html.DisplayFor(model => model.VM_Quote.Quote.MarkupOverrideAsPercent)');
+
+        // Initialize Client Cost Splits
+        ClientCostSplits.init({
+            entityId: @(Model.VM_Quote.Quote.Id),
+            entityType: 'Quote',
+            baseClientId: @(Model.VM_Quote.Quote.Client ?? 0),
+            baseClientName: '@Html.Raw(Model.VM_Quote.Quote.Client1?.Title?.Replace("'", "\\'") ?? "")',
+            totalAmount: @(Model.ItemTotals?.Total ?? 0)
+        });
+
+        PositionPricingWrapper();
+        $(window).on('resize', PositionPricingWrapper);
+    });
+
+    // Import Items functionality
+    let availableItems = [];
+    const targetQuoteId = @Html.Raw(Json.Encode(Model.VM_Quote.Quote.Id));
+
+    $('#searchItemsBtn').click(function() {
+        const jobNumber = $('#sourceJobNumber').val().trim();
+        if (!jobNumber) {
+            $('#searchStatus').html('<div class="alert alert-warning">Please enter a job or quote number</div>');
+            return;
+        }
+
+        $('#searchStatus').html('<div class="alert alert-info">Searching...</div>');
+        
+        $.ajax({
+            url: ProcessUrl('Job/GetJobQuoteItems'),
+            type: 'GET',
+            data: { jobNumber: jobNumber },
+            success: function(response) {
+                if (response.success) {
+                    availableItems = response.items;
+                    displayItems(response);
+                    $('#import-step-1').hide();
+                    $('#import-step-2').show();
+                    $('#importSelectedBtn').show();
+                } else {
+                    $('#searchStatus').html('<div class="alert alert-danger">' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $('#searchStatus').html('<div class="alert alert-danger">Error searching for items</div>');
+            }
+        });
+    });
+
+    function displayItems(response) {
+        $('#sourceRecordInfo').text(response.recordType + ' #' + response.recordNumber);
+        const tbody = $('#itemsTableBody');
+        tbody.empty();
+
+        response.items.forEach(function(item, index) {
+            const row = `
+                <tr>
+                    <td><input type="checkbox" class="item-checkbox" data-item-id="${item.Id}" data-item-type="${item.Type}"></td>
+                    <td>${item.Title || ''}</td>
+                    <td>${item.Description || ''}</td>
+                    <td>${item.Quantity || ''}</td>
+                    <td>${item.MaterialName || ''}</td>
+                    <td>$${(item.MaterialCost || 0).toFixed(2)}</td>
+                    <td><span class="badge bg-primary">${item.Type}</span></td>
+                </tr>
+            `;
+            tbody.append(row);
+        });
+    }
+
+    $('#selectAllCheckbox').change(function() {
+        $('.item-checkbox').prop('checked', this.checked);
+    });
+
+    $('#selectAllItemsBtn').click(function() {
+        $('.item-checkbox').prop('checked', true);
+        $('#selectAllCheckbox').prop('checked', true);
+    });
+
+    $('#deselectAllItemsBtn').click(function() {
+        $('.item-checkbox').prop('checked', false);
+        $('#selectAllCheckbox').prop('checked', false);
+    });
+
+    $('#importSelectedBtn').click(function() {
+        const selectedItems = [];
+        $('.item-checkbox:checked').each(function() {
+            selectedItems.push({
+                id: parseInt($(this).data('item-id')),
+                type: $(this).data('item-type')
+            });
+        });
+
+        if (selectedItems.length === 0) {
+            alert('Please select at least one item to import');
+            return;
+        }
+
+        // Show loading state
+        $('#importSelectedBtn').prop('disabled', true).text('Importing...');
+
+        const itemIds = selectedItems.map(item => item.id);
+        const sourceTypes = [...new Set(selectedItems.map(item => item.type))];
+        
+        // Process each source type separately
+        let importPromises = [];
+        sourceTypes.forEach(sourceType => {
+            const itemsOfType = selectedItems.filter(item => item.type === sourceType).map(item => item.id);
+            
+            importPromises.push(
+                $.ajax({
+                    url: ProcessUrl('Job/ImportSelectedItems'),
+                    type: 'POST',
+                    data: {
+                        targetId: targetQuoteId,
+                        targetType: 'Quote',
+                        selectedItemIds: itemsOfType,
+                        sourceType: sourceType,
+                        copyTimingRecords: false
+                    }
+                })
+            );
+        });
+
+        Promise.all(importPromises).then(function(responses) {
+            let totalImported = 0;
+            let hasErrors = false;
+            
+            responses.forEach(response => {
+                if (response.success) {
+                    const match = response.message.match(/(\d+)/);
+                    if (match) totalImported += parseInt(match[1]);
+                } else {
+                    hasErrors = true;
+                    console.error('Import error:', response.message);
+                }
+            });
+            
+            if (hasErrors) {
+                alert('Some items could not be imported. Check console for details.');
+                $('#importSelectedBtn').prop('disabled', false).text('Import Selected Items');
+            } else {
+                alert(`Successfully imported ${totalImported} item(s).`);
+                $('#importItemsModal').modal('hide');
+                
+                // Reload the items section using the same pattern as reorder items
+                reloadQuoteItems();
+            }
+            
+        }).catch(function(xhr, status, error) {
+            console.error('Import failed:', error);
+            alert('Error importing items: ' + error);
+            $('#importSelectedBtn').prop('disabled', false).text('Import Selected Items');
+        });
+    });
+
+    function reloadQuoteItems() {
+        $('#job_items').fadeOut('fast', function () {
+            $.ajax({
+                type: 'GET',
+                url: ProcessUrl('Job/RefreshQuoteItems'),
+                data: { quoteId: targetQuoteId },
+                success: function (response) {
+                    $('#job_items').html(response.Data || response);
+                    $('#job_items').fadeIn('fast');
+                },
+                error: function (err) {
+                    console.error('Failed to reload items:', err);
+                    $('#job_items').html('<div class="alert alert-danger">Failed to reload items. Please refresh the page.</div>');
+                    $('#job_items').fadeIn('fast');
+                }
+            });
+        });
+    }
+
+    // Reset modal when closed
+    $('#importItemsModal').on('hidden.bs.modal', function() {
+        $('#import-step-1').show();
+        $('#import-step-2').hide();
+        $('#importSelectedBtn').hide().prop('disabled', false).text('Import Selected Items');
+        $('#sourceJobNumber').val('');
+        $('#searchStatus').empty();
+        $('#itemsTableBody').empty();
+        $('#selectAllCheckbox').prop('checked', false);
+        availableItems = [];
+    });
+</script>

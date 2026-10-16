@@ -1,0 +1,52 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_ItemServices
+
+
+
+
+@foreach (VM_ItemServiceRow v in Model.ServiceList)
+{
+    <li data-record-type="service" class="ui-sortable-handle" data-record-id="@Html.DisplayFor(model => v.RecordId)" data-service-id="@Html.DisplayFor(model => v.ServiceId)" data-item-title="@Html.DisplayFor(model => v.ServiceTitle)">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12 d-flex flex-row justify-content-between">
+                    <i class="fa-solid fa-gears"></i>
+                    @Html.HiddenFor(model => v.Ordinal, htmlAttributes: new { @class = "current-service-ordinal" })
+                    @Html.HiddenFor(model => v.IsCuttingService, htmlAttributes: new { @class = "is-cutting-service" })
+                    @if (v.ShowQAToggle || v.IsPrintingService)
+                    {
+                        @Html.HiddenFor(model => v.RequiresQualityCheck, htmlAttributes: new { @class = "requires-qa-check" })
+                    }
+                    <span>@Html.DisplayFor(model => v.ServiceTitle)</span>
+                    @if (v.ShowQAToggle)
+                    {
+                        <label class="ms-2 fs-6 fw-light">
+                            <input type="checkbox" class="qa-toggle" data-jis-id="@v.RecordId" @(v.RequiresQualityCheck ? "checked" : "") />
+                            Enable QA
+                        </label>
+                    }
+                    @if (v.IsFinishingService)
+                    {<span class="ff-dm-sans fs-12 fst-italic" style="color:#666;">Finishing Material</span>
+                    <span class="remove-finishing-material-li" title="Remove finishing material"><i class="fa-solid fa-xmark" style="color: #8f0000;"></i></span>}
+                    else if (v.Required)
+                    {<p class="item-is-required" style="color:red;">Required</p>}
+                    else
+                    {<span class="remove-link-li"><i class="fa-solid fa-minus" style="color: #8f0000;"></i></span>}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    @if ((v.IsTimed))
+                    {
+                        <span class="fw-light">Est. Time: <span class="service-time-value">@Html.DisplayFor(model => v.FormattedServiceTime)</span></span>
+                    }
+                    else
+                    {
+                        <!-- Display some sort of quantity here -->
+                    }
+                    <p class="item-notes fst-italic text-start">@Html.DisplayFor(model => v.Notes)</p>
+                </div>
+            </div>
+        </div>
+    </li>
+}

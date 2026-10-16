@@ -1,0 +1,18 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_ServiceCategory
+
+<form method="post" action="servicecat/save" enctype="multipart/form-data" data-item-type="ServiceCategory">
+    @Html.HiddenFor(model => model.ServiceCategory.Id)
+    @Html.HiddenFor(model => model.ServiceCategory.Deleted)
+    <div class="field-binder-flexxy">
+        @Html.LabelFor(model => model.ServiceCategory.Title)
+        @Html.EditorFor(model => model.ServiceCategory.Title, new { htmlAttributes = new { @data_changed = false } })
+    </div>
+    <div class="field-binder-flexxy">
+        @Html.LabelFor(model => model.ServiceCategory.ServiceType)
+        @Html.DropDownListFor(model => model.ServiceCategory.ServiceType, ViewData["ServiceCategory.ServiceType"] as SelectList, htmlAttributes: new { })
+    </div>
+
+    <input type="submit" value="Save" data-modal-to-close="#" />
+    <button type="button" data-modal-to-close="#">Cancel</button>
+</form>

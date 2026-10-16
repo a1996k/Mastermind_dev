@@ -1,0 +1,129 @@
+<div class="modal" tabindex="-1" id="proof_list_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Proofs</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#proof_list_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <input type="hidden" id="proof_list_item_id" />
+                    <input type="hidden" id="proof_list_job_id" />
+
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <button type="button" class="btn btn-outline-secondary copy-client-link-btn" onclick="GenerateClientLink()">
+                                <i class="fa-solid fa-link me-2"></i>Get Client Link
+                            </button>
+                        </div>
+                        <div class="col-6 text-end">
+                            <button type="button" class="btn btn-fc-info upload-new-proof-btn">
+                                <i class="fa-solid fa-upload me-2"></i>Upload New Proof
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="client_link_container" class="row mb-3" style="display: none;">
+                        <div class="col-12">
+                            <div class="input-group">
+                                <input type="text" id="client_link_input" class="form-control" readonly />
+                                <button type="button" class="btn btn-primary" onclick="CopyClientLinkFromInput()">
+                                    <i class="fa-solid fa-copy"></i> Copy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="proofs_container">
+                        <div class="text-center py-4" id="proofs_loading">
+                            <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+                            <p class="mt-2">Loading proofs...</p>
+                        </div>
+
+                        <div id="proofs_empty" class="text-center py-4" style="display: none;">
+                            <i class="fa-solid fa-file-pdf fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No proofs uploaded yet</p>
+                        </div>
+
+                        <div id="proofs_list" style="display: none;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-fc-caution" data-modal-to-close="#proof_list_modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="proof_item_template">
+    <div class="proof-item card mb-3">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-auto">
+                    <img src="" class="proof-thumbnail" alt="Proof thumbnail" />
+                </div>
+                <div class="col">
+                    <div class="proof-info">
+                        <span class="badge bg-secondary proof-version me-2">v1</span>
+                        <span class="badge proof-status">Pending</span>
+                    </div>
+                    <div class="proof-filename text-muted mt-1"></div>
+                    <div class="proof-meta mt-1">
+                        <small class="text-muted">
+                            Uploaded by <span class="proof-uploader"></span> on <span class="proof-date"></span>
+                        </small>
+                    </div>
+                    <div class="proof-approval-info mt-1" style="display: none;">
+                        <small class="text-muted">
+                            <span class="proof-approval-action"></span> on <span class="proof-approval-date"></span>
+                        </small>
+                        <div class="proof-approval-notes mt-1" style="display: none;">
+                            <small class="fst-italic"></small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <div class="proof-actions">
+                        <button type="button" class="btn btn-sm btn-fc-primary download-proof-btn me-1" title="Download">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-fc-caution delete-proof-btn" title="Delete">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<style>
+    .proof-thumbnail {
+        width: 100px;
+        height: 130px;
+        object-fit: contain;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+    }
+
+    .proof-status.status-pending {
+        background-color: #ffc107;
+        color: #212529;
+    }
+
+    .proof-status.status-approved {
+        background-color: #198754;
+        color: #fff;
+    }
+
+    .proof-status.status-rejected {
+        background-color: #dc3545;
+        color: #fff;
+    }
+
+    .proof-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+</style>

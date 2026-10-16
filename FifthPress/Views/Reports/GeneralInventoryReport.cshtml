@@ -1,0 +1,105 @@
+﻿@model List<GeneralInventoryReport_Result>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <button id="download_csv" class="btn btn-fc-info">Download as CSV</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <table id="inventory_table">
+                <thead>
+                    <tr>
+                        <th>
+                            Material Code
+                        </th>
+                        <th>
+                            Category
+                        </th>
+                        <th>
+                            Stock
+                        </th>
+                        <th>
+                            Allocated
+                        </th>
+                        <th>
+                            Available
+                        </th>
+                        <th>
+                            On Order
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (GeneralInventoryReport_Result r in Model)
+                    {
+                        <tr data-record-id="@Html.DisplayFor(model => r.Record_Id)">
+                            <td>
+                                @Html.DisplayFor(model => r.Material_Code)
+                            </td>
+                            <td>
+                                @Html.DisplayFor(model => r.Category)
+                            </td>
+                            <td data-sort="@Html.DisplayFor(model => r.Stock_Number)">
+                                @Html.DisplayFor(model => r.Stock)
+                            </td>
+                            <td data-sort="@Html.DisplayFor(model => r.Allocated_Number)">
+                                @Html.DisplayFor(model => r.Allocated)
+                            </td>
+                            <td data-sort="@Html.DisplayFor(model => r.Available_Number)">
+                                @Html.DisplayFor(model => r.Available)
+                            </td>
+                            <td data-sort="@Html.DisplayFor(model => r.On_Order)">
+                                @Html.DisplayFor(model => r.On_Order)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    var invTable = $('#inventory_table').DataTable({
+        'paging': true,
+        'pageLength': 50
+    });
+
+    $(document).ready(function () {
+        $('#download_csv').click(function () {
+            var csv = [];
+            var cellDelimiter = ',';
+            var lineDelimiter = '\n';
+            var headers = [];
+
+            // Extract headers
+            $('#inventory_table thead th').each(function () {
+                var text = $(this).text().trim().replace(/"/g, '""');  // Double quotes are escaped
+                headers.push('"' + text + '"');
+            });
+            csv.push(headers.join(cellDelimiter));
+
+            // Extract data
+            invTable.rows({ search: 'applied' }).every(function () {
+                var row = [];
+                $(this.node()).find('td').each(function () {
+                    var text = $(this).text().trim().replace(/"/g, '""');  // Escape double quotes and trim
+                    row.push('"' + text + '"');
+                });
+                csv.push(row.join(cellDelimiter));
+            });
+
+            // Create and download CSV
+            var csvFile = new Blob([csv.join(lineDelimiter)], { type: 'text/csv' });
+            var downloadLink = document.createElement('a');
+            downloadLink.download = 'datatable.csv';
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        });
+    });
+</script>

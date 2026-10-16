@@ -1,0 +1,70 @@
+﻿@model FreightShippingAddress
+
+<style>
+    #dynamic_fsa_modal .single-line {
+        width: 100% !important;
+    }
+</style>
+<div class="modal dynamic-sa-modal" tabindex="-1" id="dynamic_fsa_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Freight Address</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#dynamic_fsa_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-12">
+
+                            @using (Html.BeginForm("DynamicFreightShippingAddressAddition", "Customers", FormMethod.Post, htmlAttributes: new { @class = "gy-3", @id = "freight_shipping_address_adder" }))
+                            {
+                                <div class="field-binder-row-flex justify-content-between flex-wrap">
+
+                                    <div class="field-binder-row-flex">
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.CustomerName)
+                                            @Html.EditorFor(model => model.CustomerName, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.Address)
+                                            @Html.EditorFor(model => model.Address, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.Address2)
+                                            @Html.EditorFor(model => model.Address2, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.City)
+                                            @Html.EditorFor(model => model.City, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.State)
+                                            @Html.DropDownList("State", ViewData["State"] as SelectList, htmlAttributes: new { })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.Zip)
+                                            @Html.EditorFor(model => model.Zip, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Phone)
+                                        @Html.EditorFor(model => model.Phone, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Attention)
+                                        @Html.EditorFor(model => model.Attention, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <input type="submit" class="btn btn-fc-info" value="Save" data-modal-to-close="#dynamic_fsa_modal" />
+                                        <input type="button" class="btn btn-fc-caution" value="Cancel" data-modal-to-close="#dynamic_fsa_modal" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

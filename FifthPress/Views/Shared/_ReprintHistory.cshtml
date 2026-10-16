@@ -1,0 +1,292 @@
+@model FifthPress.Models.ViewModels2.Reprint.VM_ReprintHistory
+
+@*
+    Reprint History Component
+    Shows on job detail pages to display:
+    - If original job: List of all reprints
+    - If reprint job: Link back to original
+*@
+
+@if (Model != null && Model.HasHistory)
+{
+    if (Model.IsReprint && Model.OriginalJobInfo != null)
+    {
+        <!-- THIS IS A REPRINT JOB - Show Original Job Link -->
+        <div class="alert alert-warning reprint-alert">
+            <h5><i class="fa fa-refresh"></i> REPRINT OF ORIGINAL JOB</h5>
+            <div class="row">
+                <div class="col-md-12">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr>
+                            <td style="width: 150px;"><strong>Original Job:</strong></td>
+                            <td>
+                                <a href="@Url.Action("ViewJob", "Job", new { id = Model.OriginalJobInfo.OriginalJobId })"
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fa fa-external-link"></i> View Original Job #@Model.OriginalJobInfo.OriginalJobNumber
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Reprint Reason:</strong></td>
+                            <td>
+                                <span class="reprint-reason-text" data-reprint-id="@Model.OriginalJobInfo.ReprintId">@Model.OriginalJobInfo.ReprintReasonText</span>
+                                <button type="button" class="btn btn-sm btn-link edit-reprint-reason p-0 ml-2"
+                                        data-reprint-id="@Model.OriginalJobInfo.ReprintId" title="Edit reprint reason">
+                                    <i class="fa fa-pencil"></i> Edit
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cost Allocation:</strong></td>
+                            <td>
+                                <span class="badge @Model.OriginalJobInfo.CostAllocationBadgeClass">
+                                    @Model.OriginalJobInfo.CostAllocationIcon @Model.OriginalJobInfo.CostAllocation
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><strong>Requested By:</strong></td>
+                            <td>@Model.OriginalJobInfo.RequestedByName - @Model.OriginalJobInfo.FormattedDate</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estimated Cost:</strong></td>
+                            <td>@Model.OriginalJobInfo.FormattedCost</td>
+                        </tr>
+                    </table>
+
+                    @if (!string.IsNullOrWhiteSpace(Model.OriginalJobInfo.Description))
+                    {
+                        <hr class="my-2">
+                        <p class="mb-0">
+                            <strong>Description:</strong><br>
+                            @Model.OriginalJobInfo.Description
+                        </p>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else if (!Model.IsReprint && Model.Reprints != null && Model.Reprints.Any())
+    {
+        <!-- THIS IS AN ORIGINAL JOB - Show Reprint List -->
+        <div class="alert alert-info reprint-alert @(Model.ShouldCollapse ? "collapsible" : "")">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fa fa-info-circle"></i> REPRINT HISTORY
+                </h5>
+                @if (Model.ShouldCollapse)
+                {
+                    <button type="button" class="btn btn-sm btn-link" data-toggle="collapse" data-target="#reprintList">
+                        <i class="fa fa-chevron-down"></i> Show/Hide
+                    </button>
+                }
+            </div>
+
+            <p class="mt-2 mb-3">
+                This job has been reprinted <strong>@Model.ReprintCount</strong> time@(Model.ReprintCount != 1 ? "s" : ""):
+                @if (Model.TotalReprintCost > 0)
+                {
+                    <span class="text-muted">(Total cost: @Model.FormattedTotalCost)</span>
+                }
+            </p>
+
+            <div id="reprintList" class="@(Model.ShouldCollapse ? "collapse" : "")">
+                @foreach (var reprint in Model.Reprints)
+                {
+                    <div class="reprint-history-item mb-3 p-3 border rounded bg-white">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h6 class="mb-2">
+                                    <i class="fa fa-file-text-o"></i>
+                                    <a href="@Url.Action("ViewJob", "Job", new { id = reprint.ReprintJobId })">
+                                        Reprint #@(Model.Reprints.IndexOf(reprint) + 1) (Job #@reprint.ReprintJobNumber)
+                                    </a>
+                                </h6>
+
+                                <table class="table table-sm table-borderless mb-0">
+                                    <tr>
+                                        <td style="width: 120px;"><strong>Date:</strong></td>
+                                        <td>@reprint.FormattedDate</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Reason:</strong></td>
+                                        <td>
+                                            <span class="reprint-reason-text" data-reprint-id="@reprint.ReprintId">@reprint.ReprintReasonText</span>
+                                            <button type="button" class="btn btn-sm btn-link edit-reprint-reason p-0 ml-2"
+                                                    data-reprint-id="@reprint.ReprintId" title="Edit reprint reason">
+                                                <i class="fa fa-pencil"></i> Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Type:</strong></td>
+                                        <td>@reprint.ReprintType</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Requested By:</strong></td>
+                                        <td>@reprint.RequestedByName</td>
+                                    </tr>
+                                </table>
+
+                                @if (!string.IsNullOrWhiteSpace(reprint.Description))
+                                {
+                                    <p class="mt-2 mb-0 text-muted small">
+                                        <strong>Description:</strong> @reprint.Description
+                                    </p>
+                                }
+                            </div>
+
+                            <div class="col-md-4 text-right">
+                                <div class="mb-2">
+                                    <span class="badge @reprint.CostAllocationBadgeClass">
+                                        @reprint.CostAllocationIcon @reprint.CostAllocation
+                                    </span>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">@reprint.FormattedCost</h5>
+                                    <small class="text-muted">Estimated Cost</small>
+                                </div>
+                                <div class="mt-3">
+                                    <a href="@Url.Action("ViewJob", "Job", new { id = reprint.ReprintJobId })"
+                                       class="btn btn-sm btn-outline-primary">
+                                        View Details <i class="fa fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- Edit Reprint Reason Modal -->
+    <div class="modal fade" id="editReprintReasonModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fa fa-pencil"></i> Edit Reprint Reason</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editReprintReasonSelect" class="form-label">Reprint Reason</label>
+                        <select id="editReprintReasonSelect" class="form-select">
+                            <option value="">Loading reasons...</option>
+                        </select>
+                    </div>
+                    <div id="editReprintReasonError" class="text-danger" style="display:none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="saveReprintReasonBtn" class="btn btn-primary">Save Reason</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var modalEl = document.getElementById('editReprintReasonModal');
+            if (!modalEl || typeof bootstrap === 'undefined') { return; }
+            // Move the modal to be a direct child of <body> so Bootstrap's backdrop
+            // doesn't render on top of it (parent alert has a stacking context).
+            document.body.appendChild(modalEl);
+            var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            var $select = $('#editReprintReasonSelect');
+            var $error = $('#editReprintReasonError');
+            var reasonsLoaded = false;
+            var activeReprintId = null;
+
+            function loadReasons() {
+                if (reasonsLoaded) { return $.Deferred().resolve().promise(); }
+                return $.getJSON('@Url.Action("GetReasons", "Reprint")')
+                    .done(function (resp) {
+                        $select.empty();
+                        if (resp && resp.success && resp.categories) {
+                            resp.categories.forEach(function (cat) {
+                                var $group = $('<optgroup>').attr('label', cat.category);
+                                cat.reasons.forEach(function (r) {
+                                    $group.append($('<option>').val(r.reasonId).text(r.reasonText));
+                                });
+                                $select.append($group);
+                            });
+                            reasonsLoaded = true;
+                        } else {
+                            $select.html('<option value="">Could not load reasons</option>');
+                        }
+                    });
+            }
+
+            $(document).on('click', '.edit-reprint-reason', function () {
+                activeReprintId = $(this).data('reprint-id');
+                $error.hide().text('');
+                var currentText = $('.reprint-reason-text[data-reprint-id="' + activeReprintId + '"]').text().trim();
+                loadReasons().always(function () {
+                    // Pre-select the reason currently on the record (matched by text).
+                    $select.find('option').each(function () {
+                        if ($(this).text().trim() === currentText) { $select.val($(this).val()); }
+                    });
+                });
+                bsModal.show();
+            });
+
+            $('#saveReprintReasonBtn').on('click', function () {
+                var reasonId = $select.val();
+                if (!reasonId) { $error.text('Please select a reason.').show(); return; }
+
+                var $btn = $(this).prop('disabled', true).text('Saving...');
+                $.post('@Url.Action("UpdateReason", "Reprint")', { reprintId: activeReprintId, reasonId: reasonId })
+                    .done(function (resp) {
+                        if (resp && resp.success) {
+                            $('.reprint-reason-text[data-reprint-id="' + activeReprintId + '"]').text(resp.reasonText);
+                            bsModal.hide();
+                        } else {
+                            $error.text((resp && resp.message) || 'Update failed.').show();
+                        }
+                    })
+                    .fail(function () { $error.text('Server error while updating reason.').show(); })
+                    .always(function () { $btn.prop('disabled', false).text('Save Reason'); });
+            });
+        })();
+    </script>
+}
+
+<style>
+    .reprint-alert {
+        border-left: 4px solid;
+        margin: 20px 0;
+    }
+
+    .reprint-alert.alert-warning {
+        border-left-color: #ff9800;
+    }
+
+    .reprint-alert.alert-info {
+        border-left-color: #2196f3;
+    }
+
+    .reprint-history-item {
+        transition: all 0.2s;
+    }
+
+    .reprint-history-item:hover {
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .badge-danger {
+        background-color: #f44336;
+    }
+
+    .badge-success {
+        background-color: #4caf50;
+    }
+
+    .badge-warning {
+        background-color: #ff9800;
+    }
+
+    .badge-info {
+        background-color: #2196f3;
+    }
+</style>

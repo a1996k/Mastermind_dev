@@ -1,0 +1,95 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_TimeTrackingJobList
+
+@* CURRENTLY NOT USING *@
+
+@{ 
+    string group = ViewBag.SpecifiedGrouping;
+}
+<div class="itemized-wrapper">
+    @if (group == "User")
+    {
+        <div class="container">
+            @foreach (var g in Model.TimingsByChoice)
+            {
+                int userId = g.Key;
+
+                var matchingGroups = Model.TimingsByDate
+                    .Where(x => x.ToList().First().UserId == g.Key)
+                    .ToList();
+                <div class="row">
+                    <div class="col-12">
+                        <h2>Time Entires for @Html.DisplayFor(model => matchingGroups.First().ToList().First().EmployeeName)</h2>
+                        <h3>Select an Entry for more information</h3>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <ul class="time-list">
+                            @if (matchingGroups != null)
+                            {
+                                foreach (var dateGroup in matchingGroups)
+                                {
+                                    <li data-date-key="@Html.DisplayFor(model => dateGroup.Key)">
+                                        <h3>@Html.DisplayFor(model => dateGroup.Key)</h3>
+                                        <ul class="subentry-list">
+                                            @foreach (VM_JobTiming jt in dateGroup.ToList())
+                                            {
+                                                <li class="expandable" data-job-id="@Html.DisplayFor(model => jt.JobId)">@Html.DisplayFor(model => jt.JobDescription)</li>
+                                            }
+                                        </ul>
+                                    </li>
+
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h2>Time entries for @Html.DisplayFor(model => model.EmployeeName)</h2>
+                    <h3>Select an Entry for more information</h3>
+                </div>
+            </div>
+
+            @foreach (var jobGroup in Model.TimingsByChoice)
+            {
+                // Get the key (JobId) of the current group
+                int jobId = jobGroup.Key;
+
+                var matchingGroups = Model.TimingsByDate
+                    .Where(x => x.ToList().First().JobId == jobId)
+                    .ToList();
+                <div class="row">
+                    <div class="col-12">
+                        <ul class="time-list">
+                            @if (matchingGroups != null)
+                            {
+                                foreach (var dateGroup in matchingGroups)
+                                {
+                                    <li data-date-key="@Html.DisplayFor(model => dateGroup.Key)">
+                                        <h3>@Html.DisplayFor(model => dateGroup.Key)</h3>
+                                        <ul class="subentry-list">
+                                            @foreach (VM_JobTiming jt in dateGroup.ToList())
+                                            {
+                                                <li class="expandable" data-job-id="@Html.DisplayFor(model => jt.JobId)">@Html.DisplayFor(model => jt.JobDescription)</li>
+                                            }
+                                        </ul>
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>

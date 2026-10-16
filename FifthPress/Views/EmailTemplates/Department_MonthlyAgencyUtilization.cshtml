@@ -1,0 +1,308 @@
+﻿@model FifthPress.Models.ViewModels.EmailTemplateModels.VM_DepartmentAgencyUtilization
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Department Monthly Utilization Report</title>
+
+    <style>
+        td.met {
+            color: green !important;
+        }
+
+        td.not-met {
+            color: red !important;
+        }
+        /* Mobile-specific adjustments */
+        @@media screen and (max-width: 600px) {
+            th, td {
+                padding: 5px; /* Smaller padding for smaller screens */
+                font-size: 12px; /* Reduce font size */
+            }
+
+            p, table {
+                font-size: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8;">
+    <!-- Outer Wrapper -->
+    <div style="max-width: 800px; margin: 20px auto; background-color: white; border-radius: 8px; overflow: hidden;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+
+        <!-- Header -->
+        <div style="background-color: #4a90e2; color: white; text-align: center; padding: 20px;">
+            <h3 style="margin: 0;">Department Utilization Report: @Html.DisplayFor(model => model.DepartmentName)</h3>
+        </div>
+
+        <!-- Content Wrapper -->
+        <div style="padding: 20px;">
+            <!-- Pretext Section -->
+            <div style="margin-bottom: 20px;">
+                <p style="font-size: 16px; color: #333;">
+                    Hi @Html.DisplayFor(model => model.DepartmentName) Team,<br /><br />
+                    Attached is the monthly and YTD Agency Utilization Report for your department.
+                    This report provides an overview of the team's performance metrics,
+                    highlighting key utilization insights.<br /><br />
+                    Please review the details and feel free to reach out with any questions
+                    or concerns.<br /><br />
+                    Thank you for your continued commitment to excellence and efficiency!
+                </p>
+            </div>
+
+            @{ 
+                string meetsWeeklyUtzTgtTotalCss = Model.AggregatedMetrics.MeetsWeeklyTarget ? "met" : "not-met";
+                string meetsWeeklyTotalTimeTotalCss = Model.AggregatedMetrics.MeetsWeeklyExpectedTime ? "met" : "not-met";
+                string meetsYTDUtzTgtTotalCss = Model.AggregatedMetrics.MeetsYTDTarget ? "met" : "not-met";
+                string meetsYTDTotalTimeTotalCss = Model.AggregatedMetrics.MeetsYTDExpectedTime ? "met" : "not-met";
+            }
+
+            <h4>Department Totals</h4>
+            <table style="width: 100%; border-collapse: collapse; font-size:16px; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background-color: #f0f4fa;">
+                        <th style="padding: 5px; border: 1px solid #ddd; text-align: left;">Time</th>
+                        <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">Month Time</th>
+                        <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">Month %</th>
+                        <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">YTD Time</th>
+                        <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">YTD %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Internal Billable Row -->
+                    <tr>
+                        <td style="padding: 5px; border: 1px solid #ddd;">Internal Billable Time</td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalHours_InternalBillableWeekly)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @(Math.Round(Model.AggregatedMetrics.Utilization_InternalBillableWeekly * 100m, 2))%
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalHours_InternalBillableYTD)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @(Math.Round(Model.AggregatedMetrics.Utilization_InternalBillableYTD * 100m, 2))%
+                        </td>
+                    </tr>
+
+                    <!-- External Billable Row -->
+                    <tr>
+                        <td style="padding: 5px; border: 1px solid #ddd;">External Billable Time</td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalHours_ExternalBillableWeekly)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @(Math.Round(Model.AggregatedMetrics.Utilization_ExternalBillableWeekly * 100m, 2))%
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalHours_ExternalBillableYTD)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @(Math.Round(Model.AggregatedMetrics.Utilization_ExternalBillableYTD * 100m, 2))%
+                        </td>
+                    </tr>
+
+                    <!-- Total Billable Time Row -->
+                    <tr>
+                        <td style="padding: 5px; border: 1px solid #ddd; font-weight: bold;">Total Billable Time</td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalBillableHoursWeekly)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@meetsWeeklyUtzTgtTotalCss">
+                            @(Math.Round(Model.AggregatedMetrics.BillableUtilizationWeekly * 100m, 2))%
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalBillableHoursYTD)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@meetsYTDUtzTgtTotalCss">
+                            @(Math.Round(Model.AggregatedMetrics.BillableUtilizationYTD * 100m, 2))%
+                        </td>
+                    </tr>
+
+                    <!-- Target Utilization Row -->
+                    <tr style="background-color: #f8f8f8; font-weight: bold;">
+                        <td style="padding: 5px; border: 1px solid #ddd; color: blue;">Avg. Target Billable Utilization</td>
+                        <td></td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Html.DisplayFor(model => model.AggregatedMetrics.AverageTargetUtilizationString)
+                        </td>
+                        <td></td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Html.DisplayFor(model => model.AggregatedMetrics.AverageTargetUtilizationString)
+                        </td>
+                    </tr>
+
+                    <!-- Non-Billable Row -->
+                    <tr>
+                        <td style="padding: 5px; border: 1px solid #ddd;">Non-Billable Time</td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalHours_NonBillableWeekly)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @(Math.Round(Model.AggregatedMetrics.Utilization_NonBillableWeekly * 100m, 2))%
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalHours_NonBillableYTD)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @(Math.Round(Model.AggregatedMetrics.Utilization_NonBillableYTD * 100m, 2))%
+                        </td>
+                    </tr>
+
+                    <!-- Total Utilization Row -->
+                    <tr style="background-color: #f0f4fa;">
+                        <td style="padding: 5px; border: 1px solid #ddd; font-weight: bold;">Totals</td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalTimeWeekly)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@meetsWeeklyTotalTimeTotalCss">
+                            @(Math.Round(Model.AggregatedMetrics.TotalUtilizationWeekly * 100m, 2))%
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                            @Helpers.DecimalHoursToHumanReadable(Model.AggregatedMetrics.TotalTimeYTD)
+                        </td>
+                        <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@meetsYTDTotalTimeTotalCss">
+                            @(Math.Round(Model.AggregatedMetrics.TotalUtilizationYTD * 100, 2))%
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <h4>Individual User Metrics</h4>
+
+            @foreach (var user in Model.WeeklyResults)
+            {
+                User refUser = Model.UsersForReference.FirstOrDefault(x => x.Id == user.UserId);
+                // Match the YTD result for this user
+                var ytdUser = Model.YTDResults.FirstOrDefault(x => x.UserId == user.UserId);
+
+                string weeklyUtzTgtCss = user.MeetsTargetWeeklyUtilization ? "met" : "not-met";
+                string weeklyTimeTgtCss = user.MeetsExpectedWeeklyTime ? "met" : "not-met";
+                string ytdUtzTgtCss = user.MeetsTargetYTDUtilization ? "met" : "not-met";
+                string ytdTimeTgtCss = user.MeetsExpectedYTDTime ? "met" : "not-met";
+
+                <h5 style="margin-top: 30px;">@user.FirstName @user.LastName</h5>
+
+                <table style="width: 100%; border-collapse: collapse; font-size:16px;">
+                    <thead>
+                        <tr style="background-color: #f0f4fa;">
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: left;">Time</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">Month Time</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">Month %</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">YTD Time</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">YTD %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Internal Billable Row -->
+                        <tr>
+                            <td style="padding: 5px; border: 1px solid #ddd;">Internal Billable Time</td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(user.TotalHours_InternalBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round(user.Utilization_InternalBillable * 100m, 2))%
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(ytdUser?.TotalHours_InternalBillable ?? 0m)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round((ytdUser?.Utilization_InternalBillable ?? 0m) * 100m, 2))%
+                            </td>
+                        </tr>
+
+                        <!-- External Billable Row -->
+                        <tr>
+                            <td style="padding: 5px; border: 1px solid #ddd;">External Billable Time</td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(user.TotalHours_ExternalBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round(user.Utilization_ExternalBillable * 100m, 2))%
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(ytdUser?.TotalHours_ExternalBillable ?? 0m)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round((ytdUser?.Utilization_ExternalBillable ?? 0m) * 100m, 2))%
+                            </td>
+                        </tr>
+
+                        <!-- Total Billable Time Row -->
+                        <tr>
+                            <td style="padding: 5px; border: 1px solid #ddd; font-weight: bold;">Total Billable Time</td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(user.TotalHours_InternalBillable + user.TotalHours_ExternalBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@weeklyUtzTgtCss">
+                                @(Math.Round((user.Utilization_InternalBillable + user.Utilization_ExternalBillable) * 100m, 2))%
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable((ytdUser?.TotalHours_InternalBillable ?? 0m) + (ytdUser?.TotalHours_ExternalBillable ?? 0m))
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@ytdUtzTgtCss">
+                                @(Math.Round(((ytdUser?.Utilization_InternalBillable ?? 0m) + (ytdUser?.Utilization_ExternalBillable ?? 0m)) * 100m, 2))%
+                            </td>
+                        </tr>
+
+                        <!-- Target Utilization Row -->
+                        <tr style="background-color: #f8f8f8; font-weight: bold;">
+                            <td style="padding: 5px; border: 1px solid #ddd; color: blue;">Target Billable Utilization</td>
+                            <td></td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(refUser.TargetUtilization.HasValue ? $"{refUser.TargetUtilization.Value * 100m}%" : "N/A")
+                            </td>
+                            <td></td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(refUser.TargetUtilization.HasValue ? $"{refUser.TargetUtilization.Value * 100m}%" : "N/A")
+                            </td>
+                        </tr>
+
+                        <!-- Non-Billable Row -->
+                        <tr>
+                            <td style="padding: 5px; border: 1px solid #ddd;">Non-Billable Time</td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(user.TotalHours_NonBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round(user.Utilization_NonBillable * 100m, 2))%
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(ytdUser?.TotalHours_NonBillable ?? 0m)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round((ytdUser?.Utilization_NonBillable ?? 0m) * 100m, 2))%
+                            </td>
+                        </tr>
+
+                        <!-- Totals Row -->
+                        <tr style="background-color: #f0f4fa;">
+                            <td style="padding: 5px; border: 1px solid #ddd; font-weight: bold;">Totals</td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(user.TotalHours_InternalBillable + user.TotalHours_ExternalBillable + user.TotalHours_NonBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@weeklyTimeTgtCss">
+                                @(Math.Round((user.Utilization_InternalBillable + user.Utilization_ExternalBillable + user.Utilization_NonBillable) * 100m, 2))%
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable((ytdUser?.TotalHours_InternalBillable ?? 0m) + (ytdUser?.TotalHours_ExternalBillable ?? 0m) + (ytdUser?.TotalHours_NonBillable ?? 0m))
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@ytdTimeTgtCss">
+                                @(Math.Round(((ytdUser?.Utilization_InternalBillable ?? 0m) + (ytdUser?.Utilization_ExternalBillable ?? 0m) + (ytdUser?.Utilization_NonBillable ?? 0m)) * 100m, 2))%
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #4a90e2; color: white; text-align: center; padding: 10px;">
+            <p style="margin: 0; font-size:16px;">&copy; 2025 FifthColor. All Rights Reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

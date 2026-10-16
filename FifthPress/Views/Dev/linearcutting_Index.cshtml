@@ -1,0 +1,38 @@
+﻿<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <input type="button" class="btn btn-fc-caution test-lc-btn" value="Test Linear Cutting" />
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function TestLinearCutting(){
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('formula/zund-cutting'),
+            data: {
+                'recordtype':'quote',
+                'itemRecordId': 1,
+                'itemServiceId': 6
+            },
+            beforeSend: function(){
+                alert('Triggered');  
+            },
+            success: function(data){
+                var res = JSON.parse(data);
+                console.log(res);
+            },
+            error: function(data){
+                console.error(data);    
+            },
+            complete: function(){
+                alert('Complete');    
+            }
+        });
+    };
+$(function(){
+})
+    .on('click', '.test-lc-btn', TestLinearCutting);
+</script>

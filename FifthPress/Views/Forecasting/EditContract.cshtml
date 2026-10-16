@@ -1,0 +1,494 @@
+@model ContractForecast
+
+@{
+    ViewBag.Title = "Edit Contract";
+}
+
+@if (Model == null)
+{
+    <div class="alert alert-danger">
+        <h4>Error: Contract Not Found</h4>
+        <p>The contract you are trying to edit could not be found.</p>
+        @if (ViewBag.Period != null)
+        {
+            @Html.ActionLink("Back to Contracts", "Contracts", new { periodId = ViewBag.Period.ForecastPeriodID }, new { @class = "btn btn-default" })
+        }
+        else
+        {
+            @Html.ActionLink("Back to Periods", "Index", null, new { @class = "btn btn-default" })
+        }
+    </div>
+    return;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Edit Contract</h2>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible">
+                    <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
+                    @TempData["Success"]
+                </div>
+            }
+
+            @using (Html.BeginForm("EditContract", "Forecasting", FormMethod.Post, new { @class = "form-horizontal" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(model => model.ContractForecastID)
+                @Html.HiddenFor(model => model.ForecastPeriodID)
+                @Html.HiddenFor(model => model.ClientName)
+
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">Contract Details</h4>
+                    </div>
+                    <div class="panel-body">
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.ContractName, new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.ContractName, new { @class = "form-control" })
+                                @Html.ValidationMessageFor(model => model.ContractName, "", new { @class = "text-danger" })
+                            </div>
+
+                            <label class="control-label col-md-2">Client</label>
+                            <div class="col-md-4">
+                                @Html.DropDownList("ExternalClientId", (SelectList)ViewBag.Clients, "-- Select Client --", new { @class = "form-control" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.StartDate, new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.StartDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                                @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
+                            </div>
+
+                            @Html.LabelFor(model => model.EndDate, new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.EndDate, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                                @Html.ValidationMessageFor(model => model.EndDate, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.TotalBudgetedHours, new { @class = "control-label col-md-2" })
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.TotalBudgetedHours, new { @class = "form-control", type = "number", step = "0.1" })
+                                @Html.ValidationMessageFor(model => model.TotalBudgetedHours, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Contract Type</label>
+                            <div class="col-md-10">
+                                <div class="well well-sm" style="margin-bottom: 10px; background-color: #f0f7ff; border-color: #5dade2;">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio" name="IsActual" value="false" @(Model.IsActual ? "" : "checked=\"checked\"") />
+                                                    <strong>Forecasted Contract</strong>
+                                                    <span class="text-muted">- Projected work</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="radio">
+                                                <label>
+                                                    <input type="radio" name="IsActual" value="true" @(Model.IsActual ? "checked=\"checked\"" : "") />
+                                                    <strong>Actual Contract</strong>
+                                                    <span class="text-muted">- Confirmed work</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if (ViewBag.ForecastContracts != null && Model.IsActual)
+                                    {
+                                        <hr style="margin: 10px 0;" />
+                                        <div class="form-group" style="margin-bottom: 0;">
+                                            <label>Link to Forecast Contract:</label>
+                                            @Html.DropDownList("LinkedContractForecastID", ViewBag.ForecastContracts as IEnumerable<SelectListItem>, "-- No linked forecast --", new { @class = "form-control input-sm" })
+                                            <small class="text-muted">Link this actual contract to its original forecast for comparison.</small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="control-label col-md-2">Categorization</label>
+                            <div class="col-md-10">
+                                <div class="well well-sm" style="margin-bottom: 0;">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="checkbox">
+                                                <label>
+                                                    @Html.CheckBoxFor(model => model.IsRetainer)
+                                                    <strong>Retainer Client</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="checkbox">
+                                                <label>
+                                                    @Html.CheckBoxFor(model => model.Billable)
+                                                    <strong>Billable</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="checkbox">
+                                                <label>
+                                                    @Html.CheckBoxFor(model => model.IsInternal)
+                                                    <strong>Internal Project</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="checkbox">
+                                                <label>
+                                                    @Html.CheckBoxFor(model => model.IncludeInCharts)
+                                                    <strong>Include in Charts</strong>
+                                                    <span class="text-muted">- Uncheck to exclude from utilization charts (contract stays visible in list)</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <hr style="margin: 10px 0;" />
+                                    <small class="text-muted">
+                                        <strong>Current Category:</strong>
+                                        @if (Model.Billable && !Model.IsInternal)
+                                        {
+                                            <span class="label label-success">External Billable</span>
+                                            <span class="text-muted">(Client work)</span>
+                                        }
+                                        else if (Model.Billable && Model.IsInternal)
+                                        {
+                                            <span class="label label-info">Internal Billable</span>
+                                            <span class="text-muted">(Internal projects)</span>
+                                        }
+                                        else if (!Model.Billable)
+                                        {
+                                            <span class="label label-default">Non-Billable</span>
+                                            <span class="text-muted">(Training, admin, etc.)</span>
+                                        }
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Notes, new { @class = "control-label col-md-2" })
+                            <div class="col-md-10">
+                                @Html.TextAreaFor(model => model.Notes, new { @class = "form-control", rows = "3" })
+                                @Html.ValidationMessageFor(model => model.Notes, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-footer">
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="glyphicon glyphicon-floppy-disk"></i> Save Contract
+                                </button>
+                                @Html.ActionLink("Back to Contracts", "Contracts", new { periodId = Model.ForecastPeriodID }, new { @class = "btn btn-default" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Billing Class Allocations Section -->
+            <div class="panel panel-info" style="margin-top: 20px;">
+                <div class="panel-heading" style="background-color: #5bc0de; color: white;">
+                    <h4 class="panel-title"><i class="glyphicon glyphicon-list"></i> Billing Class Allocations</h4>
+                </div>
+                <div class="panel-body">
+                    @if (ViewData["BillingClasses"] == null)
+                    {
+                        <div class="alert alert-warning">
+                            <strong>Warning:</strong> Billing classes could not be loaded. Please contact your administrator.
+                        </div>
+                    }
+                    else
+                    {
+                        var billingClasses = ViewData["BillingClasses"] as IEnumerable<SelectListItem>;
+                        if (billingClasses != null && !billingClasses.Any())
+                        {
+                            <div class="alert alert-warning">
+                                <strong>Warning:</strong> No billing classes are defined in the system. Please add billing classes before allocating hours.
+                            </div>
+                        }
+                    }
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button type="button" class="btn btn-success btn-sm" id="btnAddDetail">
+                                <i class="glyphicon glyphicon-plus"></i> Add Billing Class
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top: 15px;">
+                        <div class="col-md-12">
+                            <table class="table table-bordered table-hover" id="detailsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Billing Class</th>
+                                        <th>Subclass</th>
+                                        <th>Budgeted Hours</th>
+                                        <th>Hourly Rate ($)</th>
+                                        <th style="width: 100px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (Model.ContractForecastDetails != null && Model.ContractForecastDetails.Any())
+                                    {
+                                        foreach (var detail in Model.ContractForecastDetails)
+                                        {
+                                            <tr data-detail-id="@detail.ContractForecastDetailID">
+                                                <td>@detail.BillingClass.Title</td>
+                                                <td>@(detail.BillingSubclass ?? "-")</td>
+                                                <td class="detail-hours">@detail.BudgetedHours</td>
+                                                <td>
+                                                    <input type="number" class="form-control input-sm hourly-rate-input"
+                                                           step="0.01" min="0"
+                                                           data-detail-id="@detail.ContractForecastDetailID"
+                                                           value="@(detail.HourlyRate.HasValue ? detail.HourlyRate.Value.ToString("F2") : "")"
+                                                           placeholder="0.00"
+                                                           style="width: 100px;" />
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-danger btn-xs btn-delete-detail" data-detail-id="@detail.ContractForecastDetailID">
+                                                        <i class="glyphicon glyphicon-trash"></i> Delete
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr id="noDetailsRow">
+                                            <td colspan="5" class="text-center text-muted">No billing class allocations yet. Click "Add Billing Class" to get started.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="info">
+                                        <th colspan="2" class="text-right">Total Hours:</th>
+                                        <th id="totalHours">@(Model.ContractForecastDetails != null ? Model.ContractForecastDetails.Sum(d => d.BudgetedHours) : 0)</th>
+                                        <th></th>
+                                        <th></th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Detail Modal -->
+<div class="modal fade" id="addDetailModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Add Billing Class Allocation</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Billing Class</label>
+                    @if (ViewData["BillingClasses"] != null)
+                    {
+                        @Html.DropDownList("billingClassId", ViewData["BillingClasses"] as IEnumerable<SelectListItem>, "-- Select Billing Class --", new { @class = "form-control" })
+                    }
+                    else
+                    {
+                        <select id="billingClassId" name="billingClassId" class="form-control">
+                            <option value="">-- No Billing Classes Available --</option>
+                        </select>
+                    }
+                </div>
+                <div class="form-group">
+                    <label>Billing Subclass (Optional)</label>
+                    <input type="text" id="billingSubclass" class="form-control" placeholder="e.g., Senior Designer, Junior Developer" />
+                </div>
+                <div class="form-group">
+                    <label>Budgeted Hours</label>
+                    <input type="number" id="budgetedHours" class="form-control" step="0.1" min="0" />
+                </div>
+                <div class="form-group">
+                    <label>Hourly Rate ($) <small class="text-muted" id="rateHint"></small></label>
+                    <input type="number" id="modalHourlyRate" class="form-control" step="0.01" min="0" placeholder="0.00" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnSaveDetail">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+        $(document).ready(function () {
+            var contractId = @Model.ContractForecastID;
+
+            // Default hourly rates by billing class ID
+            var billingClassDefaults = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(
+                ViewBag.BillingClassDefaults ?? new System.Collections.Generic.Dictionary<int, decimal?>()));
+
+            // Show add detail modal
+            $('#btnAddDetail').click(function () {
+                $('#billingClassId').val('');
+                $('#billingSubclass').val('');
+                $('#budgetedHours').val('');
+                $('#modalHourlyRate').val('');
+                $('#rateHint').text('(optional)');
+                $('#addDetailModal').modal('show');
+            });
+
+            // Auto-fill hourly rate from billing class default when class is selected
+            $('#billingClassId').on('change', function () {
+                var id = parseInt($(this).val());
+                if (billingClassDefaults.hasOwnProperty(id)) {
+                    var def = billingClassDefaults[id];
+                    $('#modalHourlyRate').val(def);
+                    $('#rateHint').text('default $' + parseFloat(def).toFixed(0) + '/hr — override if needed');
+                } else {
+                    $('#modalHourlyRate').val('');
+                    $('#rateHint').text('(optional — no default for this class)');
+                }
+            });
+
+            // Save detail via AJAX
+            $('#btnSaveDetail').click(function () {
+                var billingClassId = $('#billingClassId').val();
+                var billingSubclass = $('#billingSubclass').val();
+                var budgetedHours = $('#budgetedHours').val();
+
+                if (!billingClassId) {
+                    alert('Please select a billing class');
+                    return;
+                }
+
+                if (!budgetedHours || budgetedHours <= 0) {
+                    alert('Please enter valid budgeted hours');
+                    return;
+                }
+
+                var hourlyRate = $('#modalHourlyRate').val() || '0';
+                $.ajax({
+                    url: ProcessUrl('Forecasting/AddDetail'),
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                        contractId: contractId,
+                        billingClassId: billingClassId,
+                        billingSubclass: billingSubclass,
+                        budgetedHours: budgetedHours,
+                        hourlyRate: hourlyRate
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#noDetailsRow').remove();
+                            var rateDisplay = parseFloat(hourlyRate) > 0 ? parseFloat(hourlyRate).toFixed(2) : '';
+                            var newRow = '<tr data-detail-id="' + response.detail.id + '">' +
+                                '<td>' + response.detail.billingClassName + '</td>' +
+                                '<td>' + (response.detail.billingSubclass || '-') + '</td>' +
+                                '<td class="detail-hours">' + response.detail.budgetedHours + '</td>' +
+                                '<td><input type="number" class="form-control input-sm hourly-rate-input" step="0.01" min="0" data-detail-id="' + response.detail.id + '" value="' + rateDisplay + '" placeholder="0.00" style="width:100px;" /></td>' +
+                                '<td>' +
+                                '<button type="button" class="btn btn-danger btn-xs btn-delete-detail" data-detail-id="' + response.detail.id + '">' +
+                                '<i class="glyphicon glyphicon-trash"></i> Delete' +
+                                '</button>' +
+                                '</td>' +
+                                '</tr>';
+                            $('#detailsTable tbody').append(newRow);
+                            updateTotalHours();
+                            $('#addDetailModal').modal('hide');
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while adding the detail');
+                    }
+                });
+            });
+
+            // Delete detail via AJAX
+            $(document).on('click', '.btn-delete-detail', function () {
+                if (!confirm('Are you sure you want to delete this allocation?')) {
+                    return;
+                }
+                var detailId = $(this).data('detail-id');
+                var row = $('tr[data-detail-id="' + detailId + '"]');
+
+                $.ajax({
+                    url: ProcessUrl('Forecasting/DeleteDetail'),
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                        id: detailId
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            row.remove();
+                            updateTotalHours();
+                            if ($('#detailsTable tbody tr').length === 0) {
+                                $('#detailsTable tbody').append(
+                                    '<tr id="noDetailsRow">' +
+                                    '<td colspan="5" class="text-center text-muted">No billing class allocations yet. Click "Add Billing Class" to get started.</td>' +
+                                    '</tr>'
+                                );
+                            }
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An error occurred while deleting the detail');
+                    }
+                });
+            });
+
+            // Update total hours
+            function updateTotalHours() {
+                var total = 0;
+                $('#detailsTable tbody tr:not(#noDetailsRow)').each(function () {
+                    var hours = parseFloat($(this).find('.detail-hours').text()) || 0;
+                    total += hours;
+                });
+                $('#totalHours').text(total.toFixed(1));
+            }
+
+            // Save HourlyRate on blur
+            $(document).on('blur', '.hourly-rate-input', function () {
+                var detailId = $(this).data('detail-id');
+                var rate = parseFloat($(this).val()) || 0;
+                $.ajax({
+                    url: ProcessUrl('Forecasting/UpdateDetailRate'),
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                        id: detailId,
+                        hourlyRate: rate
+                    },
+                    error: function () {
+                        alert('Failed to save hourly rate.');
+                    }
+                });
+            });
+        });
+    </script>

@@ -1,0 +1,84 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_GlobalTimeTracking
+
+@Styles.Render("~/Content/smtt")
+
+@{
+    string WelcomeMsg = "Hello " + ViewData["LoggedInUserDisplayName"];
+}
+<a href="javascript:void(0)" class="openbtn" onclick="openNav()">+</a>
+
+<div id="mySidenav" class="sidenav">
+    <div class="view-wrapper">
+        <div class="field-binder-row-flex">
+            <button type="button" class="btn btn-fc-danger logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
+            <a href="javascript:void(0)" class="closebtn ff-dm-sans" onclick="closeNav()"><i class="fa-solid fa-chevron-left"></i> Collapse</a>
+        </div>
+        <div class="name-title">
+            <h2 class="ff-poppins fs-16 fw-bold">@WelcomeMsg</h2>
+        </div>
+        <div class="side-bar-icon-1 position-relative">
+            <a href="/RecordLookup" data-permissions="2d">Record Lookup</a>
+            <div class="side-bar-icon-1-element"></div>
+        </div>
+        <div class="side-bar-icon-2 position-relative">
+            <a href="/time-tracking/list-jobs" data-permissions="8a">Time Tracking</a>
+            <div class="side-bar-icon-2-element"></div>
+        </div>
+        <div class="side-bar-icon-3 position-relative">
+            <a href="/Shipping/Index" data-permissions="2d">Shipping/Pickup</a>
+            <div class="side-bar-icon-3-element"></div>
+        </div>
+        <div class="side-bar-icon-4 position-relative">
+            <a href="/PreBilling" data-permissions="2d">Pre-Billing</a>
+            <div class="side-bar-icon-4-element"></div>
+        </div>
+        <div class="side-bar-icon-5 position-relative">
+            <a href="/billing" data-permissions="2d">Billing</a>
+            <div class="side-bar-icon-5-element"></div>
+        </div>
+        <div class="side-bar-icon-6 position-relative">
+            <a href="/Admin" data-permissions="3a">Administration</a>
+            <div class="side-bar-icon-6-element"></div>
+        </div>
+        <div class="side-bar-icon-7 position-relative">
+            <a href="/Inventory" data-permissions="6a">Inventory</a>
+            <div class="side-bar-icon-7-element"></div>
+        </div>
+        @*<div class="side-bar-icon-8 position-relative">
+                <a href="/PO25/Index" data-permissions="3b">NEW PURCHASE ORDERS</a>
+                <div class="side-bar-icon-8-element"></div>
+            </div>
+            <div class="side-bar-icon-9 position-relative">
+                <a href="/PurchaseOrders" data-permissions="3b">Purchase Orders</a>
+                <div class="side-bar-icon-9-element"></div>
+            </div>*@
+        <div class="side-bar-icon-10 position-relative">
+            <a href="/PurchaseOrderSearch" data-permissions="2d">Purchase Order Lookup</a>
+            <div class="side-bar-icon-10-element"></div>
+        </div>
+        <div class="side-bar-icon-11 position-relative">
+            <a href="/Reports" data-permissions="1b">Reports</a>
+            <div class="side-bar-icon-11-element"></div>
+        </div>
+
+        <div class="side-bar-icon-12 position-relative">
+            <a href="/billing-history" data-permissions="1f">Billing History</a>
+            <div class="side-bar-icon-12-element"></div>
+        </div>
+
+        <div class="side-bar-icon-13 position-relative">
+            <a href="/Forecasting" data-permissions="1b">Utilization Forecasting</a>
+            <div class="side-bar-icon-13-element"></div>
+        </div>
+
+        <div class="sm-tt-ext-wrapper">
+            @foreach (VM_ActiveTimeEntry ate in Model.ActiveTimeEntries.ToList())
+            {
+                @Html.Partial("~/Views/Partials/_SideMenuTimeTicker.cshtml", ate)
+            }
+        </div>
+
+        <button type="button" class="btn btn-fc-caution login-btn" data-modal-to-open="#login">Login</button>
+    </div>
+</div>

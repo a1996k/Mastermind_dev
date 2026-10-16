@@ -1,0 +1,57 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_ConstraintEditor
+
+<form method="post" action="constraint/save" enctype="multipart/form-data" data-item-type="Constraint">
+    @Html.HiddenFor(model => model.Constraint.Id)
+    @Html.HiddenFor(model => model.Constraint.ConnectedPropertyName)
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="field-binder-row-flex">
+                    @Html.LabelFor(model => model.Constraint.ConstraintName)
+                    @Html.EditorFor(model => model.Constraint.ConstraintName)
+                </div>
+                <div class="field-binder-row-flex">
+                    @Html.LabelFor(model => model.Constraint.ConstraintType)
+                    @Html.DropDownListFor(model => model.Constraint.ConstraintType, ViewData["Constraint.ConstraintType"] as SelectList, htmlAttributes: new { })
+                </div>
+                <div class="field-binder-row-flex">
+                    @Html.LabelFor(model => model.Constraint.ConstraintValueType)
+                    @Html.DropDownListFor(model => model.Constraint.ValueType, ViewData["Constraint.ValueType"] as SelectList, htmlAttributes: new { })
+                </div>
+
+                <div class="field-binder-row-flex">
+                    <div class="field-binder-row-flex min-entry">
+                        @Html.LabelFor(model => model.Constraint.MinValue, htmlAttributes: new { @class = "change-for-value" })
+                        @Html.EditorFor(model => model.Constraint.MinValue, new { htmlAttributes = new { @class = "min" } })
+                    </div>
+                    <div class="field-binder-row-flex max-entry">
+                        @Html.LabelFor(model => model.Constraint.MaxValue, htmlAttributes: new { @class = "hide-for-value" })
+                        @Html.EditorFor(model => model.Constraint.MaxValue, new { htmlAttributes = new { @class = "max hide-for-value" } })
+                    </div>
+                </div>
+                <div class="field-binder-row-flex">
+                    @Html.LabelFor(model => model.Constraint.Unit)
+                    @Html.EditorFor(model => model.Constraint.Unit)
+                </div>
+
+                <div class="field-binder-row-flex">
+                    @Html.LabelFor(model => model.Constraint.ErrorMessage)
+                    @Html.TextAreaFor(model => model.Constraint.ErrorMessage)
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <input type="submit" value="Save" />
+                <input type="button" value="Cancel" class="cancel-constraint" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    $(function(){
+        $('#Constraint_ConstraintType').trigger('change');
+    });
+</script>

@@ -1,0 +1,23 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<VM_AdminTableItem>
+
+@foreach (FifthPress.Models.ViewModels.VM_AdminTableItem m in Model)
+{
+    <tr class="admin-edit-item-@m.EntityName.ToLower()" data-item-title="@m.Title" data-record-id="@m.Id">
+        <td>
+            <a href="javascript:void(0);">@Html.DisplayFor(model => m.Title)</a>
+        </td>
+        <td>
+            @Html.DisplayFor(model => m.Category)
+        </td>
+        <td>
+            @Html.DisplayFor(model => m.Type)
+        </td>
+        <td>
+            <div class="d-flex">
+                <a href="#"><i class="fa-solid fa-gear me-4"></i></a>
+                <a href="#"><i class="fa-solid fa-x"></i></a> 
+            </div>
+        </td>
+    </tr>
+}

@@ -1,0 +1,259 @@
+﻿@model List<Report>
+
+<style>
+    .button-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        width: 80%;
+        height: 80%;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    .report-button {
+        padding: 20px;
+        font-size: 20px;
+        cursor: pointer;
+        border: none;
+        border-radius: 5px;
+        background-color: #007bff;
+        color: white;
+        transition: background-color 0.3s;
+    }
+
+    .modal {
+        max-height: 500px;
+    }
+
+    .report-button:hover {
+        background-color: #0056b3;
+    }
+</style>
+
+<div class="button-container">
+    @foreach (Report r in Model)
+    {
+        @* WIP Report (Id 5) is gated to the same roles as the new reports (permission code 1c).
+           Use an explicit if/else so non-WIP buttons get NO data-permissions attribute at all
+           (an empty data-permissions="" would make global.js remove the button for everyone). *@
+        if (r.Id == 5)
+        {
+            <button class="report-button" data-record-id="@r.Id" data-permissions="1c">@Html.DisplayFor(model => r.Title)</button>
+        }
+        else
+        {
+            <button class="report-button" data-record-id="@r.Id">@Html.DisplayFor(model => r.Title)</button>
+        }
+    }
+    <button class="report-button" id="material-assignments-report" data-permissions="1c">Material Assignments</button>
+    <button class="report-button" id="completed-jobs-accuracy-report" data-permissions="1c">Completed Jobs Est vs Actual</button>
+    <button class="report-button" id="press-service-utilization-report" data-permissions="1c">Press / Service Utilization</button>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="job_select_modal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel">select the jobs to include in the report</h5>
+                <button type="button" data-modal-to-close="#job_select_modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal-to-close="#job_select_modal">Close</button>
+                <button type="button" class="btn btn-primary gen-eva-report" data-modal-to-close="#job_select_modal">Generate Report</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="single_date_modal" tabindex="-1" aria-labelledby="singleDateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="singleDateModalLabel">Select an "as of" date for the WIP Report</h5>
+                <button type="button" data-modal-to-close="#single_date_modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="date" id="wip_date" class="form-control" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal-to-close="#single_date_modal">Close</button>
+                <button type="button" class="btn btn-primary gen-wip-report">Generate Report</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="date_range_modal" tabindex="-1" aria-labelledby="dateRangeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <input type="hidden" id="report_id_val" />
+                <h5 class="modal-title" id="dateRangeModalLabel">Enter a date range for the report</h5>
+                <button type="button" data-modal-to-close="#date_range_modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="date" class="from" />
+                <input type="date" class="to" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal-to-close="#date_range_modal">Close</button>
+                <button type="button" class="btn btn-primary gen-time-report">Generate Report</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function SaveTimeEntry() {
+        let form = $('#editTimeEntryForm');
+        $.ajax({
+            type: 'POST',
+            url: form.attr('action'),
+            data: form.serialize(),
+            success: function (data) {
+                try {
+                    let res = JSON.parse(data);
+                    if (res.success) {
+                        $('#edit_time_modal').modal('hide');
+                    } else {
+                        alert('error saving time entry');
+                    }
+                } catch (e) {
+                    alert('error saving time entry');
+                }
+            },
+            error: function (err) {
+                alert('error saving time entry');
+            }
+        });
+    };
+
+    function ShowJobSelect() {
+        $('#job_select_modal').modal('show');
+    };
+    function GetJobs() {
+        $.ajax({
+            type: 'GET',
+            url: ProcessUrl('get-all-jobs'),
+            dataType: 'json',
+            success: function (res) {
+                // res may already be an object (application/json) or a JSON string
+                if (typeof res === 'string') { res = JSON.parse(res); }
+                $('#job_select_modal .modal-body').html(res.html);
+            },
+            error: function () {
+                $('#job_select_modal .modal-body').html('<p class="text-danger" style="padding:15px;">Failed to load jobs. Please try again.</p>');
+            }
+        });
+    };
+
+    function ActualVsEstimatedReport() {
+        //get the selected jobs
+        let jobs = [];
+        //open the link to the report in a new tab
+        $('#job_select_modal input[type="checkbox"]:checked').each(function () {
+            jobs.push($(this).parents('.job-select').attr('data-record-id'));
+        });
+
+        window.open(ProcessUrl('eva-report') + '/' + jobs.join(', '));
+    };
+
+    function ShowDateRangeEntry() {
+        let $btn = $(this);
+        let reportId = $btn.attr('data-record-id');
+        $('#date_range_modal #report_id_val').val(reportId);
+        let theDate = new Date();
+        let d = theDate.toISOString().split('T')[0];
+        $('#date_range_modal .from').val(d);
+        $('#date_range_modal .to').val(d);
+        $('#date_range_modal').modal('show');
+    };
+
+    function RunReportFromTimeRange() {
+        let f = $('#date_range_modal .from').val();
+        let t = $('#date_range_modal .to').val();
+        let id = $('#date_range_modal #report_id_val').val();
+
+        $('#date_range_modal').modal('hide');
+
+        if (f === '' || t === '') {
+            alert('Start and End date required');
+        } else {
+            window.open(ProcessUrl('time-report') + '/' + id + '/' + f + '/' + t, "_blank");
+        }
+    };
+    function ClearDateRangeModal() {
+        $('#date_range_modal .from').val('');
+        $('#date_range_modal .to').val('');
+        $('#date_range_modal #report_id_val').val('');
+    };
+
+    function TimeUpdateEntryFormHandler(e) {
+        e.preventDefault();
+
+        //get the form details
+        //ajax post to the server
+        //indicate to user that details are saved (or error)
+
+    };
+
+    $(function () { })
+        .on('show.bs.modal', '#job_select_modal', GetJobs)
+        .on('click', '.report-button[data-record-id="1"]', ShowJobSelect)
+        .on('click', '.report-button[data-record-id="2"],.report-button[data-record-id="3"],.report-button[data-record-id="4"]', ShowDateRangeEntry)
+        .on('click', '.gen-eva-report', ActualVsEstimatedReport)
+        .on('click', '.gen-time-report', RunReportFromTimeRange)
+        .on('hide.bs.modal', '#date_range_modal', ClearDateRangeModal)
+        .on('submit', '#editTimeEntryForm', TimeUpdateEntryFormHandler)
+        .on('click', '.report-button[data-record-id="5"]', function () {
+            let d = new Date().toISOString().split('T')[0];
+            $('#wip_date').val(d);
+            $('#single_date_modal').modal('show');
+        })
+        .on('click', '.gen-wip-report', function () {
+            let d = $('#wip_date').val();
+            $('#single_date_modal').modal('hide');
+            if (!d) { alert('Date required'); return; }
+            window.open(ProcessUrl('wip-report') + '/' + d, '_blank');
+        })
+        .on('click', '#material-assignments-report', function () {
+            window.open(ProcessUrl('material-assignments'), '_blank');
+        })
+        .on('click', '#completed-jobs-accuracy-report', function () {
+            window.open(ProcessUrl('completed-jobs-accuracy'), '_blank');
+        })
+        .on('click', '#press-service-utilization-report', function () {
+            window.open(ProcessUrl('press-service-utilization'), '_blank');
+        });
+
+    /* data-record-id table
+    1 = Estimated VS Actual Time Report
+    2 = Weekly User Time Report
+    3 = Time Entry Report
+    4 = Reprint Report
+    5 = WIP Report */
+
+    // 1. Destroy the current DataTable instance
+    var table = $('#myTable').DataTable();
+    table.destroy();
+
+    // 2. Clear the table body
+    $('#myTable tbody').empty();
+
+    // 3. Re-populate the table with new data (if needed)
+    $.each(data, function (index, row) {
+        $('#myTable tbody').append('<tr><td>' + row.col1 + '</td><td>' + row.col2 + '</td></tr>');
+    });
+
+    // 4. Re-initialize the DataTable with the same or updated options
+    $('#myTable').DataTable({
+        paging: true,
+        searching: true,
+        // reapply or adjust options as needed...
+    });
+</script>

@@ -1,0 +1,127 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_PNL
+
+<!-- DataTables Buttons & JSZip for Export -->
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
+
+<div class="container-fluid">
+    @*<div class="row">
+            <div class="col-12">
+                <h3 class="ff-poppins fw-bold fs-16">Select a client to view Profit And Loss</h3>
+                @Html.DropDownList("Tournaments", Model.Tournaments.OrderBy(x => x.Text), htmlAttributes: new { })
+                <!-- remove this and show all clients (filterable) -->
+            </div>
+        </div>*@
+
+    <div class="row mt-5 pnl-display-row">
+        <div class="col-12">
+
+            <table id="pnlTable">
+                <thead>
+                    <tr>
+                        <th>Job Number</th>
+                        <th>Item Number</th>
+                        <th>Client</th>
+                        <th>Description</th>
+                        <th>Time Cost</th>
+                        <th>Charged Time Price</th>
+                        <th>Material Cost</th>
+                        <th>Charged Material Price</th>
+
+                        <!-- Add columns with markup applied -->
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td>Total:</td>
+                        <td></td>
+                        <td id="totalTimeCost">$0.00</td>
+                        <td id="totalMaterialCost">$0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('#Tournaments').prepend('<option value="-1">-Select-</option>');
+        $('#Tournaments').val(-1);
+
+        let dataTable = null;
+
+        $('#Tournaments').on('change', function () {
+            let client = $(this).val();
+
+            $.ajax({
+                url: ProcessUrl('get-pnl-data') + '/' + client,  // Update with your actual API endpoint
+                type: 'GET',
+                success: function (data) {
+                    if (dataTable) {
+                        dataTable.destroy(); // De-initialize DataTable
+                        $('#pnlTable tbody').empty(); // Clear existing rows
+                    }
+
+                    // Populate the table with new data
+                    let tbody = $('#pnlTable tbody');
+                    tbody.empty(); // Clear existing rows
+
+                    $.each(data, function (index, record) {
+                        let row = `<tr data-record-id="${record.JobId}">
+                            <td>${record.JobNumber}</td>
+                            <td>${record.Description}</td>
+                            <td data-value="${record.TotalTimeCost}">${record.TotalTimeCostString}</td>
+                            <td data-value="${record.TotalMateriallCost}">${record.TotalMaterialCostString}</td>
+                        </tr>`;
+                        tbody.append(row);
+                    });
+
+                    // Re-initialize DataTable with Export Buttons
+                    dataTable = $('#pnlTable').DataTable({
+                        dom: 'Bfrtip',
+                        buttons: [
+                            {
+                                extend: 'csvHtml5',
+                                text: 'Export CSV',
+                                className: 'export-button'
+                            }
+                        ],
+                        footerCallback: function (row, data, start, end, display) {
+                            let api = this.api();
+
+                            // Helper function to remove $ and convert to float
+                            let parseCurrency = function (val) {
+                                return parseFloat(val.replace(/[\$,]/g, '')) || 0;
+                            };
+
+                            // Calculate total for Time Cost column (index 1)
+                            let totalTimeCost = api
+                                .column(1, { page: 'all' })
+                                .data()
+                                .reduce((sum, val) => sum + parseCurrency(val), 0);
+
+                            // Calculate total for Material Cost column (index 2)
+                            let totalMaterialCost = api
+                                .column(2, { page: 'all' })
+                                .data()
+                                .reduce((sum, val) => sum + parseCurrency(val), 0);
+
+                            // Update totals in the footer
+                            $('#totalTimeCost').text(`$${totalTimeCost.toFixed(2)}`);
+                            $('#totalMaterialCost').text(`$${totalMaterialCost.toFixed(2)}`);
+                        }
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        });
+    });
+</script>

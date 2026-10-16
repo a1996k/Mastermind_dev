@@ -1,0 +1,153 @@
+@using System.Web.Mvc
+@model List<sp_GetUtilizationForecast_Result>
+
+@{
+    ViewBag.Title = "Utilization Forecast";
+    var period = ViewBag.Period as ForecastPeriod;
+    var selectedBillingClassId = ViewBag.SelectedBillingClassId as int?;
+}
+
+@if (period == null)
+{
+    <div class="alert alert-danger">
+        <h4>Error: Period Not Found</h4>
+        <p>The forecast period could not be loaded.</p>
+        @Html.ActionLink("Back to Periods", "Index", null, new { @class = "btn btn-default" })
+    </div>
+    return;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Utilization Forecast - @period.PeriodName</h2>
+            <p class="text-muted">
+                @period.StartDate.ToString("MM/dd/yyyy") - @period.EndDate.ToString("MM/dd/yyyy")
+            </p>
+
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="col-md-12">
+                    @Html.ActionLink("← Back to Contracts", "Contracts", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-default" })
+                    @Html.ActionLink("View Summary by Billing Class", "SummaryByBillingClass", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-info" })
+                </div>
+            </div>
+
+            <!-- Filter Section -->
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title"><i class="glyphicon glyphicon-filter"></i> Filter Results</h4>
+                </div>
+                <div class="panel-body">
+                    <form method="get" action="@Url.Action("ViewUtilization", "Forecasting")" class="form-inline">
+                        <input type="hidden" name="periodId" value="@period.ForecastPeriodID" />
+                        <div class="form-group">
+                            <label for="billingClassId">Billing Class:</label>
+                            @if (ViewData["BillingClasses"] != null)
+                            {
+                                @Html.DropDownList("billingClassId", ViewData["BillingClasses"] as IEnumerable<SelectListItem>, "-- All Billing Classes --", new { @class = "form-control", onchange = "this.form.submit()" })
+                            }
+                            else
+                            {
+                                <select name="billingClassId" class="form-control" disabled>
+                                    <option>-- No Billing Classes Available --</option>
+                                </select>
+                            }
+                        </div>
+                        @if (selectedBillingClassId.HasValue)
+                        {
+                            <a href="@Url.Action("ViewUtilization", new { periodId = period.ForecastPeriodID })" class="btn btn-default">Clear Filter</a>
+                        }
+                    </form>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            @if (Model != null && Model.Any())
+            {
+                var groupedByBillingClass = Model
+                    .Where(x => !string.IsNullOrEmpty(x.BillingClassName))
+                    .GroupBy(x => new { x.BillingClassID, x.BillingClassName })
+                    .ToList();
+                decimal grandTotal = Model.Sum(x => x.TotalHours ?? 0);
+
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">Forecast Results</h4>
+                    </div>
+                    <div class="panel-body">
+                        @foreach (var billingClassGroup in groupedByBillingClass.OrderBy(g => g.Key.BillingClassName))
+                        {
+                            decimal billingClassTotal = billingClassGroup.Sum(x => x.TotalHours ?? 0);
+
+                            <div class="panel panel-info" style="margin-bottom: 20px;">
+                                <div class="panel-heading" style="background-color: #5bc0de; color: white;">
+                                    <h4 class="panel-title">
+                                        <strong>@billingClassGroup.Key.BillingClassName</strong>
+                                        <span class="pull-right">@billingClassTotal.ToString("N1") hours</span>
+                                    </h4>
+                                </div>
+                                <div class="panel-body" style="padding: 0;">
+                                    <table class="table table-striped table-hover" style="margin-bottom: 0;">
+                                        <thead>
+                                            <tr>
+                                                <th>Client</th>
+                                                <th>Contract/Project</th>
+                                                <th>Subclass</th>
+                                                <th>Start Date</th>
+                                                <th>End Date</th>
+                                                <th class="text-right">Hours</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in billingClassGroup.OrderBy(x => x.ClientName).ThenBy(x => x.ContractName))
+                                            {
+                                                <tr>
+                                                    <td>@(item.ClientName ?? "-")</td>
+                                                    <td>@(item.ContractName ?? "-")</td>
+                                                    <td>@(item.BillingSubclass ?? "-")</td>
+                                                    <td>@(item.StartDate.HasValue ? item.StartDate.Value.ToString("MM/dd/yyyy") : "-")</td>
+                                                    <td>@(item.EndDate.HasValue ? item.EndDate.Value.ToString("MM/dd/yyyy") : "-")</td>
+                                                    <td class="text-right"><strong>@((item.TotalHours ?? 0).ToString("N1"))</strong></td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Grand Total -->
+                        <div class="well well-lg">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h3 style="margin-top: 0;">Total Forecasted Hours</h3>
+                                    <p class="text-muted">Across all billing classes for this period</p>
+                                </div>
+                                <div class="col-md-6 text-right">
+                                    <h2 style="margin-top: 0; color: #337ab7;">
+                                        <strong>@grandTotal.ToString("N1")</strong> hours
+                                    </h2>
+                                    <p class="text-muted">@groupedByBillingClass.Count() billing class(es)</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <strong>No forecast data found.</strong>
+                    @if (selectedBillingClassId.HasValue)
+                    {
+                        <span>Try clearing the filter or add contracts with billing class allocations.</span>
+                    }
+                    else
+                    {
+                        <span>Add contracts with billing class allocations to see utilization forecast.</span>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>

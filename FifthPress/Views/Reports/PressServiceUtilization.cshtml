@@ -1,0 +1,195 @@
+@using FifthPress.Models.ViewModels
+@model VM_PressServiceUtilizationFilter
+@{
+    ViewBag.Title = "Press / Service Utilization";
+}
+
+<style>
+    .psu-cont { font-size: 1.6rem; }
+    .psu-cont label { font-weight: bold; }
+    #utilTable th, #utilTable td { padding: 0.75rem; }
+    #utilTable tfoot th { font-weight: bold; background: #f5f5f5; }
+    .num { text-align: right; }
+    /* DataTables' own "thead th" rule out-specifies a bare .num, and with
+       scrollX it clones the header into a separate table (so an #utilTable
+       selector can't reach the visible header). Target DataTables' class with
+       !important so numeric headers right-align over their values and the sort
+       arrows sit beside the text. */
+    table.dataTable thead th.num,
+    table.dataTable tfoot th.num { text-align: right !important; }
+    table.dataTable thead th.num { padding-right: 1.75rem !important; }
+</style>
+
+<div id="loadingOverlay" style="
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(255,255,255,0.7); z-index: 9999; text-align: center;
+    padding-top: 20%; font-size: 1.5rem; font-weight: bold; color: #333;">
+    Loading report...
+</div>
+
+<div class="container-fluid p-3 psu-cont">
+    <h2>Press / Service Utilization</h2>
+    <p class="text-muted">
+        Pick one or more presses/services and a date range. Utilization % = actual hours &divide; maximum possible hours
+        (working days &times; 8). Tick &ldquo;Include weekends&rdquo; to count all 7 days as available capacity.
+    </p>
+
+    <div class="row mb-3">
+        <div class="col-md-5">
+            <label for="itemSelect">Select Press(es) / Service(s):</label>
+            <select id="itemSelect" class="form-control" multiple style="min-height: 240px;">
+                @if (Model.Items != null && Model.Items.Any())
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                }
+                else
+                {
+                    <option disabled>No presses or services available</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" class="form-control"
+                   value="@(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")" />
+
+            <label for="endDate" style="margin-top: 15px;">End Date:</label>
+            <input type="date" id="endDate" class="form-control"
+                   value="@(Model.EndDate?.ToString("yyyy-MM-dd") ?? "")" />
+
+            <div class="form-check" style="margin-top: 15px;">
+                <input type="checkbox" id="includeWeekends" class="form-check-input" />
+                <label class="form-check-label" for="includeWeekends" style="font-weight: normal;">
+                    Include weekends in capacity
+                </label>
+            </div>
+
+            <button id="runReport" class="btn btn-fc-info" style="margin-top: 20px;">Run Report</button>
+        </div>
+    </div>
+
+    <hr />
+
+    <table id="utilTable" class="table table-bordered table-striped display nowrap" style="width:100%">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th class="num">Actual Hours</th>
+                <th class="num">Estimated Hours</th>
+                <th class="num">Days Used</th>
+                <th class="num">Max Hours</th>
+                <th class="num">Utilization %</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr>
+                <th colspan="2">Totals</th>
+                <th class="num"></th>
+                <th class="num"></th>
+                <th class="num"></th>
+                <th class="num"></th>
+                <th class="num"></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script>
+    function exportFilename() {
+        return 'PressServiceUtilization_' + new Date().toISOString().slice(0, 10);
+    }
+
+    function num2(d) {
+        if (d === null || d === '' || typeof d === 'undefined') return '0.00';
+        return parseFloat(d).toFixed(2);
+    }
+
+    function sumColumn(api, idx) {
+        return api.column(idx, { search: 'applied' }).data().reduce(function (a, b) {
+            return a + (parseFloat(b) || 0);
+        }, 0);
+    }
+
+    var table = null;
+
+    function loadReport() {
+        var selections = $('#itemSelect').val() || [];
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+
+        if (selections.length === 0) {
+            alert('Please select at least one press or service.');
+            return;
+        }
+        if (!startDate || !endDate) {
+            alert('Please choose a start and end date.');
+            return;
+        }
+
+        $('#loadingOverlay').show();
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("GetPressServiceUtilization", "Reports")',
+            data: { selections: selections, start: startDate, end: endDate, includeWeekends: $('#includeWeekends').is(':checked') },
+            traditional: true,
+            success: function (res) {
+                var rows = (res && res.data) ? res.data : [];
+
+                if (table) { table.clear().destroy(); }
+
+                table = $('#utilTable').DataTable({
+                    data: rows,
+                    columns: [
+                        { title: 'Name', data: 'Name' },
+                        { title: 'Type', data: 'Kind' },
+                        { title: 'Actual Hours', data: 'TotalActualHours', className: 'num', render: num2 },
+                        { title: 'Estimated Hours', data: 'EstimatedHours', className: 'num', render: num2 },
+                        { title: 'Days Used', data: 'DaysUsed', className: 'num' },
+                        { title: 'Max Hours', data: 'MaxPossibleHours', className: 'num', render: num2 },
+                        { title: 'Utilization %', data: 'UtilizationPercent', className: 'num', render: function (d) { return num2(d) + '%'; } }
+                    ],
+                    order: [[0, 'asc']],
+                    pageLength: 50,
+                    scrollX: true,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        { extend: 'csv', text: 'Export CSV', filename: exportFilename() }
+                    ],
+                    footerCallback: function () {
+                        var api = this.api();
+                        var $f = $(api.table().footer());
+                        var totalActual = sumColumn(api, 2);
+                        var totalEst = sumColumn(api, 3);
+                        var totalDays = sumColumn(api, 4);
+                        var totalMax = sumColumn(api, 5);
+                        var overallPct = totalMax > 0 ? (totalActual / totalMax * 100) : 0;
+
+                        $f.find('th').eq(1).html(num2(totalActual));
+                        $f.find('th').eq(2).html(num2(totalEst));
+                        $f.find('th').eq(3).html(totalDays.toLocaleString());
+                        $f.find('th').eq(4).html(num2(totalMax));
+                        $f.find('th').eq(5).html(num2(overallPct) + '%');
+                    }
+                });
+
+                $('#loadingOverlay').hide();
+            },
+            error: function () {
+                alert('Error loading report.');
+                $('#loadingOverlay').hide();
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $('#runReport').on('click', loadReport);
+    });
+</script>

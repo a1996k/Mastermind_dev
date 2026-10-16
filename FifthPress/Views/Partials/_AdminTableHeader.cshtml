@@ -1,0 +1,13 @@
+﻿@model List<string>
+
+<tr>
+    @foreach(string s in Model)
+    {
+        <th class="viewer-table-column-header">
+            @Html.DisplayFor(model => s)
+        </th>
+    }
+    <th class="viewer-table-column-header">
+       
+    </th>
+</tr>

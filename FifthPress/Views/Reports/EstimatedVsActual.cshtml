@@ -1,0 +1,27 @@
+﻿@model List<IGrouping<int?,Report_Time_EstimatedVSActual_Result>>
+
+<div class="container">
+    @foreach (IGrouping<int?, Report_Time_EstimatedVSActual_Result> g in Model)
+    {
+        int counter = 0;
+        foreach (Report_Time_EstimatedVSActual_Result r in g.ToList())
+        {
+            if(counter == 0)
+            {
+            <h3 class="pt-3">@Html.DisplayFor(model => r.Job_Description)</h3>
+            <div class="row">
+                <div class="col fw-bold">Service</div>
+                <div class="col fw-bold">Estimated Time (Mins.)</div>
+                <div class="col fw-bold">Actual Time (Mins.)</div>
+            </div>
+            }
+            <div class="row">
+                <div class="col">@Html.DisplayFor(model => r.Service_Title)</div>
+                <div class="col">@Html.DisplayFor(model => r.EstimatedTimeInMinutes)</div>
+                <div class="col">@Html.DisplayFor(model => r.TotalTimeInMinutes)</div>
+            </div>
+
+            counter++;
+        }
+    }
+</div>

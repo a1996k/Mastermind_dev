@@ -1,0 +1,45 @@
+-Created table Emails
+^ holds the title of each automated email that the system can send
+-created table EmailUserPivot
+^ indicated which users should receive any given email
+
+-created Daily Job/quote recap email
+--shows the following for the current day: quotes, jobs and which quotes those jobs were created from
+
+-Added another zund service for finishing only (IsCuttingService = false)
+*Jason's complicated quote*
+
+::Regarding back/front colors on jobs::
+-Let me know if color profiles/count is missing on jobs and i can update database directly 
+
+-Jim: needed to go back and add time to a previously completed service; clicked undo -> only complete available... reload job tasks -> start/stop available (UI issue)
+
+
+
+-ShowOnQuote column
+Description on job ticket full width instead of block
+
+Service Orders not sticking <--- 
+
+No Press selected; material selected; not calculating (debug and figure out why)
+
+
+
+TODO
+====
+
+Front/Back colors set on selected press {Ready for testing}
+record lookup (relegated to bottom)
+Quote Ticket UI Changes (shipping/design time)
+Job Ticket UI changes (description position)
+Clear Sheet Override functionality (!)
+
+
+
+Print duplication issue: Live Quote #1170 (duplicate) <-- solved!! (was multiple prints on 1170; probably leftover from testing a broken feature)
+
+
+Cannot change scrap sheets <- ScrapSheets = 0; VariableScrapSheets = 1; TotalScrap = ScrapSheets + VariableScrap; <-- on override, ScrapSheets and clear VariableScrap <-- ensure variable scrap is not being calculated if sheets are overridden (right?)
+
+
+

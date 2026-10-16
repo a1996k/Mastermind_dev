@@ -1,0 +1,195 @@
+﻿/*
+@page {
+    size: 8.5in 11in;
+    margin-top: .5in;
+    margin-bottom: .5in;
+    margin-left: 0.5in;
+    margin-right: 0.5in;
+}
+
+.delivery-ticket-row {
+    padding: 12px 0;
+    border-bottom: 1px dashed #000;
+}
+
+.signature-line-line {
+    display: block;
+    width: 100%;
+    border-bottom: 1px solid #000;
+    padding-top: 40px;
+    margin-bottom: 5px;
+}
+.signature-line p {
+    border: 1px solid #000;
+    font-weight: bold;
+    padding: 10px;
+}*/
+/*^^^ CSS for DeliveryTicket.cshtml (deprecated for DeliveryTicket2.cshtml) */
+
+
+@media print {
+    .edit-job-wrapper {
+        display: none !important;
+    }
+
+    .invoice-wrapper {
+        padding-top: 0 !important;
+    }
+
+    .body-content {
+        padding: 40px 0 !important;
+    }
+}
+
+.back-arrow-group {
+    cursor: pointer;
+}
+
+.inv-fc-logo {
+    width: 120px;
+    max-width: 80%;
+    margin-bottom: 10px
+}
+
+.print-prev {
+    display: block;
+}
+
+body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+.invoice-wrapper {
+    padding-top: 100px;
+}
+
+.border-right-target {
+    position: relative;
+}
+
+    .border-right-target:after {
+        -webkit-print-color-adjust: exact;
+        background: black;
+        width: 1px;
+        height: calc(100% - 15px);
+        content: '';
+        position: absolute;
+        right: 0;
+    }
+
+.edit-job-wrapper {
+    background-color: #4f4f4f;
+    padding: 20px;
+    position: fixed;
+    top: 75px;
+    z-index: 99;
+}
+
+    .edit-job-wrapper button {
+        background-color: transparent;
+        color: #fff;
+        border: none;
+    }
+
+.back-arrow-group {
+    color: white;
+    font-size: 20px;
+}
+
+.print-link i {
+    font-size: 16px;
+    color: white;
+}
+
+.ty-msg {
+    font-family: Gerogia;
+    font-style: italic;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.item-header-row {
+    font-family: Georgia;
+}
+
+.item-row-wrapper .col-header-row {
+    font-family: 'DM Sans';
+    font-weight: bold;
+    font-size: 14px;
+}
+
+    .item-row-wrapper .col-header-row .item-header-row {
+        font-style: italic;
+    }
+
+.col-header-row .col {
+    background: #f2ebe6;
+    font-size: 12px;
+}
+
+.invoice-row {
+    font-family: 'DM Sans';
+    font-size: 12px;
+    border-bottom: 1px solid black;
+}
+
+    .invoice-row .item {
+        font-weight: bold;
+    }
+
+    .invoice-row .quantity,
+    .invoice-row .unit-price,
+    .invoice-row .total-price {
+        font-family: 'Lato';
+    }
+
+.wrp-border {
+    border-bottom: 1px solid black;
+}
+
+.inv-header-row {
+    font-family: 'DM Sans';
+}
+
+    .inv-header-row h3 {
+        font-family: 'poppins';
+    }
+
+    .inv-header-row span {
+        font-size: 12px;
+    }
+
+.body-content {
+    background: white !important;
+}
+
+.signature-line,
+.date-line {
+    border-bottom: 1px solid black;
+}
+
+.sig-row label {
+    font-family: 'DM Sans';
+    font-size: 12px;
+}
+
+.sig-row .sig-portion {
+    width: 66%;
+}
+
+.sig-row .date-portion {
+    width: 33%;
+}
+
+.sig-row .signature-line {
+    width: 75%;
+    position: relative;
+    top: 5px;
+}
+
+.sig-row .date-line {
+    width: 85%;
+    position: relative;
+    top: 5px;
+}

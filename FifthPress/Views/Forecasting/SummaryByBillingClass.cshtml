@@ -1,0 +1,261 @@
+@using System.Web.Mvc
+@model List<sp_GetUtilizationSummaryByBillingClass_Result>
+
+@{
+    ViewBag.Title = "Summary by Billing Class";
+    var period = ViewBag.Period as ForecastPeriod;
+}
+
+@if (period == null)
+{
+    <div class="alert alert-danger">
+        <h4>Error: Period Not Found</h4>
+        <p>The forecast period could not be loaded.</p>
+        @Html.ActionLink("Back to Periods", "Index", null, new { @class = "btn btn-default" })
+    </div>
+    return;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Utilization Summary by Billing Class</h2>
+            <p class="text-muted">
+                Period: @period.PeriodName (@period.StartDate.ToString("MM/dd/yyyy") - @period.EndDate.ToString("MM/dd/yyyy"))
+            </p>
+
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="col-md-12">
+                    @Html.ActionLink("← Back to Contracts", "Contracts", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-default" })
+                    @Html.ActionLink("View Detailed Forecast", "ViewUtilization", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-info" })
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                // Group by Retainer status first, then by Billing Class
+                var retainerData = Model.Where(x => !string.IsNullOrEmpty(x.BillingClassName) && x.IsRetainer).ToList();
+                var nonRetainerData = Model.Where(x => !string.IsNullOrEmpty(x.BillingClassName) && !x.IsRetainer).ToList();
+
+                var groupedByBillingClass = Model
+                    .Where(x => !string.IsNullOrEmpty(x.BillingClassName))
+                    .GroupBy(x => new { x.BillingClassID, x.BillingClassName })
+                    .ToList();
+                decimal grandTotal = Model.Sum(x => x.TotalHours ?? 0);
+                decimal retainerTotal = retainerData.Sum(x => x.TotalHours ?? 0);
+                decimal nonRetainerTotal = nonRetainerData.Sum(x => x.TotalHours ?? 0);
+
+                <!-- Summary Cards -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="panel panel-primary">
+                            <div class="panel-body text-center">
+                                <h4>Total Hours</h4>
+                                <h2 style="color: #337ab7; margin: 10px 0;">@grandTotal.ToString("N1")</h2>
+                                <p class="text-muted">All forecasted hours</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-default" style="border-color: #1a5276;">
+                            <div class="panel-body text-center">
+                                <h4 style="color: #1a5276;">Retainer Hours</h4>
+                                <h2 style="color: #1a5276; margin: 10px 0;">@retainerTotal.ToString("N1")</h2>
+                                <p class="text-muted">@(grandTotal > 0 ? (retainerTotal / grandTotal * 100).ToString("N1") : "0")% of total</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-default" style="border-color: #5dade2;">
+                            <div class="panel-body text-center">
+                                <h4 style="color: #5dade2;">Non-Retainer Hours</h4>
+                                <h2 style="color: #5dade2; margin: 10px 0;">@nonRetainerTotal.ToString("N1")</h2>
+                                <p class="text-muted">@(grandTotal > 0 ? (nonRetainerTotal / grandTotal * 100).ToString("N1") : "0")% of total</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-success">
+                            <div class="panel-body text-center">
+                                <h4>Billing Classes</h4>
+                                <h2 style="color: #5cb85c; margin: 10px 0;">@groupedByBillingClass.Count()</h2>
+                                <p class="text-muted">Active billing classes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Billing Class Breakdown - Organized by Retainer/Non-Retainer -->
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title"><i class="glyphicon glyphicon-stats"></i> Billing Class Breakdown (by Contract Type)</h4>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Billing Class</th>
+                                    <th>Subclass</th>
+                                    <th class="text-right">Hours</th>
+                                    <th class="text-right">Percentage</th>
+                                    <th style="width: 300px;">Distribution</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (retainerData.Any())
+                                {
+                                    <!-- RETAINER SECTION HEADER -->
+                                    <tr style="background-color: #1a5276; color: white;">
+                                        <td colspan="5"><strong><i class="glyphicon glyphicon-repeat"></i> RETAINER CONTRACTS</strong> - @retainerTotal.ToString("N1") hours (@(grandTotal > 0 ? (retainerTotal / grandTotal * 100).ToString("N1") : "0")%)</td>
+                                    </tr>
+
+                                    var retainerGroups = retainerData
+                                        .GroupBy(x => new { x.BillingClassID, x.BillingClassName })
+                                        .OrderByDescending(g => g.Sum(x => x.TotalHours ?? 0));
+
+                                    foreach (var billingClassGroup in retainerGroups)
+                                    {
+                                        decimal classTotal = billingClassGroup.Sum(x => x.TotalHours ?? 0);
+                                        decimal classPercentage = grandTotal > 0 ? (classTotal / grandTotal * 100) : 0;
+
+                                        <tr style="background-color: #e8f4f8; font-weight: bold;">
+                                            <td><strong>@billingClassGroup.Key.BillingClassName</strong></td>
+                                            <td colspan="2" class="text-right"><strong>@classTotal.ToString("N1") hours</strong></td>
+                                            <td class="text-right"><strong>@classPercentage.ToString("N2")%</strong></td>
+                                            <td>
+                                                <div class="progress" style="margin-bottom: 0;">
+                                                    <div class="progress-bar" role="progressbar" style="width: @classPercentage.ToString("N2")%; background-color: #1a5276;">
+                                                        @classPercentage.ToString("N1")%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        if (billingClassGroup.Count() > 1 || (billingClassGroup.Count() == 1 && !string.IsNullOrEmpty(billingClassGroup.First().BillingSubclass)))
+                                        {
+                                            foreach (var item in billingClassGroup.OrderByDescending(x => x.TotalHours))
+                                            {
+                                                decimal itemPercentage = item.PercentageOfTotal ?? 0;
+                                                <tr>
+                                                    <td style="padding-left: 30px;"></td>
+                                                    <td>@(item.BillingSubclass ?? "Default")</td>
+                                                    <td class="text-right">@((item.TotalHours ?? 0).ToString("N1"))</td>
+                                                    <td class="text-right">@itemPercentage.ToString("N2")%</td>
+                                                    <td>
+                                                        <div class="progress" style="margin-bottom: 0;">
+                                                            <div class="progress-bar" role="progressbar" style="width: @itemPercentage.ToString("N2")%; background-color: #2980b9;">
+                                                                <span class="sr-only">@itemPercentage.ToString("N1")%</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    }
+                                }
+
+                                @if (nonRetainerData.Any())
+                                {
+                                    <!-- NON-RETAINER SECTION HEADER -->
+                                    <tr style="background-color: #5dade2; color: white;">
+                                        <td colspan="5"><strong><i class="glyphicon glyphicon-file"></i> NON-RETAINER CONTRACTS</strong> - @nonRetainerTotal.ToString("N1") hours (@(grandTotal > 0 ? (nonRetainerTotal / grandTotal * 100).ToString("N1") : "0")%)</td>
+                                    </tr>
+
+                                    var nonRetainerGroups = nonRetainerData
+                                        .GroupBy(x => new { x.BillingClassID, x.BillingClassName })
+                                        .OrderByDescending(g => g.Sum(x => x.TotalHours ?? 0));
+
+                                    foreach (var billingClassGroup in nonRetainerGroups)
+                                    {
+                                        decimal classTotal = billingClassGroup.Sum(x => x.TotalHours ?? 0);
+                                        decimal classPercentage = grandTotal > 0 ? (classTotal / grandTotal * 100) : 0;
+
+                                        <tr style="background-color: #ebf5fb; font-weight: bold;">
+                                            <td><strong>@billingClassGroup.Key.BillingClassName</strong></td>
+                                            <td colspan="2" class="text-right"><strong>@classTotal.ToString("N1") hours</strong></td>
+                                            <td class="text-right"><strong>@classPercentage.ToString("N2")%</strong></td>
+                                            <td>
+                                                <div class="progress" style="margin-bottom: 0;">
+                                                    <div class="progress-bar" role="progressbar" style="width: @classPercentage.ToString("N2")%; background-color: #5dade2;">
+                                                        @classPercentage.ToString("N1")%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        if (billingClassGroup.Count() > 1 || (billingClassGroup.Count() == 1 && !string.IsNullOrEmpty(billingClassGroup.First().BillingSubclass)))
+                                        {
+                                            foreach (var item in billingClassGroup.OrderByDescending(x => x.TotalHours))
+                                            {
+                                                decimal itemPercentage = item.PercentageOfTotal ?? 0;
+                                                <tr>
+                                                    <td style="padding-left: 30px;"></td>
+                                                    <td>@(item.BillingSubclass ?? "Default")</td>
+                                                    <td class="text-right">@((item.TotalHours ?? 0).ToString("N1"))</td>
+                                                    <td class="text-right">@itemPercentage.ToString("N2")%</td>
+                                                    <td>
+                                                        <div class="progress" style="margin-bottom: 0;">
+                                                            <div class="progress-bar" role="progressbar" style="width: @itemPercentage.ToString("N2")%; background-color: #85c1e9;">
+                                                                <span class="sr-only">@itemPercentage.ToString("N1")%</span>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        }
+                                    }
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="info" style="font-weight: bold; font-size: 16px;">
+                                    <td colspan="2"><strong>TOTAL</strong></td>
+                                    <td class="text-right"><strong>@grandTotal.ToString("N1")</strong></td>
+                                    <td class="text-right"><strong>100.00%</strong></td>
+                                    <td>
+                                        <div class="progress" style="margin-bottom: 0;">
+                                            <div class="progress-bar progress-bar-primary" role="progressbar" style="width: 100%">
+                                                100%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Visual Chart -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title"><i class="glyphicon glyphicon-signal"></i> Visual Distribution</h4>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            @foreach (var billingClassGroup in groupedByBillingClass.OrderByDescending(g => g.Sum(x => x.TotalHours ?? 0)))
+                            {
+                                decimal classTotal = billingClassGroup.Sum(x => x.TotalHours ?? 0);
+                                decimal classPercentage = grandTotal > 0 ? (classTotal / grandTotal * 100) : 0;
+
+                                <div class="col-md-6" style="margin-bottom: 20px;">
+                                    <h5>@billingClassGroup.Key.BillingClassName</h5>
+                                    <div class="progress" style="height: 40px;">
+                                        <div class="progress-bar progress-bar-striped progress-bar-info" role="progressbar"
+                                             style="width: @classPercentage.ToString("N2")%; line-height: 40px; font-size: 16px;">
+                                            @classTotal.ToString("N1") hrs (@classPercentage.ToString("N1")%)
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <strong>No forecast data found.</strong> Add contracts with billing class allocations to see utilization summary.
+                </div>
+            }
+        </div>
+    </div>
+</div>

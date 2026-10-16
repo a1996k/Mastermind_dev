@@ -1,0 +1,114 @@
+@model FifthPress.Models.ViewModels.VM_WIPReport
+
+<style>
+    /* Let long descriptions wrap and cap width so the cost columns stay visible */
+    #wip_table td.desc-col, #wip_table th.desc-col {
+        white-space: normal;
+        max-width: 380px;
+        word-break: break-word;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-lg-12">
+            <h2>WIP Report as of @Model.AsOfDate.ToString("MMMM dd, yyyy")</h2>
+            <button id="download_csv" class="btn btn-fc-info">Download as CSV</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <table class="table table-striped" id="wip_table">
+                <thead class="fs-4">
+                    <tr>
+                        <th>Job #</th>
+                        <th>Client</th>
+                        <th class="desc-col">Description</th>
+                        @*<th>Client Price</th>*@
+                        <th>Labor Cost</th>
+                        <th>Material Cost</th>
+                        @*<th>Cutting Material</th>*@
+                        <th>Total Actual Cost</th>
+                        <th>Created</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody class="fs-4">
+                    @foreach (var entry in Model.Entries)
+                    {
+                        <tr>
+                            <td><a href="/Job/Edit/@entry.Id" target="_blank">@entry.JobNumber</a></td>
+                            <td>@Html.DisplayFor(model => entry.Client)</td>
+                            <td class="desc-col">@Html.DisplayFor(model => entry.Description)</td>
+                            @*<td data-sort="@entry.ClientPrice">@(entry.ClientPrice?.ToString("C") ?? "$0.00")</td>*@
+                            <td data-sort="@entry.ActualLaborCost">@entry.ActualLaborCost.ToString("C")</td>
+                            <td data-sort="@entry.MaterialCost">@entry.MaterialCost.ToString("C")</td>
+                            @*<td data-sort="@entry.CuttingMaterialCost">@entry.CuttingMaterialCost.ToString("C")</td>*@
+                            <td data-sort="@entry.TotalActualCost">@entry.TotalActualCost.ToString("C")</td>
+                            <td data-sort="@entry.CreatedAt.ToString("yyyy-MM-dd")">@entry.CreatedAt.ToString("MM/dd/yyyy")</td>
+                            <td data-sort="@(entry.DueDate?.ToString("yyyy-MM-dd") ?? "")">@(entry.DueDate?.ToString("MM/dd/yyyy") ?? "")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="fs-4 fw-bold">
+                        <td colspan="3" class="text-end">Totals:</td>
+                        <td>@Model.TotalLaborCost.ToString("C")</td>
+                        <td>@Model.TotalMaterialCost.ToString("C")</td>
+                        <td>@Model.GrandTotal.ToString("C")</td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        var wipTable = $('#wip_table').DataTable({
+            'paging': true,
+            'pageLength': 50,
+            'order': [[6, 'asc']] // Order by Created date
+        });
+
+        $('#download_csv').click(function () {
+            var csv = [];
+            var cellDelimiter = ',';
+            var lineDelimiter = '\n';
+            var headers = [];
+
+            // Extract headers
+            $('#wip_table thead th').each(function () {
+                var text = $(this).text().trim().replace(/"/g, '""');
+                headers.push('"' + text + '"');
+            });
+            csv.push(headers.join(cellDelimiter));
+
+            // Extract data
+            wipTable.rows({ search: 'applied' }).every(function () {
+                var row = [];
+                $(this.node()).find('td').each(function () {
+                    var text = $(this).text().trim().replace(/"/g, '""');
+                    row.push('"' + text + '"');
+                });
+                csv.push(row.join(cellDelimiter));
+            });
+
+            // Add total row
+            var totalRow = ['"Totals"', '""', '""', '"@Model.TotalLaborCost.ToString("C")"', '"@Model.TotalMaterialCost.ToString("C")"', '"@Model.GrandTotal.ToString("C")"', '""', '""'];
+            csv.push(totalRow.join(cellDelimiter));
+
+            // Create and download CSV
+            var csvFile = new Blob([csv.join(lineDelimiter)], { type: 'text/csv' });
+            var downloadLink = document.createElement('a');
+            var asOfDate = '@Model.AsOfDate.ToString("yyyy-MM-dd")';
+            downloadLink.download = 'wip-report-' + asOfDate + '.csv';
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        });
+    });
+</script>

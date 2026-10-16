@@ -1,0 +1,87 @@
+﻿<div class="container">
+    <form id="jsonForm">
+        <div id="jsonFields"></div>
+        <button type="submit" class="btn btn-fc-info">Save Changes</button>
+    </form>
+</div>
+
+<input type="hidden" id="fc_record_id" value="@Html.Raw(ViewBag.RecordId)" />
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    var json = '@Html.Raw(ViewBag.Json)';
+    var prefix = '@Html.Raw(ViewBag.Prefix)';  // Define the prefix variable
+    try {
+        var jsonObject = JSON.parse(json);
+    } catch (error) {
+        console.error("Error parsing JSON:", error);
+        return; // Exit if JSON is invalid
+    }
+
+    var container = document.getElementById("jsonFields");
+
+    processObject(jsonObject);
+
+    var form = document.getElementById("jsonForm");
+    form.onsubmit = function(e) {
+        e.preventDefault();
+        var updatedJson = {};
+
+        function buildJson(path, value, obj) {
+            var parts = path.split('.');
+            var current = obj;
+            for (var i = 0; i < parts.length - 1; i++) {
+                if (!current[parts[i]]) current[parts[i]] = {};
+                current = current[parts[i]];
+            }
+            current[parts[parts.length - 1]] = value;
+        }
+
+        var inputs = container.querySelectorAll("input[name]");
+        inputs.forEach(function(input) {
+            buildJson(input.name, input.value, updatedJson);
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('update-formula-config'),
+            data: {
+                id: $('#fc_record_id').val(),
+                config: JSON.stringify(updatedJson)
+            },
+            success: function () {
+                alert('Saved');
+            }
+        });
+        console.log(JSON.stringify(updatedJson)); // Handle the updated JSON
+    };
+
+    // Adding controls to add new fields, placed outside the main container to prevent inclusion in JSON
+    var newFieldsContainer = document.createElement("div");
+    form.insertBefore(newFieldsContainer, container.nextSibling); // Insert after the container
+
+    var addFieldButton = document.createElement("button");
+    addFieldButton.innerText = "Add New Field";
+    addFieldButton.type = "button";  // Prevents form submission when clicking this button
+    var newNameInput = document.createElement("input");
+    newNameInput.placeholder = "New field name";
+    var newValueInput = document.createElement("input");
+    newValueInput.placeholder = "New field value";
+    newFieldsContainer.appendChild(newNameInput);
+    newFieldsContainer.appendChild(newValueInput);
+    newFieldsContainer.appendChild(addFieldButton);
+    newFieldsContainer.appendChild(document.createElement("br"));
+
+    addFieldButton.onclick = function() {
+        var name = prefix + "." + newNameInput.value.trim();
+        var value = newValueInput.value;
+        if (name !== prefix + ".") { // Ensure the name is not just the prefix
+            createInput(name, value);
+            newNameInput.value = ""; // Reset the name input for next entry
+            newValueInput.value = ""; // Reset the value input for next entry
+        } else {
+            alert("Please enter a valid field name.");
+        }
+    };
+});
+</script>

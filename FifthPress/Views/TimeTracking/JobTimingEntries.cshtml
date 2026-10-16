@@ -1,0 +1,16 @@
+﻿@model List<FifthPress.Models.TimeEntry>
+
+<div class="container fs-3">
+    @foreach (FifthPress.Models.TimeEntry entry in Model.OrderByDescending(x => x.SessionStartTime))
+    {
+        <div class="pb-3">
+            <div class="row">
+                <span class="me-3">@Html.DisplayFor(model => entry.TaskStartDate): </span>
+                <span><b class="me-3">@Html.DisplayFor(model => entry.LastName), @Html.DisplayFor(model => entry.FirstName)</b> - <i>@Html.DisplayFor(model => entry.ServiceTitle)</i></span>
+            </div>
+            <div class="row">
+                <span class="me-3">{ @Html.DisplayFor(model => entry.SessionStartTimeString) - @Html.DisplayFor(model => entry.SessionEndTimeString) } <b>@Html.DisplayFor(model => entry.DurationString)</b></span>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,70 @@
+﻿@model List<FifthPress.Models.ReadyToBillEntry>
+
+@Styles.Render("~/Content/billing")
+
+@*
+    NOTE: Code was changed 12/4/2024 on the fly to accomodate Kelly needing a place to see ready to bill jobs/set as billed
+*@
+
+@{
+    bool showMarkAsBilled = ViewBag.ShowMarkAsBilled ?? false;
+}
+
+<!-- show a list of jobs that are ready to bill along with a button to view the invoice and a button to mark as billed -->
+<div class="container-fluid p-5">
+    <div class="row">
+        <div class="col-12 text-end mb-5">
+            <button class="btn btn-lg btn-fc-info go-to-reports">Billing Reports</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-striped" id="ready_to_bill_table">
+                <thead>
+                    <tr>
+                        <th>Job #</th>
+                        <th>Client Name</th>
+                        <th>Description</th>
+                        <th>Date Created</th>
+                        <th>Due Date</th>
+                        <th>Date Completed</th>
+                        <th>Date Shipped</th>
+                        <th>Project Manager</th>
+                        <th>Billing Notes</th>
+                        <th>View Invoice</th>
+                        <th>Mark As Billed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var e in Model)
+                    {
+                        <tr data-record-id="@Html.DisplayFor(modelItem => e.Id)">
+                            <td style="white-space:nowrap">@Html.DisplayFor(modelItem => e.JobNumber)</td>
+                            <td>@Html.DisplayFor(modelItem => e.Client)</td>
+                            <td>@Html.DisplayFor(modelItem => e.Description)</td>
+                            <td>@Html.DisplayFor(modelItem => e.CreatedText)</td>
+                            <td>@Html.DisplayFor(modelItem => e.DueText)</td>
+                            <td>@Html.DisplayFor(modelItem => e.CompletedText)</td>
+                            <td>@Html.DisplayFor(modelItem => e.ShippedText)</td>
+                            <td>@Html.DisplayFor(modelItem => e.ProjectManager)</td>
+                            <td>
+                                @Html.DisplayFor(model => e.BillingNotes)
+                            </td>
+                            <td>
+                                <button class="btn btn-primary view-invoice fs-14">View Invoice</button>
+                            </td>
+                            <td>
+                                @if (showMarkAsBilled)
+                                {
+                                <button class="btn btn-success mark-as-billed fs-14">Mark As Billed</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@Scripts.Render("~/bundles/billing")

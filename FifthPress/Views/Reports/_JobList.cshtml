@@ -1,0 +1,15 @@
+﻿@model List<Job>
+
+<div class="container">
+    @foreach (Job j in Model)
+    {
+        
+        <div class="row job-select" data-record-id="@Html.DisplayFor(model => j.Id)">
+            <div class="col fs-2">
+                <input type="checkbox" class="pe-5" />
+                <span class="fw-bold pe-3">@Html.DisplayFor(model => j.JobNumber)</span>
+                <span class="pe-5">@Html.DisplayFor(model => j.Description)</span>
+            </div>
+        </div>
+    }
+</div>

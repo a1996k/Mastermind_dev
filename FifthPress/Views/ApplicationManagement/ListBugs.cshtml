@@ -1,0 +1,70 @@
+﻿@model List<Bug>
+
+<div class="container pt-5 mt-5">
+    <div id="filters">
+        <label><input type="checkbox" class="filter bug-complete-filter" value="Hide Complete"> Hide Complete</label>
+        <label><input type="checkbox" class="filter my-bugs-filter"> Only Show My Bugs</label>
+    </div>
+    <table class="table table-borderless table-striped" id="bug_table">
+        <thead>
+            <tr>
+                <th>
+                    Id
+                </th>
+                <th>
+                    Reporter
+                </th>
+                <th>
+                    Report Date
+                </th>
+                <th>
+                    Description
+                </th>
+                <th>
+                    Steps to Reproduce
+                </th>
+                <th>
+                    Expected Behavior
+                </th>
+                <th>
+                    Actual Behavior
+                </th>
+                <th>
+                    Last Update
+                </th>
+                <th>
+                    Fix Date
+                </th>
+                <th>
+                    Resolution
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Bug b in Model)
+            {
+                <tr>
+                    <td>@Html.DisplayFor(model => b.Id)</td> <!-- Id -->
+                    <td data-user-id="@Html.DisplayFor(model => b.Reporter)">@Html.DisplayFor(model => b.User.FirstName) @Html.DisplayFor(model => b.User.LastName)</td> <!-- Reporter -->
+                    <td>@(b.ReportDate.HasValue ? b.ReportDate.Value.ToString("M/d/yyyy") : "-Not Set-")</td> <!-- Report Date -->
+                    <td>@Html.DisplayFor(model => b.Description)</td> <!-- Bug description -->
+                    <td>@Html.DisplayFor(model => b.StepsToReproduce)</td> <!-- How to reproduce -->
+                    <td>@Html.DisplayFor(model => b.ExpectedBehavior)</td> <!-- Expected behavior -->
+                    <td>@Html.DisplayFor(model => b.ActualBehavior)</td> <!-- Actual Behavior -->
+                    <td>@(b.LastUpdatedDate.HasValue ? b.LastUpdatedDate.Value.ToString("M/d/yyyy h:mm:s tt") : "")</td>
+                    <td>@(b.FixDate.HasValue ? b.FixDate.Value.ToString("M/d/yyyy h:mm:ss tt") : "")</td>
+                    @if (b.FixDate.HasValue) 
+                    { 
+                        <td>@Html.DisplayFor(model => b.Resolution)</td>
+                    }
+else
+                {
+                    <td class="fst-italic">Pending Completion</td>
+                }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@Scripts.Render("~/bundles/bugs")

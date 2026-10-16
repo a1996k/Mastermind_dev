@@ -1,0 +1,38 @@
+﻿<div class="modal" tabindex="-1" id="add_document_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Documents</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#add_document_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    @using (Html.BeginForm("AddDocument", "Job", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                    {
+                        <div class="row">
+                            <div class="col-6">
+                                <input type="hidden" class="item-type" name="ItemType" />
+                                <input type="hidden" class="item-id" name="ItemId" />
+                                <input type="hidden" class="ad-is-outsourced-item" name="RowType" />
+                                <label for="file_inp">Select Document</label>
+                                <input type="file" class="file-input" name="TheDocs" id="file_inp" multiple />
+                            </div>
+                            <div class="col-6">
+                                <input type="checkbox" class="apply-to-all d-none" id="apply_to_all" name="ApplyToAll" />
+                                <label for="apply_to_all" class="d-none">Apply to All Items</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 text-end">
+                                <button type="submit" class="btn btn-fc-info" data-modal-to-close="#add_document_modal">Submit</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-fc-caution cancel-add-doc" data-modal-to-close="#add_document_modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>

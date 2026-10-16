@@ -1,0 +1,139 @@
+﻿body {
+    font-family: Arial, sans-serif;
+}
+
+.sidenav {
+    height: 100%;
+    width: 250px;
+    position: fixed;
+    z-index: 1;
+    top: 75px;
+    left: 0;
+    background-color: #111;
+    /*overflow-x: hidden;*/
+    padding-top: 20px;
+    transition: 0.5s;
+}
+
+    .sidenav a {
+        padding: 13px 8px 13px 50px;
+        text-decoration: none;
+        font-size: 16px;
+        color: #fff;
+        display: block;
+        transition: 0.3s;
+        font-weight: bold;
+        font-family: 'DM Sans';
+    }
+
+    .sidenav button {
+        font-family: 'DM Sans';
+    }
+
+    .sidenav a:hover {
+        color: #f1f1f1;
+    }
+
+.closebtn {
+    font-size: 20px;
+    text-decoration: none;
+}
+
+.openbtn {
+    font-size: 36px;
+    position: fixed;
+    z-index: 2;
+    left: 0;
+    top: 80px;
+    margin-left: 15px;
+    text-decoration: none;
+}
+
+.fa-solid.fa-chevron-left {
+    font-size: 10px;
+}
+
+.closebtn {
+    color: #fff;
+    font-size: 14px;
+    padding-top: 30px;
+}
+
+a:hover {
+    color: #fff;
+}
+
+.logout-btn {
+    background-color: transparent;
+    border: none;
+}
+
+.name-title {
+    padding:5px 30px;
+}
+
+    .name-title h2 {
+        color: #b5cbd8;
+    }
+
+.sidenav .fa-solid.fa-arrows-rotate {
+    font-size: 15px;
+    position: fixed;
+    z-index: 2;
+    left: 0;
+    top: 113px;
+    text-decoration: none;
+    margin-left: 30px;
+    color: #fff;
+}
+
+.refresh-arrows {
+    font-size: 13px;
+    position: fixed;
+    z-index: 2;
+    left: 20px;
+    top: 112px;
+    text-decoration: none;
+    margin-left: 30px;
+    color: #fff;
+}
+
+.side-bar-icon-1-element {
+    position: absolute;
+    height: 30px;
+    width: 4px;
+    background-color: #353434;
+    top: 7px;
+    left: 30px;
+}
+
+.login-btn {
+    padding: 6px 19px !important;
+    background-color: #b5cbd8;
+    color: #000;
+    border-radius: 6px;
+    margin-left: 30px;
+    font-weight: bold;
+}
+
+    .login-btn:hover {
+        background-color: #b5cbd8;
+        color: #000;
+    }
+
+.btn:hover {
+    color: #fff !important;
+}
+
+body.sidenav-open{
+    padding-left: 250px;
+}
+body.sidenav-closed{
+    padding-left: 50px;
+}
+body.sidenav-closed nav{
+    margin-left: -50px !important;
+}
+body.sidenav-open nav{
+    margin-left: -250px !important;
+}

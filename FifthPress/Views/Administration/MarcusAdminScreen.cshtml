@@ -1,0 +1,36 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Marcus
+
+
+<div class="container">
+    <h2>
+        Today's Quotes
+    </h2>
+    @foreach(v_TodaysQuotes v in Model.TodaysQuotes)
+            {
+                <div class="row fs-3">
+                    <div class="col">
+                        <span class="fw-bold">Quote #:</span> @Html.DisplayFor(model => v.JobNumber)
+                        <span class="fw-bold">User:</span> @Html.DisplayFor(model => v.FirstName) @Html.DisplayFor(model => v.LastName)
+                        <span class="fw-bold">Timestamp:</span> @Html.DisplayFor(model => v.CreatedAt, "{0:M-d-yyyy}", null)
+                    </div>
+                </div>
+            }
+</div>
+
+
+<div class="container mt-5">
+    <h2>
+        Last Seven Days
+    </h2>
+    @foreach (v_QuotesCreatedInLast7Days v in Model.RecentQuotes)
+    {
+    <div class="row fs-3">
+        <div class="col">
+            <span class="fw-bold">Quote #:</span> @Html.DisplayFor(model => v.JobNumber)
+            <span class="fw-bold">User:</span> @Html.DisplayFor(model => v.FirstName) @Html.DisplayFor(model => v.LastName)
+            <span class="fw-bold">Timestamp:</span> @Html.DisplayFor(model => v.CreatedAt, "{0:M-d-yyyy}", null)
+        </div>
+    </div>
+    }
+</div>

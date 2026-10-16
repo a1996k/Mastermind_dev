@@ -1,0 +1,59 @@
+﻿
+<div class="modal" tabindex="-1" id="order_stock_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title">Add Stock</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#order_stock_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <div class="field-binder-col-flex">
+                                <div class="field-binder-row-flex">
+                                    <label class="fs-3"><u>Amount:</u><input type="number" class="amount-to-add" /></label>
+                                    <label class="fs-3">
+                                        @Html.DropDownList("StockType", ViewData["StockType"] as SelectList, htmlAttributes: new { @id = "inv_stock_type "})
+                                    </label>
+                                </div>
+                                <div class="field-binder-row-flex">
+                                    <label class="fs-3"><u>Price</u><input type="text" class="material-input-cost" /></label>
+                                    <label class="fs-3">
+                                        @Html.DropDownList("CostType", ViewData["CostType"] as SelectList, htmlAttributes: new { @id = "inv_cost_type" })
+                                    </label>
+                                </div>
+                                <label class="fs-3"><u>PO #</u><input type="text" class="inv-po-number" /></label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#order_stock_modal">Cancel</button>
+                <button class="btn btn-fc-success add-stock-confirm-btn" data-modal-to-close="#order_stock_modal">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function PassesAddStockValidation(toCheck) {
+
+        return toCheck > 0;
+    };
+    function AddStockToMaterial() {
+
+        let entered = Number($('.amount-to-add').val());
+        let cost = $('.material-input-cost').val();
+        let poNumber = $('.inv-po-number').val();
+        let costType = $('#inv_cost_type').val();
+        let stockType = $('#inv_stock_type').val();
+        
+        if (PassesAddStockValidation(entered)) {
+            NewMaterialOrder($('#ac_helper').val(), entered, cost, poNumber, costType, stockType);
+        } 
+    };
+    $(function () { })
+        .on('click', '.add-stock-confirm-btn', AddStockToMaterial);
+</script>

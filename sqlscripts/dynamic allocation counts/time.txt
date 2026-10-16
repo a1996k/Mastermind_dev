@@ -1,0 +1,2 @@
+(sunday)1230-105pm <- script
+(sunday)1:10pm -> 2:05pm <- tourney script

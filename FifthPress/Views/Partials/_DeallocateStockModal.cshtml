@@ -1,0 +1,41 @@
+﻿
+<div class="modal" tabindex="-1" id="deallocate_stock_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title">Deallocate Stock</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#deallocate_stock_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <label class="fs-3"><u>Enter the Amount to Deallocate</u> <input type="number" class="amount-to-deallocate" /></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#deallocate_stock_modal">Cancel</button>
+                <button class="btn btn-fc-success deallocate-stock-confirm-btn" data-modal-to-close="#deallocate_stock_modal">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function PassesDeallocateStockValidation(toCheck) { 
+
+        return toCheck <= curAllocated && toCheck !== 0;
+    };
+    function DeallocateStockFromMaterial() {
+        let entered = Number($('.amount-to-deallocate').val());
+
+        if (PassesDeallocateStockValidation(entered)) {
+            UpdateMaterialInventory('deallocate-stock', $('#ac_helper').val(), entered);
+        }
+    };
+    $(function () {
+
+    }).on('click', '.deallocate-stock-confirm-btn', DeallocateStockFromMaterial);
+</script>

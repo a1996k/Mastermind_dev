@@ -1,0 +1,1144 @@
+@model List<FifthPress.Models.ViewModels.VM_ContractRow>
+
+@{
+    ViewBag.Title = "Contracts - " + ViewBag.Period.PeriodName;
+    var period = ViewBag.Period as ForecastPeriod;
+    var billingClasses = ViewData["BillingClasses"] as IEnumerable<SelectListItem>;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Contracts for @period.PeriodName</h2>
+            <p class="text-muted">
+                @period.StartDate.ToString("MM/dd/yyyy") - @period.EndDate.ToString("MM/dd/yyyy")
+            </p>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade in">
+                    <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade in">
+                    <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
+                    @TempData["Error"]
+                </div>
+            }
+
+            <!-- Navigation Panel -->
+            <div class="panel panel-default" style="margin-bottom: 20px;">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>Navigation</strong><br />
+                            @Html.ActionLink("← Back to Periods", "Index", null, new { @class = "btn btn-default btn-sm", style = "margin-top: 5px;" })
+                        </div>
+                        <div class="col-md-4 text-center">
+                            <strong>Reports & Analysis</strong><br />
+                            @Html.ActionLink("Utilization Dashboard", "UtilizationDashboard", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-success", style = "margin-top: 5px;" })
+                            @Html.ActionLink("Billing Class Summary", "SummaryByBillingClass", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-info btn-sm", style = "margin-top: 5px;" })
+                            @Html.ActionLink("Budget Tracker", "BudgetTracker", null, new { @class = "btn btn-default btn-sm", style = "margin-top: 5px;" })
+                        </div>
+                        <div class="col-md-4 text-right">
+                            <strong>Data Management</strong><br />
+                            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#quickAddModal" style="margin-top: 5px;">
+                                <i class="glyphicon glyphicon-plus"></i> + New Contract (Quick)
+                            </button>
+                            @Html.ActionLink("+ New Contract (Full Form)", "CreateContract", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-default btn-sm", style = "margin-top: 5px;" })
+                            @Html.ActionLink("Project Dates", "ProjectDates", null, new { @class = "btn btn-default btn-sm", style = "margin-top: 5px;" })
+                            <button type="button" class="btn btn-warning btn-sm" id="btnGenerateInternal" style="margin-top: 5px;">
+                                Generate Internal Buckets
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Dashboard Charts Section *@
+            @{
+                var utilizationData = ViewBag.UtilizationData as List<sp_GetMonthlyUtilizationByDepartment_Result>;
+                // var billingClassData = ViewBag.BillingClassData as List<sp_GetMonthlyUtilizationByBillingClass_Result>;
+                var departments = ViewBag.Departments as List<Department>;
+                var selectedDeptId = ViewBag.SelectedDepartmentId as int?;
+                var actualByDeptData = ViewBag.ActualByDeptData as List<sp_GetMonthlyUtilizationByDepartment_Result>;
+                var forecastByDeptData = ViewBag.ForecastByDeptData as List<sp_GetMonthlyUtilizationByDepartment_Result>;
+            }
+
+            @* Monthly Utilization (Combined) chart - commented out, replaced by per-department Actual vs Forecast below
+            @if (utilizationData != null && utilizationData.Any())
+            {
+                <div class="row" style="margin-bottom: 20px;">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h4 class="panel-title" style="line-height: 34px;">
+                                            <i class="glyphicon glyphicon-dashboard"></i> Utilization Dashboard
+                                        </h4>
+                                    </div>
+                                    <div class="col-md-6 text-right">
+                                        @if (departments != null && departments.Any())
+                                        {
+                                            <select id="dashboardDeptSelector" class="form-control" style="width: 200px; display: inline-block;">
+                                                @foreach (var dept in departments)
+                                                {
+                                                    <option value="@dept.Id" @(dept.Id == selectedDeptId ? "selected" : "")>@dept.Title</option>
+                                                }
+                                            </select>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <h5><i class="glyphicon glyphicon-stats"></i> Monthly Utilization (Combined) <small class="text-muted">(click to view details)</small></h5>
+                                        <div style="height: 250px; cursor: pointer;" id="utilizationChartContainer">
+                                            <canvas id="dashboardUtilizationChart"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5><i class="glyphicon glyphicon-list-alt"></i> By Billing Class <small class="text-muted">(click to view details)</small></h5>
+                                        <div style="height: 250px; cursor: pointer;" id="billingClassChartContainer">
+                                            <canvas id="dashboardBillingClassChart"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row" style="margin-top: 10px;">
+                                    <div class="col-md-12 text-center">
+                                        <span class="label" style="background-color: #1a5276; color: #fff;">Retainer</span>
+                                        <span class="label" style="background-color: #5dade2; color: #fff;">Non-Retainer</span>
+                                        <span class="label" style="background-color: #e67e22; color: #fff;">Internal Non-Billable</span>
+                                        <span class="label" style="background-color: #d3d3d3; color: #333;">Remaining to 80%</span>
+                                        <span class="label label-danger">Overbooked</span>
+                                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                                        <span style="color: #d9534f; font-weight: bold;">--- 80% Goal</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            *@
+
+            @* ============================================================
+               Per-Department Actual vs Forecast Charts
+               ============================================================ *@
+            @if (actualByDeptData != null || forecastByDeptData != null)
+            {
+                <div class="row" style="margin-bottom: 20px;">
+                    <div class="col-md-12">
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title" style="line-height: 34px;">
+                                    <i class="glyphicon glyphicon-stats"></i> Utilization by Department &mdash; Actual vs Forecast
+                                </h4>
+                            </div>
+                            <div class="panel-body">
+                                <!-- Legend -->
+                                <div class="row" style="margin-bottom: 15px;">
+                                    <div class="col-md-12 text-center">
+                                        <span class="label" style="background-color: #1a5276; color: #fff;">Actual Retainer</span>
+                                        <span class="label" style="background-color: #5dade2; color: #fff;">Actual Non-Retainer</span>
+                                        <span class="label" style="background-color: rgba(46, 134, 193, 0.6); color: #fff;">Forecast Retainer</span>
+                                        <span class="label" style="background-color: rgba(133, 193, 233, 0.6); color: #333;">Forecast Non-Retainer</span>
+                                        &nbsp;&nbsp;|&nbsp;&nbsp;
+                                        <span style="color: #d9534f; font-weight: bold;">--- 80% Goal</span>
+                                    </div>
+                                </div>
+
+                                <!-- All Departments row -->
+                                <div class="row" style="margin-bottom: 15px; border-bottom: 2px solid #ddd; padding-bottom: 15px;">
+                                    <div class="col-md-12"><h5><strong>All Departments</strong></h5></div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-center text-muted">Actual</h6>
+                                        <div style="height: 200px; cursor: pointer;">
+                                            <canvas id="chart-all-actual"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-center text-muted">Total (Actual + Forecast)</h6>
+                                        <div style="height: 200px; cursor: pointer;">
+                                            <canvas id="chart-all-total"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Per-department rows (generated dynamically by JS) -->
+                                <div id="deptChartRows"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Bulk Action Bar (hidden until checkboxes selected) -->
+            <div id="bulkActionBar" class="alert alert-info" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 1050; margin: 0; border-radius: 0; text-align: center; box-shadow: 0 -2px 8px rgba(0,0,0,0.15);">
+                <span id="selectedCount">0</span> contract(s) selected &nbsp;
+                <button type="button" class="btn btn-primary btn-sm" id="btnBulkApply">
+                    <i class="glyphicon glyphicon-plus"></i> Apply Billing Classes
+                </button>
+                <button type="button" class="btn btn-default btn-sm" id="btnClearSelection">Clear</button>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;">
+                                <input type="checkbox" id="selectAll" title="Select all" />
+                            </th>
+                            <th>Contract Name</th>
+                            <th>Client</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Type</th>
+                            <th>Details</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="checkbox" class="contract-checkbox" value="@row.Id" data-external="@row.IsExternal.ToString().ToLower()" />
+                                </td>
+                                <td>@row.ContractName</td>
+                                <td>@row.ClientName</td>
+                                <td>@row.StartDate.ToString("MM/dd/yyyy")</td>
+                                <td>@row.EndDate.ToString("MM/dd/yyyy")</td>
+                                <td>
+                                    @if (row.IsExternal)
+                                    {
+                                        <span class="label label-warning">External</span>
+                                    }
+                                    else if (row.IsRetainer)
+                                    {
+                                        <span class="label label-info">Retainer</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="label label-default">Project</span>
+                                    }
+                                    @if (!row.IncludeInCharts)
+                                    {
+                                        <span class="label" style="background-color: #999; color: #fff; margin-left: 4px;" title="This contract is excluded from utilization charts">Hidden</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (row.BillingClassCount > 0)
+                                    {
+                                        <span style="background-color: #e8e8e8; color: #333; padding: 2px 8px; border-radius: 10px; cursor: default;"
+                                              title="@row.BillingClassSummary">@row.BillingClassCount billing classes</span>
+                                        <span class="text-muted" style="margin-left: 4px;">(@row.TotalBudgetedHours.ToString("N1") hrs)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="label label-danger">No Hours</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (row.IsExternal)
+                                    {
+                                        <span class="text-muted"><i class="glyphicon glyphicon-link"></i> External</span>
+                                    }
+                                    else
+                                    {
+                                        @Html.ActionLink("Edit", "EditContract", new { id = row.Id }, new { @class = "btn btn-sm btn-default" })
+                                        <button type="button" class="btn btn-sm btn-danger btn-delete-contract" data-contract-id="@row.Id" data-contract-name="@row.ContractName" style="margin-left: 4px;">
+                                            Delete
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <strong>No contracts found.</strong> Add your first contract to this forecast period.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Apply Billing Classes Modal -->
+<div class="modal fade" id="bulkApplyModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Apply Billing Class to Selected Contracts</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="bulkBillingClass">Billing Class</label>
+                    @if (billingClasses != null)
+                    {
+                        @Html.DropDownList("bulkBillingClass", billingClasses, "-- Select Billing Class --", new { @class = "form-control" })
+                    }
+                </div>
+                <div class="form-group">
+                    <label for="bulkSubclass">Subclass (optional)</label>
+                    <input type="text" id="bulkSubclass" class="form-control" placeholder="e.g. Senior, Junior..." />
+                </div>
+                <div class="form-group">
+                    <label for="bulkHours">Budgeted Hours</label>
+                    <input type="number" id="bulkHours" class="form-control" min="0" step="0.5" placeholder="0" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnConfirmBulkApply">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hidden form for Generate Internal Buckets -->
+@using (Html.BeginForm("GenerateInternalBuckets", "Forecasting", FormMethod.Post, new { id = "generateInternalForm" }))
+{
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="periodId" value="@period.ForecastPeriodID" />
+}
+
+<!-- Quick Add Contract Modal -->
+<div class="modal fade" id="quickAddModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                <h4 class="modal-title"><i class="glyphicon glyphicon-plus"></i> Quick Add Contract</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Contract Name <span class="text-danger">*</span></label>
+                            <input type="text" id="qaContractName" class="form-control" placeholder="e.g. Client X - Website Redesign" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Client Name <span class="text-danger">*</span></label>
+                            <input type="text" id="qaClientName" class="form-control" placeholder="e.g. Acme Corp" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Start Date <span class="text-danger">*</span></label>
+                            <input type="date" id="qaStartDate" class="form-control" value="@period.StartDate.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>End Date <span class="text-danger">*</span></label>
+                            <input type="date" id="qaEndDate" class="form-control" value="@period.EndDate.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="qaIsRetainer" class="form-control">
+                                <option value="false">Project</option>
+                                <option value="true">Retainer</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="qaIsActual" class="form-control">
+                                <option value="false">Forecast</option>
+                                <option value="true">Actual</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="qaIncludeInCharts" checked="checked" />
+                                <strong>Include in Charts</strong>
+                                <span class="text-muted">- Uncheck to create as draft</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <h5>Billing Class Hours <small class="text-muted">(optional - can add later)</small></h5>
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="form-group">
+                            <label>Billing Class</label>
+                            @Html.DropDownList("qaBillingClass", billingClasses, "-- Select --", new { @class = "form-control", id = "qaBillingClass" })
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Hours</label>
+                            <input type="number" id="qaHours" class="form-control" min="0" step="0.5" placeholder="0" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="button" class="btn btn-info btn-block" onclick="addQuickBillingClass()">
+                                <i class="glyphicon glyphicon-plus"></i> Add Hours
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <table class="table table-condensed" id="qaBillingClassTable" style="display: none;">
+                    <thead><tr><th>Billing Class</th><th>Hours</th><th></th></tr></thead>
+                    <tbody id="qaBillingClassList"></tbody>
+                    <tfoot><tr><th>Total</th><th id="qaTotalHours">0</th><th></th></tr></tfoot>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="submitQuickAdd()">
+                    <i class="glyphicon glyphicon-ok"></i> Create Contract
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script>
+    // Tooltip helper (outside Razor blocks to avoid parser issues with for/if keywords)
+    function utilizationTooltipAfterBody(tooltipItems) {
+        var chart = tooltipItems[0].chart;
+        var idx = tooltipItems[0].dataIndex;
+        var total = 0;
+        chart.data.datasets.forEach(function(ds, dsIdx) {
+            if (!chart.getDatasetMeta(dsIdx).hidden) {
+                total += ds.data[idx] || 0;
+            }
+        });
+        var lines = ['Total: ' + total.toFixed(1) + '%'];
+        if (total > 80) lines.push('Overbooked: ' + (total - 80).toFixed(1) + '%');
+        return lines;
+    }
+
+    // Dynamic overlay plugin factory (outside Razor blocks to avoid parser issues)
+    function createOverlayPlugin(pluginId) {
+        return {
+            id: pluginId,
+            afterDatasetsDraw: function(chart) {
+                var ctx = chart.ctx;
+                var yScale = chart.scales.y;
+                var numBars = chart.data.labels.length;
+                var idx, total, bar, meta, barWidth, barX, y80, yTotal, pct;
+
+                for (idx = 0; idx < numBars; idx++) {
+                    total = 0;
+                    chart.data.datasets.forEach(function(ds, dsIdx) {
+                        if (!chart.getDatasetMeta(dsIdx).hidden) {
+                            total += ds.data[idx] || 0;
+                        }
+                    });
+
+                    bar = null;
+                    for (var j = 0; j < chart.data.datasets.length; j++) {
+                        meta = chart.getDatasetMeta(j);
+                        if (!meta.hidden && meta.data[idx]) {
+                            bar = meta.data[idx];
+                            break;
+                        }
+                    }
+                    if (!bar) continue;
+
+                    barWidth = bar.width;
+                    barX = bar.x - barWidth / 2;
+                    y80 = yScale.getPixelForValue(80);
+
+                    if (total > 80) {
+                        yTotal = yScale.getPixelForValue(total);
+                        ctx.save();
+                        ctx.fillStyle = '#d9534f';
+                        ctx.fillRect(barX, yTotal, barWidth, y80 - yTotal);
+                        ctx.restore();
+                    } else if (total > 0 && total < 80) {
+                        yTotal = yScale.getPixelForValue(total);
+                        ctx.save();
+                        ctx.fillStyle = 'rgba(211, 211, 211, 0.5)';
+                        ctx.fillRect(barX, y80, barWidth, yTotal - y80);
+                        ctx.restore();
+                    }
+                }
+            }
+        };
+    }
+
+    // Build the contracts page utilization chart (outside Razor blocks to avoid parser issues)
+    function buildContractsUtilChart(rawData, navUrl, periodId, selectedDeptId) {
+        var utilizationChartData = [];
+        var monthGroups = {};
+        rawData.forEach(function(d) {
+            if (!monthGroups[d.month]) {
+                monthGroups[d.month] = { count: 0, retainer: 0, nonRetainer: 0, internalNonBillable: 0, remaining: 0, overbooked: 0 };
+            }
+            monthGroups[d.month].count++;
+            monthGroups[d.month].retainer += d.retainer;
+            monthGroups[d.month].nonRetainer += d.nonRetainer;
+            monthGroups[d.month].internalNonBillable += d.internalNonBillable;
+            monthGroups[d.month].remaining += d.remaining;
+            monthGroups[d.month].overbooked += d.overbooked;
+        });
+        Object.keys(monthGroups).forEach(function(month) {
+            var g = monthGroups[month];
+            utilizationChartData.push({
+                month: month,
+                retainer: Math.round((g.retainer / g.count) * 10) / 10,
+                nonRetainer: Math.round((g.nonRetainer / g.count) * 10) / 10,
+                internalNonBillable: Math.round((g.internalNonBillable / g.count) * 10) / 10,
+                remaining: Math.round((g.remaining / g.count) * 10) / 10,
+                overbooked: Math.round((g.overbooked / g.count) * 10) / 10
+            });
+        });
+
+        var months = utilizationChartData.map(function(d) { return d.month; });
+        var retainerData = utilizationChartData.map(function(d) { return d.retainer; });
+        var nonRetainerData = utilizationChartData.map(function(d) { return d.nonRetainer; });
+        var internalNBData = utilizationChartData.map(function(d) { return d.internalNonBillable; });
+
+        var utilizationMaxPerMonth = utilizationChartData.map(function(d) { return d.retainer + d.nonRetainer + d.internalNonBillable; });
+        var sharedYMax = Math.ceil((Math.max.apply(null, utilizationMaxPerMonth.concat([80])) + 10) / 10) * 10;
+
+        var ctx1 = document.getElementById('dashboardUtilizationChart').getContext('2d');
+        var chart = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    { label: 'Retainer', data: retainerData, backgroundColor: '#1a5276', stack: 'stack0' },
+                    { label: 'Non-Retainer', data: nonRetainerData, backgroundColor: '#5dade2', stack: 'stack0' },
+                    { label: 'Internal Non-Billable', data: internalNBData, backgroundColor: '#e67e22', stack: 'stack0' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                onClick: function(event, elements) {
+                    window.location.href = navUrl + '?periodId=' + periodId + '&departmentId=' + selectedDeptId;
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%'; },
+                            afterBody: utilizationTooltipAfterBody
+                        }
+                    },
+                    annotation: {
+                        annotations: {
+                            goalLine: { type: 'line', yMin: 80, yMax: 80, borderColor: '#d9534f', borderWidth: 2, borderDash: [5, 5] }
+                        }
+                    }
+                },
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true, max: sharedYMax, ticks: { callback: function(value) { return value + '%'; } } }
+                }
+            },
+            plugins: [createOverlayPlugin('contractsOverlay')]
+        });
+
+        return { chart: chart, sharedYMax: sharedYMax };
+    }
+
+    // buildContractsBCChart - commented out, replaced by per-department Actual vs Forecast charts
+    /*
+    function buildContractsBCChart(rawData, navUrl, periodId, utilResult) {
+        var bcMonths = [];
+        var seenMonths = {};
+        rawData.forEach(function(d) {
+            if (!seenMonths[d.month]) { seenMonths[d.month] = true; bcMonths.push(d.month); }
+        });
+
+        var billingClassesList = [];
+        var seenBC = {};
+        rawData.forEach(function(d) {
+            if (d.billingClass && d.billingClass !== 'Unbooked' && !seenBC[d.billingClass]) {
+                seenBC[d.billingClass] = true;
+                billingClassesList.push(d.billingClass);
+            }
+        });
+
+        var colorPalette = ['#337ab7', '#5cb85c', '#f0ad4e', '#5bc0de', '#d9534f', '#9467bd', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
+
+        var bcDatasets = billingClassesList.map(function(bc, index) {
+            var data = bcMonths.map(function(month) {
+                for (var i = 0; i < rawData.length; i++) {
+                    if (rawData[i].month === month && rawData[i].billingClass === bc) return rawData[i].percentage;
+                }
+                return 0;
+            });
+            return { label: bc, data: data, backgroundColor: colorPalette[index % colorPalette.length], stack: 'stack0' };
+        });
+
+        var bcMaxPerMonth = bcMonths.map(function(month, i) {
+            return bcDatasets.reduce(function(sum, ds) { return sum + ds.data[i]; }, 0);
+        });
+        var bcMax = Math.ceil((Math.max.apply(null, bcMaxPerMonth) + 10) / 10) * 10;
+
+        var sharedYMax = bcMax;
+        if (utilResult) {
+            sharedYMax = Math.max(utilResult.sharedYMax, bcMax);
+            utilResult.chart.options.scales.y.max = sharedYMax;
+            utilResult.chart.update();
+        }
+
+        var ctx2 = document.getElementById('dashboardBillingClassChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'bar',
+            data: { labels: bcMonths, datasets: bcDatasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                onClick: function(event, elements) {
+                    window.location.href = navUrl + '?periodId=' + periodId;
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.dataset.label + ': ' + context.raw.toFixed(1) + '%'; }
+                        }
+                    }
+                },
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true, max: sharedYMax, ticks: { callback: function(value) { return value + '%'; } } }
+                }
+            }
+        });
+    }
+    */
+
+    // Build a mini department chart for Actual vs Forecast breakdown
+    function buildMiniDeptChart(canvasId, chartData, pluginSuffix, navUrl, periodId, deptId, contractTypeFilter) {
+        var canvas = document.getElementById(canvasId);
+        if (!canvas || chartData.length === 0) return null;
+
+        var months = chartData.map(function(d) { return d.month; });
+        var retainerData = chartData.map(function(d) { return d.retainer; });
+        var nonRetainerData = chartData.map(function(d) { return d.nonRetainer; });
+        var internalNBData = chartData.map(function(d) { return d.internalNonBillable; });
+
+        var maxPerMonth = chartData.map(function(d) { return d.retainer + d.nonRetainer + d.internalNonBillable; });
+        var yMax = Math.ceil((Math.max.apply(null, maxPerMonth.concat([80])) + 10) / 10) * 10;
+
+        return new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    { label: 'Retainer', data: retainerData, backgroundColor: '#1a5276', stack: 'stack0' },
+                    { label: 'Non-Retainer', data: nonRetainerData, backgroundColor: '#5dade2', stack: 'stack0' },
+                    { label: 'Internal Non-Billable', data: internalNBData, backgroundColor: '#e67e22', stack: 'stack0' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                onClick: function() {
+                    var url = navUrl + '?periodId=' + periodId;
+                    if (deptId !== 'all') url += '&departmentId=' + deptId;
+                    url += '&contractTypeFilter=' + contractTypeFilter;
+                    window.location.href = url;
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%'; },
+                            afterBody: utilizationTooltipAfterBody
+                        }
+                    },
+                    annotation: {
+                        annotations: {
+                            goalLine: { type: 'line', yMin: 80, yMax: 80, borderColor: '#d9534f', borderWidth: 2, borderDash: [5, 5] }
+                        }
+                    }
+                },
+                scales: {
+                    x: { stacked: true, ticks: { font: { size: 10 } } },
+                    y: { stacked: true, beginAtZero: true, max: yMax, ticks: { callback: function(v) { return v + '%'; }, font: { size: 10 } } }
+                }
+            },
+            plugins: [createOverlayPlugin('overlay_' + pluginSuffix)]
+        });
+    }
+
+    // Build a Total Utilization chart showing Actual + Forecast visually split
+    function buildTotalUtilChart(canvasId, actualData, forecastData, pluginSuffix, navUrl, periodId, deptId) {
+        var canvas = document.getElementById(canvasId);
+        if (!canvas) return null;
+        if (actualData.length === 0 && forecastData.length === 0) return null;
+
+        // Merge months from both datasets
+        var monthSet = {};
+        actualData.forEach(function(d) { monthSet[d.month] = true; });
+        forecastData.forEach(function(d) { monthSet[d.month] = true; });
+        var months = Object.keys(monthSet);
+
+        // Build lookup maps
+        var actMap = {};
+        actualData.forEach(function(d) { actMap[d.month] = d; });
+        var fcMap = {};
+        forecastData.forEach(function(d) { fcMap[d.month] = d; });
+
+        // Create data arrays for each dataset
+        var actRetainer = months.map(function(m) { return actMap[m] ? actMap[m].retainer : 0; });
+        var actNonRetainer = months.map(function(m) { return actMap[m] ? actMap[m].nonRetainer : 0; });
+        var fcRetainer = months.map(function(m) { return fcMap[m] ? fcMap[m].retainer : 0; });
+        var fcNonRetainer = months.map(function(m) { return fcMap[m] ? fcMap[m].nonRetainer : 0; });
+
+        // Calculate yMax from combined totals
+        var maxPerMonth = months.map(function(m, i) {
+            return actRetainer[i] + actNonRetainer[i] + fcRetainer[i] + fcNonRetainer[i];
+        });
+        var yMax = Math.ceil((Math.max.apply(null, maxPerMonth.concat([80])) + 10) / 10) * 10;
+
+        return new Chart(canvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [
+                    { label: 'Actual Retainer', data: actRetainer, backgroundColor: '#1a5276', stack: 'stack0' },
+                    { label: 'Actual Non-Retainer', data: actNonRetainer, backgroundColor: '#5dade2', stack: 'stack0' },
+                    { label: 'Forecast Retainer', data: fcRetainer, backgroundColor: 'rgba(46, 134, 193, 0.45)', stack: 'stack0' },
+                    { label: 'Forecast Non-Retainer', data: fcNonRetainer, backgroundColor: 'rgba(133, 193, 233, 0.45)', stack: 'stack0' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                onClick: function() {
+                    var url = navUrl + '?periodId=' + periodId;
+                    if (deptId !== 'all') url += '&departmentId=' + deptId;
+                    url += '&contractTypeFilter=0';
+                    window.location.href = url;
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%'; },
+                            afterBody: utilizationTooltipAfterBody
+                        }
+                    },
+                    annotation: {
+                        annotations: {
+                            goalLine: { type: 'line', yMin: 80, yMax: 80, borderColor: '#d9534f', borderWidth: 2, borderDash: [5, 5] }
+                        }
+                    }
+                },
+                scales: {
+                    x: { stacked: true, ticks: { font: { size: 10 } } },
+                    y: { stacked: true, beginAtZero: true, max: yMax, ticks: { callback: function(v) { return v + '%'; }, font: { size: 10 } } }
+                }
+            },
+            plugins: [createOverlayPlugin('overlay_' + pluginSuffix)]
+        });
+    }
+
+        $(document).ready(function () {
+            var periodId = @period.ForecastPeriodID;
+            var selectedDeptId = @(selectedDeptId ?? 0);
+
+            // ============================================================
+            // Generate Internal Buckets button
+            // ============================================================
+            $('#btnGenerateInternal').click(function () {
+                if (confirm('Generate internal non-billable contracts for each month in this period?\n\nExisting months will be skipped.')) {
+                    $('#generateInternalForm').submit();
+                }
+            });
+
+            // ============================================================
+            // Checkbox & Bulk Action Bar logic
+            // ============================================================
+            function updateBulkBar() {
+                var checked = $('.contract-checkbox:checked').length;
+                if (checked > 0) {
+                    $('#bulkActionBar').slideDown(200);
+                    $('#selectedCount').text(checked);
+                } else {
+                    $('#bulkActionBar').slideUp(200);
+                }
+            }
+
+            $('#selectAll').change(function () {
+                $('.contract-checkbox').prop('checked', this.checked);
+                updateBulkBar();
+            });
+
+            $(document).on('change', '.contract-checkbox', function () {
+                var total = $('.contract-checkbox').length;
+                var checked = $('.contract-checkbox:checked').length;
+                $('#selectAll').prop('checked', total === checked);
+                updateBulkBar();
+            });
+
+            $('#btnClearSelection').click(function () {
+                $('.contract-checkbox, #selectAll').prop('checked', false);
+                updateBulkBar();
+            });
+
+            $('#btnBulkApply').click(function () {
+                $('#bulkApplyModal').modal('show');
+            });
+
+            $('#btnConfirmBulkApply').click(function () {
+                var contractIds = [];
+                var externalProjectIds = [];
+                $('.contract-checkbox:checked').each(function () {
+                    var id = parseInt(this.value);
+                    if ($(this).data('external') === true) {
+                        externalProjectIds.push(id);
+                    } else {
+                        contractIds.push(id);
+                    }
+                });
+
+                var billingClassId = $('#bulkBillingClass').val();
+                var subclass = $('#bulkSubclass').val();
+                var hours = parseFloat($('#bulkHours').val()) || 0;
+
+                if (!billingClassId) {
+                    alert('Please select a billing class.');
+                    return;
+                }
+                if (hours <= 0) {
+                    alert('Please enter budgeted hours greater than 0.');
+                    return;
+                }
+
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("BulkAddDetails", "Forecasting")',
+                    type: 'POST',
+                    data: {
+                        contractIds: contractIds,
+                        externalProjectIds: externalProjectIds,
+                        billingClassId: billingClassId,
+                        billingSubclass: subclass,
+                        budgetedHours: hours,
+                        __RequestVerificationToken: token
+                    },
+                    traditional: true,
+                    success: function (result) {
+                        if (result.success) {
+                            alert(result.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + result.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An unexpected error occurred.');
+                    }
+                });
+            });
+
+            // ============================================================
+            // Delete Contract
+            // ============================================================
+            $(document).on('click', '.btn-delete-contract', function () {
+                var contractId = $(this).data('contract-id');
+                var contractName = $(this).data('contract-name');
+                var row = $(this).closest('tr');
+
+                if (!confirm('Are you sure you want to delete "' + contractName + '"?\n\nThis will remove it from all charts and reports.')) {
+                    return;
+                }
+
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                $.ajax({
+                    url: '@Url.Action("DeleteContract", "Forecasting")',
+                    type: 'POST',
+                    data: {
+                        contractId: contractId,
+                        __RequestVerificationToken: token
+                    },
+                    success: function (result) {
+                        if (result.success) {
+                            row.fadeOut(300, function () { $(this).remove(); });
+                        } else {
+                            alert('Error: ' + result.message);
+                        }
+                    },
+                    error: function () {
+                        alert('An unexpected error occurred.');
+                    }
+                });
+            });
+
+            // ============================================================
+            // Department selector change - reload page with new department
+            // ============================================================
+            $('#dashboardDeptSelector').change(function () {
+                var deptId = $(this).val();
+                window.location.href = '@Url.Action("Contracts", "Forecasting")?periodId=' + periodId + '&departmentId=' + deptId;
+            });
+
+            // ============================================================
+            // Dashboard Charts - Combined chart commented out
+            // ============================================================
+            // var utilResult = null;
+            // buildContractsUtilChart and buildContractsBCChart invocations commented out
+            // (combined chart panel is hidden, replaced by per-department Actual vs Forecast below)
+
+            // ============================================================
+            // Per-Department Actual vs Forecast Charts
+            // ============================================================
+            var utilDashUrl = '@Url.Action("UtilizationDashboard", "Forecasting")';
+
+            @{
+                if (actualByDeptData != null && actualByDeptData.Any())
+                {
+                    <text>
+                    var actualRaw = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(actualByDeptData.Select(m => new {
+                        month = m.MonthStart.HasValue ? m.MonthStart.Value.ToString("MMM yyyy") : m.MonthName,
+                        deptId = m.DepartmentID,
+                        deptName = m.DepartmentName,
+                        retainer = Math.Round(m.RetainerPercentage ?? 0, 1),
+                        nonRetainer = Math.Round(m.NonRetainerPercentage ?? 0, 1),
+                        internalNonBillable = Math.Round(m.InternalNonBillablePercentage ?? 0, 1)
+                    })));
+                    </text>
+                }
+                else
+                {
+                    <text>var actualRaw = [];</text>
+                }
+
+                if (forecastByDeptData != null && forecastByDeptData.Any())
+                {
+                    <text>
+                    var forecastRaw = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(forecastByDeptData.Select(m => new {
+                        month = m.MonthStart.HasValue ? m.MonthStart.Value.ToString("MMM yyyy") : m.MonthName,
+                        deptId = m.DepartmentID,
+                        deptName = m.DepartmentName,
+                        retainer = Math.Round(m.RetainerPercentage ?? 0, 1),
+                        nonRetainer = Math.Round(m.NonRetainerPercentage ?? 0, 1),
+                        internalNonBillable = Math.Round(m.InternalNonBillablePercentage ?? 0, 1)
+                    })));
+                    </text>
+                }
+                else
+                {
+                    <text>var forecastRaw = [];</text>
+                }
+            }
+
+            // Exclude Internal Marketing from charts
+            actualRaw = actualRaw.filter(function(d) { return d.deptName !== 'Internal Marketing'; });
+            forecastRaw = forecastRaw.filter(function(d) { return d.deptName !== 'Internal Marketing'; });
+
+            // Helper: group data by department
+            function groupByDept(data) {
+                var groups = {};
+                data.forEach(function(d) {
+                    if (!groups[d.deptId]) groups[d.deptId] = { name: d.deptName, rows: [] };
+                    groups[d.deptId].rows.push(d);
+                });
+                return groups;
+            }
+
+            // Helper: aggregate across departments for "All Departments" row
+            function aggregateAllDepts(data) {
+                var monthGroups = {};
+                data.forEach(function(d) {
+                    if (!monthGroups[d.month]) {
+                        monthGroups[d.month] = { count: 0, retainer: 0, nonRetainer: 0, internalNonBillable: 0 };
+                    }
+                    monthGroups[d.month].count++;
+                    monthGroups[d.month].retainer += d.retainer;
+                    monthGroups[d.month].nonRetainer += d.nonRetainer;
+                    monthGroups[d.month].internalNonBillable += d.internalNonBillable;
+                });
+                return Object.keys(monthGroups).map(function(month) {
+                    var g = monthGroups[month];
+                    return {
+                        month: month,
+                        retainer: Math.round((g.retainer / g.count) * 10) / 10,
+                        nonRetainer: Math.round((g.nonRetainer / g.count) * 10) / 10,
+                        internalNonBillable: Math.round((g.internalNonBillable / g.count) * 10) / 10
+                    };
+                });
+            }
+
+            // Build "All Departments" row charts
+            if (actualRaw.length > 0 || forecastRaw.length > 0) {
+                var allActual = aggregateAllDepts(actualRaw);
+                var allForecast = aggregateAllDepts(forecastRaw);
+                buildMiniDeptChart('chart-all-actual', allActual, 'all_actual', utilDashUrl, periodId, 'all', 1);
+                buildTotalUtilChart('chart-all-total', allActual, allForecast, 'all_total', utilDashUrl, periodId, 'all');
+
+                // Build per-department rows dynamically
+                var actualByDept = groupByDept(actualRaw);
+                var forecastByDept = groupByDept(forecastRaw);
+
+                // Collect all department IDs from both sets
+                var allDeptIds = {};
+                Object.keys(actualByDept).forEach(function(id) { allDeptIds[id] = actualByDept[id].name; });
+                Object.keys(forecastByDept).forEach(function(id) { allDeptIds[id] = forecastByDept[id].name; });
+
+                // Sort departments by name
+                var sortedDeptIds = Object.keys(allDeptIds).sort(function(a, b) {
+                    return allDeptIds[a].localeCompare(allDeptIds[b]);
+                });
+
+                // Create HTML rows and charts for each department
+                var container = document.getElementById('deptChartRows');
+                if (container) {
+                    sortedDeptIds.forEach(function(deptId) {
+                        var deptName = allDeptIds[deptId];
+                        var rowDiv = document.createElement('div');
+                        rowDiv.className = 'row';
+                        rowDiv.style.cssText = 'margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px;';
+                        rowDiv.innerHTML =
+                            '<div class="col-md-12"><h5><strong>' + deptName + '</strong></h5></div>' +
+                            '<div class="col-md-6">' +
+                                '<h6 class="text-center text-muted">Actual</h6>' +
+                                '<div style="height: 200px; cursor: pointer;"><canvas id="chart-' + deptId + '-actual"></canvas></div>' +
+                            '</div>' +
+                            '<div class="col-md-6">' +
+                                '<h6 class="text-center text-muted">Total (Actual + Forecast)</h6>' +
+                                '<div style="height: 200px; cursor: pointer;"><canvas id="chart-' + deptId + '-total"></canvas></div>' +
+                            '</div>';
+                        container.appendChild(rowDiv);
+
+                        var actData = actualByDept[deptId] ? actualByDept[deptId].rows : [];
+                        var fcData = forecastByDept[deptId] ? forecastByDept[deptId].rows : [];
+
+                        buildMiniDeptChart('chart-' + deptId + '-actual', actData, deptId + '_actual', utilDashUrl, periodId, deptId, 1);
+                        buildTotalUtilChart('chart-' + deptId + '-total', actData, fcData, deptId + '_total', utilDashUrl, periodId, deptId);
+                    });
+                }
+            }
+        });
+
+        // ============================================================
+        // Quick Add Contract
+        // ============================================================
+        var qaBillingClasses = [];
+
+        function addQuickBillingClass() {
+            var bcId = $('#qaBillingClass').val();
+            var bcName = $('#qaBillingClass option:selected').text();
+            var hours = parseFloat($('#qaHours').val()) || 0;
+
+            if (!bcId || hours <= 0) {
+                alert('Please select a billing class and enter hours.');
+                return;
+            }
+
+            // Check for duplicate
+            if (qaBillingClasses.some(function(bc) { return bc.id == bcId; })) {
+                alert('This billing class is already added.');
+                return;
+            }
+
+            qaBillingClasses.push({ id: bcId, name: bcName, hours: hours });
+            renderQaBillingClasses();
+
+            // Reset inputs
+            $('#qaBillingClass').val('');
+            $('#qaHours').val('');
+        }
+
+        function removeQaBillingClass(index) {
+            qaBillingClasses.splice(index, 1);
+            renderQaBillingClasses();
+        }
+
+        function renderQaBillingClasses() {
+            var html = '';
+            var total = 0;
+            qaBillingClasses.forEach(function(bc, i) {
+                html += '<tr><td>' + bc.name + '</td><td>' + bc.hours + '</td>' +
+                    '<td><button class="btn btn-xs btn-danger" onclick="removeQaBillingClass(' + i + ')">X</button></td></tr>';
+                total += bc.hours;
+            });
+            $('#qaBillingClassList').html(html);
+            $('#qaTotalHours').text(total);
+            $('#qaBillingClassTable').toggle(qaBillingClasses.length > 0);
+        }
+
+        function submitQuickAdd() {
+            var contractName = $('#qaContractName').val().trim();
+            var clientName = $('#qaClientName').val().trim();
+            var startDate = $('#qaStartDate').val();
+            var endDate = $('#qaEndDate').val();
+
+            if (!contractName || !clientName || !startDate || !endDate) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            var data = {
+                periodId: @period.ForecastPeriodID,
+                contractName: contractName,
+                clientName: clientName,
+                startDate: startDate,
+                endDate: endDate,
+                isRetainer: $('#qaIsRetainer').val() === 'true',
+                isActual: $('#qaIsActual').val() === 'true',
+                includeInCharts: $('#qaIncludeInCharts').is(':checked'),
+                billingClasses: qaBillingClasses
+            };
+
+            $.ajax({
+                url: '@Url.Action("QuickAddContract", "Forecasting")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.success) {
+                        alert('Contract created: ' + response.contractName);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error creating contract');
+                }
+            });
+        }
+
+        // Reset modal on close
+        $('#quickAddModal').on('hidden.bs.modal', function() {
+            $('#qaContractName, #qaClientName, #qaHours').val('');
+            $('#qaBillingClass').val('');
+            $('#qaIncludeInCharts').prop('checked', true);
+            qaBillingClasses = [];
+            renderQaBillingClasses();
+        });
+    </script>
+}

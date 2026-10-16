@@ -1,0 +1,56 @@
+﻿@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_ClientSpend
+
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "tc01")
+
+<div class="field-binder-row-flex chart-icon-wrapper">
+    <!--<i class="fa-solid fa-users"></i>-->
+    <i class="fa-solid fa-circle-info"></i>
+</div>
+
+<div class="field-binder-col-flex card-user-list-wrapper">
+    <h3>(Debug) User List</h3>
+    <ul class="tc01-user-list"></ul>
+</div>
+
+<div class="informational-block">
+    <p>This view highlights the top clients within a selected date range by analyzing jobs associated with each client and calculating key metrics.</p>
+    <p>The data is gathered by first filtering all jobs created between the specified start and end dates. For each job, we retrieve:</p>
+    <ul>
+        <li><strong>Internal Cost</strong>: The internal cost incurred for the job, calculated through the <code>InternalJobCost</code> function.</li>
+        <li><strong>Charged Price</strong>: The amount charged to the client for the job, obtained via the <code>ChargedJobPrice</code> function.</li>
+        <li><strong>Seconds Worked</strong>: The total time spent on the job in seconds, retrieved using the <code>SecondsOnJob</code> function.</li>
+    </ul>
+    <p>These metrics are then used to calculate two additional values for each job:</p>
+    <ul>
+        <li><strong>Differential</strong>: The difference between the <strong>Charged Price</strong> and <strong>Internal Cost</strong>, representing the job’s profitability.</li>
+        <li><strong>Hours Worked</strong>: The total time worked, converted from seconds to hours for easier interpretation.</li>
+    </ul>
+    <p>Finally, jobs are grouped by client, allowing the chart to display each client's job performance metrics within the date range, helping identify high-value clients and assess job profitability.</p>
+</div>
+
+<canvas class="top-clients-chart metric-chart d-none" id="tc01"></canvas>
+
+<table class="table table-striped table-bordered fs-4" id="top_clients_table">
+    <thead>
+        <tr>
+            <th>Client</th>
+            <th>Cost</th>
+            <th>Charged Price</th>
+            <th>Differential</th>
+            <th>Seconds Worked</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var x in Model.ClientJobMetrics.OrderBy(x => x.Key))
+        {
+            <tr>
+                <td>@Html.DisplayFor(model => x.Key)</td>
+                <td>@x.ToList().Sum(x => x.InternalCost).ToString("N2")</td>
+                <td>@x.ToList().Sum(x => x.ChargedPrice).ToString("N2")</td>
+                <td>@x.ToList().Sum(x => x.Differential).ToString("N2")</td>
+                <td>@x.ToList().Sum(x => x.SecondsWorked)</td>
+            </tr>
+        }
+        </tbody>
+</table>

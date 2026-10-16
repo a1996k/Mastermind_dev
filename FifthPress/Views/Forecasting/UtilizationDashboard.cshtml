@@ -1,0 +1,371 @@
+@{
+    ViewBag.Title = "Utilization Dashboard";
+    var period = ViewBag.Period as ForecastPeriod;
+    var departments = ViewBag.Departments as List<Department>;
+    var selectedDeptId = ViewBag.SelectedDepartmentId as int?;
+    var retainerFilter = ViewBag.RetainerFilter ?? 0;
+    var contractTypeFilter = ViewBag.ContractTypeFilter ?? 0;
+    var monthlyData = ViewBag.MonthlyData as List<sp_GetMonthlyUtilizationByDepartment_Result>;
+    var actualVsForecastData = ViewBag.ActualVsForecastData as List<dynamic>;
+}
+
+@if (period == null)
+{
+    <div class="alert alert-danger">
+        <h4>Error: Period Not Found</h4>
+        <p>The forecast period could not be loaded.</p>
+        @Html.ActionLink("Back to Periods", "Index", null, new { @class = "btn btn-default" })
+    </div>
+    return;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12" style="position: relative;">
+            <h2>Utilization Dashboard</h2>
+            <p class="text-muted">
+                Period: @period.PeriodName (@period.StartDate.ToString("MM/dd/yyyy") - @period.EndDate.ToString("MM/dd/yyyy"))
+            </p>
+
+            <!-- Filters (Top Right) -->
+            <div style="position: absolute; top: 0; right: 15px; display: flex; gap: 10px;">
+                <select id="contractTypeSelector" class="form-control" style="width: 150px;">
+                    <option value="0" @(contractTypeFilter == 0 ? "selected" : "")>All Contracts</option>
+                    <option value="1" @(contractTypeFilter == 1 ? "selected" : "")>Actual Only</option>
+                    <option value="2" @(contractTypeFilter == 2 ? "selected" : "")>Forecast Only</option>
+                </select>
+                <select id="retainerSelector" class="form-control" style="width: 150px;">
+                    <option value="0" @(retainerFilter == 0 ? "selected" : "")>All Types</option>
+                    <option value="1" @(retainerFilter == 1 ? "selected" : "")>Retainer Only</option>
+                    <option value="2" @(retainerFilter == 2 ? "selected" : "")>Non-Retainer</option>
+                </select>
+                <select id="departmentSelector" class="form-control" style="width: 180px;">
+                    <option value="all" @(selectedDeptId == null ? "selected" : "")>All Departments</option>
+                    @foreach (var dept in departments)
+                    {
+                        <option value="@dept.Id" @(dept.Id == selectedDeptId ? "selected" : "")>
+                            @dept.Title
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- Navigation Panel -->
+            <div class="panel panel-default" style="margin-bottom: 20px; margin-top: 10px;">
+                <div class="panel-body" style="padding: 10px 15px;">
+                    <div class="row">
+                        <div class="col-md-4">
+                            @Html.ActionLink("← Back to Contracts", "Contracts", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-default btn-sm" })
+                        </div>
+                        <div class="col-md-8 text-right">
+                            <strong style="margin-right: 10px;">More Reports:</strong>
+                            @Html.ActionLink("Detailed Breakdown", "MonthlyUtilizationDetailed", new { periodId = period.ForecastPeriodID, departmentId = selectedDeptId }, new { @class = "btn btn-info btn-sm" })
+                            @Html.ActionLink("Billing Class Summary", "SummaryByBillingClass", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-info btn-sm" })
+                            @Html.ActionLink("Project Dates", "ProjectDates", null, new { @class = "btn btn-default btn-sm" })
+                            @Html.ActionLink("Budget Tracker", "BudgetTracker", null, new { @class = "btn btn-default btn-sm" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MONTHLY UTILIZATION SECTION -->
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h4 class="panel-title"><i class="glyphicon glyphicon-signal"></i> Monthly Utilization vs. 80% Goal</h4>
+                </div>
+                <div class="panel-body">
+                    @if (monthlyData != null && monthlyData.Any())
+                    {
+                        <canvas id="monthlyUtilizationChart" height="80"></canvas>
+
+                        <!-- Additional legend items for dynamic overlays -->
+                        <div class="text-center" style="margin-top: 5px;">
+                            <span style="display: inline-block; width: 14px; height: 14px; background: rgba(211,211,211,0.5); border: 1px solid #ccc; vertical-align: middle; margin-right: 4px;"></span>
+                            <span style="font-size: 12px; color: #666; margin-right: 15px;">Remaining to 80%</span>
+                            <span style="display: inline-block; width: 14px; height: 14px; background: #d9534f; vertical-align: middle; margin-right: 4px;"></span>
+                            <span style="font-size: 12px; color: #666;">Overbooked</span>
+                        </div>
+
+                        <!-- Summary Stats Row -->
+                        <div class="row" style="margin-top: 20px;">
+                            <div class="col-md-3">
+                                <div class="text-center" style="padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                                    <h5 class="text-muted" style="margin: 0;">Average Booked</h5>
+                                    <h3 style="color: #337ab7; margin: 5px 0;">@monthlyData.Average(x => (x.BookedPercentage ?? 0m)).ToString("N1")%</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center" style="padding: 10px; background: #dff0d8; border-radius: 4px;">
+                                    <h5 class="text-muted" style="margin: 0;">Months at Target</h5>
+                                    <h3 style="color: #5cb85c; margin: 5px 0;">@monthlyData.Count(x => x.BookedPercentage >= 75 && x.BookedPercentage <= 85)</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center" style="padding: 10px; background: #fcf8e3; border-radius: 4px;">
+                                    <h5 class="text-muted" style="margin: 0;">Under-booked</h5>
+                                    <h3 style="color: #f0ad4e; margin: 5px 0;">@monthlyData.Count(x => x.BookedPercentage < 75)</h3>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="text-center" style="padding: 10px; background: #f2dede; border-radius: 4px;">
+                                    <h5 class="text-muted" style="margin: 0;">Over-booked</h5>
+                                    <h3 style="color: #d9534f; margin: 5px 0;">@monthlyData.Count(x => x.BookedPercentage > 85)</h3>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <h4>No Monthly Data Available</h4>
+                            <p>There is no utilization data for this period and department combination.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- ACTUAL VS FORECAST MONTHLY BREAKDOWN -->
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h4 class="panel-title"><i class="glyphicon glyphicon-stats"></i> Actual vs Forecast (Monthly Breakdown)</h4>
+                </div>
+                <div class="panel-body">
+                    @if (actualVsForecastData != null && actualVsForecastData.Any())
+                    {
+                        <canvas id="actualVsForecastChart" height="80"></canvas>
+
+                        <div class="row" style="margin-top: 15px;">
+                            <div class="col-md-12 text-center">
+                                <p class="text-muted">
+                                    <strong>Legend:</strong>
+                                    <span style="display: inline-block; width: 20px; height: 12px; background: #5cb85c; margin-right: 5px;"></span> Actual Hours
+                                    <span style="margin: 0 10px;">|</span>
+                                    <span style="display: inline-block; width: 20px; height: 12px; background: #5dade2; margin-right: 5px;"></span> Forecasted Hours
+                                    <span style="margin: 0 10px;">|</span>
+                                    <span style="border-top: 3px solid #000; width: 30px; display: inline-block; margin-right: 5px;"></span> Actual/Forecast Separator
+                                </p>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <h4>No Actual vs Forecast Data Available</h4>
+                            <p>Add actual and forecasted contracts to see comparison data.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tooltip helper: computes total from visible datasets and shows overbooked/remaining
+    // (defined outside Razor text blocks to avoid parser issues with for/if keywords)
+    function utilizationTooltipAfterBody(tooltipItems) {
+        var chart = tooltipItems[0].chart;
+        var idx = tooltipItems[0].dataIndex;
+        var total = 0;
+        chart.data.datasets.forEach(function(ds, dsIdx) {
+            if (!chart.getDatasetMeta(dsIdx).hidden) {
+                total += ds.data[idx] || 0;
+            }
+        });
+        var lines = ['Total Utilization: ' + total.toFixed(1) + '%'];
+        if (total > 80) lines.push('Overbooked: ' + (total - 80).toFixed(1) + '%');
+        else if (total < 80) lines.push('Remaining to 80%: ' + (80 - total).toFixed(1) + '%');
+        return lines;
+    }
+
+    // Dynamic overlay plugin (defined outside Razor blocks to avoid parser issues).
+    // Draws overbooked (red) or remaining (gray) on bars based on visible datasets.
+    function createOverlayPlugin(pluginId) {
+        return {
+            id: pluginId,
+            afterDatasetsDraw: function(chart) {
+                var ctx = chart.ctx;
+                var yScale = chart.scales.y;
+                var numBars = chart.data.labels.length;
+                var idx, total, bar, meta, barWidth, barX, y70, yTotal, pct;
+
+                for (idx = 0; idx < numBars; idx++) {
+                    total = 0;
+                    chart.data.datasets.forEach(function(ds, dsIdx) {
+                        if (!chart.getDatasetMeta(dsIdx).hidden) {
+                            total += ds.data[idx] || 0;
+                        }
+                    });
+
+                    bar = null;
+                    for (var j = 0; j < chart.data.datasets.length; j++) {
+                        meta = chart.getDatasetMeta(j);
+                        if (!meta.hidden && meta.data[idx]) {
+                            bar = meta.data[idx];
+                            break;
+                        }
+                    }
+                    if (!bar) continue;
+
+                    barWidth = bar.width;
+                    barX = bar.x - barWidth / 2;
+                    y70 = yScale.getPixelForValue(80);
+
+                    if (total > 80) {
+                        yTotal = yScale.getPixelForValue(total);
+                        ctx.save();
+                        ctx.fillStyle = '#d9534f';
+                        ctx.fillRect(barX, yTotal, barWidth, y70 - yTotal);
+                        pct = total - 80;
+                        if (pct > 4) {
+                            ctx.fillStyle = '#fff';
+                            ctx.font = 'bold 11px sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(pct.toFixed(1) + '%', bar.x, (yTotal + y70) / 2);
+                        }
+                        ctx.restore();
+                    } else if (total > 0 && total < 80) {
+                        yTotal = yScale.getPixelForValue(total);
+                        ctx.save();
+                        ctx.fillStyle = 'rgba(211, 211, 211, 0.5)';
+                        ctx.fillRect(barX, y70, barWidth, yTotal - y70);
+                        pct = 80 - total;
+                        if (pct > 4) {
+                            ctx.fillStyle = '#999';
+                            ctx.font = '11px sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(pct.toFixed(1) + '%', bar.x, (yTotal + y70) / 2);
+                        }
+                        ctx.restore();
+                    }
+                }
+            }
+        };
+    }
+
+    // Build the monthly utilization chart from raw data
+    function buildUtilizationChart(rawChartData) {
+        var monthlyChartData = [];
+        var monthGroups = {};
+        rawChartData.forEach(function(d) {
+            if (!monthGroups[d.month]) {
+                monthGroups[d.month] = { count: 0, retainer: 0, nonRetainer: 0, internalNonBillable: 0, booked: 0, remaining: 0, overbooked: 0 };
+            }
+            monthGroups[d.month].count++;
+            monthGroups[d.month].retainer += d.retainer;
+            monthGroups[d.month].nonRetainer += d.nonRetainer;
+            monthGroups[d.month].internalNonBillable += d.internalNonBillable;
+            monthGroups[d.month].booked += d.booked;
+            monthGroups[d.month].remaining += d.remaining;
+            monthGroups[d.month].overbooked += d.overbooked;
+        });
+        Object.keys(monthGroups).forEach(function(month) {
+            var g = monthGroups[month];
+            monthlyChartData.push({
+                month: month,
+                retainer: Math.round((g.retainer / g.count) * 10) / 10,
+                nonRetainer: Math.round((g.nonRetainer / g.count) * 10) / 10,
+                internalNonBillable: Math.round((g.internalNonBillable / g.count) * 10) / 10,
+                booked: Math.round((g.booked / g.count) * 10) / 10,
+                remaining: Math.round((g.remaining / g.count) * 10) / 10,
+                overbooked: Math.round((g.overbooked / g.count) * 10) / 10
+            });
+        });
+
+        new Chart(document.getElementById('monthlyUtilizationChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: monthlyChartData.map(function(d) { return d.month; }),
+                datasets: [
+                    { label: 'Retainer', data: monthlyChartData.map(function(d) { return d.retainer; }), backgroundColor: '#1a5276', stack: 'stack0' },
+                    { label: 'Non-Retainer', data: monthlyChartData.map(function(d) { return d.nonRetainer; }), backgroundColor: '#5dade2', stack: 'stack0' },
+                    { label: 'Internal Non-Billable', data: monthlyChartData.map(function(d) { return d.internalNonBillable; }), backgroundColor: '#e67e22', stack: 'stack0' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, beginAtZero: true, ticks: { callback: function(value) { return value + '%'; } }, title: { display: true, text: 'Utilization %' }, grace: '10%' }
+                },
+                plugins: {
+                    legend: { display: true, position: 'bottom' },
+                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%'; }, afterBody: utilizationTooltipAfterBody } },
+                    datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: function(value) { return value > 5 ? value.toFixed(1) + '%' : ''; } },
+                    annotation: { annotations: { goalLine: { type: 'line', yMin: 80, yMax: 80, borderColor: '#d9534f', borderWidth: 2, borderDash: [5, 5], label: { content: 'Goal (80%)', enabled: true, position: 'end', backgroundColor: '#d9534f', color: '#fff', font: { size: 10, weight: 'bold' } } } } }
+                }
+            },
+            plugins: [ChartDataLabels, createOverlayPlugin('dynamicOverlay')]
+        });
+    }
+
+    // Build the actual vs forecast chart from raw data
+    function buildActualVsForecastChart(avfData) {
+        new Chart(document.getElementById('actualVsForecastChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: avfData.map(function(d) { return d.MonthName; }),
+                datasets: [
+                    { label: 'Actual Hours', data: avfData.map(function(d) { return d.ActualHours; }), backgroundColor: '#5cb85c', stack: 'stack0' },
+                    { label: 'Forecasted Hours', data: avfData.map(function(d) { return d.ForecastedHours; }), backgroundColor: '#5dade2', stack: 'stack0' }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    x: { stacked: true, grid: { display: false } },
+                    y: { stacked: true, beginAtZero: true, title: { display: true, text: 'Hours' } }
+                },
+                plugins: {
+                    legend: { display: true, position: 'bottom' },
+                    tooltip: { callbacks: { label: function(context) { return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + ' hrs'; } } },
+                    datalabels: { color: '#fff', font: { weight: 'bold', size: 10 }, formatter: function(value) { return value > 0 ? value.toFixed(0) : ''; } }
+                }
+            },
+            plugins: [ChartDataLabels]
+        });
+    }
+
+    $(document).ready(function () {
+        var periodId = @period.ForecastPeriodID;
+        var navUrl = '@Url.Action("UtilizationDashboard", "Forecasting")';
+
+        function navigateWithFilters() {
+            var departmentId = $('#departmentSelector').val();
+            var url = navUrl + '?periodId=' + periodId;
+            if (departmentId !== 'all') url += '&departmentId=' + departmentId;
+            url += '&retainerFilter=' + $('#retainerSelector').val() + '&contractTypeFilter=' + $('#contractTypeSelector').val();
+            window.location.href = url;
+        }
+
+        $('#departmentSelector').change(navigateWithFilters);
+        $('#retainerSelector').change(navigateWithFilters);
+        $('#contractTypeSelector').change(navigateWithFilters);
+
+        @if (monthlyData != null && monthlyData.Any())
+        {
+            <text>
+            buildUtilizationChart(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(monthlyData.Select(m => new {
+                month = m.MonthStart.HasValue ? m.MonthStart.Value.ToString("MMM yyyy") : m.MonthName,
+                retainer = Math.Round(m.RetainerPercentage ?? 0, 1),
+                nonRetainer = Math.Round(m.NonRetainerPercentage ?? 0, 1),
+                internalNonBillable = Math.Round(m.InternalNonBillablePercentage ?? 0, 1),
+                booked = Math.Round(m.BookedPercentage ?? 0, 1),
+                remaining = Math.Round(m.RemainingToTargetPercentage ?? 0, 1),
+                overbooked = Math.Round(m.OverbookedPercentage ?? 0, 1)
+            }))));
+            </text>
+        }
+
+        @if (actualVsForecastData != null && actualVsForecastData.Any())
+        {
+            <text>
+            buildActualVsForecastChart(@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(actualVsForecastData)));
+            </text>
+        }
+    });
+</script>

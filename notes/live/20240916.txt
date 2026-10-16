@@ -1,0 +1,4 @@
+increase decimals to 3 (maybe 5?) yeah do 5
+
+Jason <- submitted Bug ~ 8/830
+1341 <-- Carbliss quote that Justin needs

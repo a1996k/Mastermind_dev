@@ -1,0 +1,25 @@
+﻿@model List<FifthPress.Models.ViewModels.VM_TimingParameterEditor>
+
+<ul class="p-parameters striped-ul row-one-titles">
+    <li>
+        <div></div>
+        <div>Name</div>
+        <div>Value</div>
+    </li>
+    @foreach(FifthPress.Models.ViewModels.VM_TimingParameterEditor vm in Model.OrderBy(x => x.ParameterNameDisplay))
+        {
+            <li data-parameter-key="@Html.DisplayFor(model => vm.ParameterNameCamelCase)">
+                <div>
+                    <a href="javascript:void(0);" class="edit-time-parameter-link">Edit</a>
+                </div>
+                <div>
+                    <!-- Parameter Name -->
+                    @Html.DisplayFor(model => vm.ParameterNameDisplay)
+                </div>
+                <div>
+                    <!-- Parameter Value -->
+                    @Html.DisplayFor(model => vm.ParameterValue) &nbsp; @Html.DisplayFor(model => vm.ParameterValueUnitText)
+                </div>
+            </li>
+        }
+</ul>

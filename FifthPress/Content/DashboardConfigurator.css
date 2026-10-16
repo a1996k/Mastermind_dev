@@ -1,0 +1,49 @@
+﻿
+#dashboard_permission_config_modal .modal-body{
+    max-height: 600px;
+    overflow-y: scroll;
+}
+
+.active-card-entry,
+.inactive-card-entry,
+.active-user-entry,
+.inactive-user-entry{
+    font-family: 'DM Sans';
+    font-size: 18px;
+    font-weight:bold;
+}
+
+.active-user-entry,
+.inactive-user-entry{
+    width: 250px;
+    display: flex;
+    justify-content: space-between;
+    padding:5px;
+    align-items:center;
+}
+
+ul .remove-card,
+ul .remove-user{
+    cursor: pointer;
+    padding: 5px;
+    font-family: poppins;
+    font-size: 20px;
+    font-weight:bold;
+    color:red;
+}
+
+ul .add-card,
+ul .add-user{
+    cursor: pointer;
+    padding: 5px;
+    font-family:poppins;
+    font-size:20px;
+    font-weight:bold;
+    color:green;
+}
+
+.config-perms{
+    color: var(--fc-navy);
+    font-size:18px;
+    cursor: pointer;
+}

@@ -1,0 +1,371 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_TimeTracking
+
+@{
+    ViewBag.Title = "Time Tracking";
+
+    string currentJobNumString = String.Format("{0}.{1}", Model.Job.JobNumber, Model.JobItem.Ordinal);
+    string minStartDate = Model.JobItem.MinStartDate.HasValue ? Model.JobItem.MinStartDate.Value.ToString("M/d/yyyy") : "Not set";
+    string dueDate = Model.Job.DueDate.HasValue ? Model.Job.DueDate.Value.ToString("M/d/yyyy") : "Not set";
+    int itemCount = Model.OtherItems.Count + 1;
+
+    var jsonQARecords = Newtonsoft.Json.JsonConvert.SerializeObject(Model.QARecords, new Newtonsoft.Json.JsonSerializerSettings
+    {
+        ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+    });
+}
+
+@Html.HiddenFor(model => model.Job.Id)
+@Html.HiddenFor(model => model.JobItem.Id)
+
+@Styles.Render("~/Content/timetracking")
+
+@Scripts.Render("~/bundles/timetracking")
+
+<script>
+    let individualTimers = [];
+    let aggregateTimers = []; //not sure what to do about aggregate timers..
+
+    //initialElapsedTime is in MILLISECONDS (use the parseTimeToMilliseconds function above which parses from a HH:MM:SS format)
+    function addTimeTrackingTimer(serviceId, initialElapsedTime) {
+
+        let startTime = new Date(new Date().getTime() - initialElapsedTime);
+
+        individualTimers.push({
+            id: 'mt_' + serviceId,
+            startTime: startTime
+        });
+    };
+</script>
+
+<div class="page-wrapper p-5">
+    <!-- Header info -->
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-6 field-binder-row-flex">
+                <span class="fs-26 ff-lato fw-bold">#@Html.DisplayFor(model => currentJobNumString)</span>
+                <span class="fs-26 ms-5 ff-poppins fw-bold">Time Tracker</span>
+                <a href="@Url.Action("EditJob", "Job", new { jobId = Model.Job.Id })" class="btn btn-sm btn-outline-primary ms-3" title="Edit Job">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Job
+                </a>
+            </div>
+            <div class="col-6 field-binder-row-flex">
+                <div class="fw-bold">
+                    <span class="ff-dm-sans fs-22">Start By: <span class="ff-lato fs-24">@Html.DisplayFor(model => minStartDate)</span></span>
+                </div>
+                <div class="fw-bold ms-5">
+                    <span class="ff-dm-sans fs-22">Due By: <span class="ff-lato fs-24">@Html.DisplayFor(model => dueDate)</span></span>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <span class="fs-18 ff-dm-sans fw-bold">@Html.DisplayFor(model => model.Job.Description)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Description/Notes/Details -->
+    <div class="container-fluid rounded-cont mt-3">
+        <div class="row">
+            <div class="col-12 tt-inverted-row p-3">
+                <span class="fw-bold ff-dm-sans fs-18">Item @Html.DisplayFor(model => model.JobItem.Ordinal) of @Html.DisplayFor(model => itemCount): @Html.DisplayFor(model => model.JobItem.Description)</span>
+            </div>
+        </div>
+        <div class="row mt-4">
+            <div class="col-2">
+                <span class="ff-poppins fw-bolder fs-18 text-uppercase">Description</span>
+            </div>
+            <div class="col-10">
+                <span class="ff-dm-sans fs-16">@Html.DisplayFor(model => model.JobItem.Description)</span>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid rounded-cont mt-2">
+        <div class="row">
+            <div class="col-2">
+                <span class="ff-poppins fw-bolder fs-18 text-uppercase">Internal Notes</span>
+            </div>
+            <div class="col-10">
+                <span class="ff-dm-sans fs-16">@Html.DisplayFor(model => model.JobItem.InternalNotes)</span>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid rounded-cont mt-2">
+        <div class="row">
+            <div class="col-2">
+                <span class="ff-poppins fw-bolder fs-18 text-uppercase">Item Details</span>
+            </div>
+            <div class="col-10">
+                <!-- Item Details -->
+                <div class="field-binder-row-flex justify-content-between align-start">
+                    <div class="field-binder-col-flex">
+                        @if (Model.JobItem.Material.HasValue)
+                        {
+                            Model.JobItem.Material1.ParseDimensions();
+                            <span class="ff-dm-sans fs-18 fw-normal">@Html.DisplayFor(model => model.JobItem.Material1.Title) @Html.DisplayFor(model => model.JobItem.Material1.ParsedLength) @Html.Raw("x") @Html.DisplayFor(model => model.JobItem.Material1.ParsedWidth)</span>
+                            <span class="ff-dm-sans fs-18 fw-bold">Run: @Html.DisplayFor(model => model.JobItem.RunLength) @Html.Raw("x") @Html.DisplayFor(model => model.JobItem.RunWidth) @Html.DisplayFor(model => model.JobItem.BuySheets) Sheets (@Html.DisplayFor(model => model.JobItem.Out) Out, @Html.DisplayFor(model => model.JobItem.Up) Up)</span>
+                            <span class="ff-dm-sans fs-18 fw-bold">Finish: @Html.DisplayFor(model => model.JobItem.Length) @Html.Raw("x") @Html.DisplayFor(model => model.JobItem.Width)</span>
+                        }
+                        else
+                        {
+                            <span class="ff-dm-sans fs-18 fw-normal">NO MATERIAL SELECTED</span>
+                        }
+                    </div>
+                    <div class="field-binder-col-flex">
+                        <span class="ff-dm-sans fs-18">Quantity: <span class="ff-lato fs-18 fw-bold">@(Model.JobItem.TotalQuantity.HasValue ? Model.JobItem.TotalQuantity.Value.ToString("N0") : "N/A")</span></span>
+                        <span class="ff-dm-sans fs-18 fw-bold">Sheets: <span class="ff-lato fs-18 fw-bold">@(Model.JobItem.Sheets.HasValue ? Model.JobItem.Sheets.Value.ToString("N0") : "N/A")</span></span>
+                        <span class="ff-dm-sans fs-18 fw-bold">Scrap Sheets: <span class="ff-lato fs-18 fw-bold">@(Model.JobItem.TotalScrapSheets.HasValue ? Model.JobItem.TotalScrapSheets.Value.ToString("N0") : "N/A")</span></span>
+                        <span class="ff-dm-sans fs-18 fw-bold">Run Sheets: <span class="ff-lato fs-18 fw-bold">@(Model.JobItem.RunSheets.HasValue ? Model.JobItem.RunSheets.Value.ToString("N0") : "N/A")</span></span>
+                    </div>
+                    <div class="field-binder-col-flex">
+                        <span class="ff-dm-sans fs-18 fw-normal">Front: @Html.DisplayFor(model => model.JobItem.PressColorProfileFront)</span>
+                        <span class="ff-dm-sans fs-18 fw-normal">Back: @Html.DisplayFor(model => model.JobItem.PressColorProfileBack)</span>
+                    </div>
+                    <div class="field-binder-col-flex">
+                        <span class="ff-dm-sans fs-18 fw-bold">Up: <span class="fw-normal">@Html.DisplayFor(model => model.JobItem.Up)</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid rounded-cont mt-2">
+        <div class="row">
+            <div class="col-12">
+                <span class="ff-poppins fw-bolder fs-18 text-uppercase">Service/Task List</span>
+            </div>
+        </div>
+        <div class="row service-list-row">
+            @{
+                bool pullMaterialRendered = false;
+                bool hasPullMaterialService = Model.JobItem.JobItemServices.Any(x => x.Service.Title == "Pull Material");
+            }
+            @foreach (JobItemService jis in Model.JobItem.JobItemServices.OrderBy(x => x.ApexOrdinal).ToList())
+            {
+                if (!hasPullMaterialService && !pullMaterialRendered && jis.Service.ServiceCategory.ServiceType1.Title != "Prepress")
+                {
+                    pullMaterialRendered = true;
+                    <!-- Standalone Pull Material row (after prepress services, when no Pull Material service exists) -->
+                    <div class="col-12 service-entry field-binder-row-flex justify-content-between">
+                        <div class="col-5 field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                <span class="ff-dm-sans fw-bold fs-18">Pull Material</span>
+                            </div>
+                        </div>
+                        <div class="col-4 field-binder-row-flex">
+                            <button type="button" class="btn btn-sm btn-warning open-pm-modal ff-poppins fs-18 fw-bold" data-modal-to-open="#pull_material_modal">Pull Material</button>
+                            @if (Model.MaterialPullStatus == 2)
+                            {
+                                <i class="fa-solid fa-circle-check ms-3 fs-18 material-pull-check" style="color: #28a745;" title="Fully Pulled"></i>
+                            }
+                            else if (Model.MaterialPullStatus == 1)
+                            {
+                                <i class="fa-solid fa-circle-half-stroke ms-3 fs-18 material-pull-check" style="color: #f0ad4e;" title="Partially Pulled"></i>
+                            }
+                        </div>
+                        <div class="col-3 field-binder-row-flex justify-content-end">
+                        </div>
+                    </div>
+                }
+                <div class="col-12 service-entry field-binder-row-flex justify-content-between" data-record-id="@Html.DisplayFor(model => jis.Id)">
+                    <input type="hidden" class="elapsed-ms" value="@Html.DisplayFor(model => jis.UserContext_UserElapsedMilliseconds)" />
+
+                    @if (jis.IsFinishingService == true)
+                    {
+                        <!-- Finishing Material Service Row -->
+                        <div class="col-5 field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                <span class="ff-dm-sans fw-bold fs-18">@Html.DisplayFor(model => jis.Title)</span>
+                                <span class="ff-dm-sans fs-14 fw-normal fst-italic">Finishing Material</span>
+                            </div>
+                        </div>
+                        <div class="col-4 field-binder-row-flex">
+                            <button type="button" class="btn btn-sm btn-warning open-fm-pull-modal ff-poppins fs-18 fw-bold"
+                                    data-jifm-id="@jis.JobItemFinishingMaterial">
+                                Pull Finishing Material
+                            </button>
+                            @if (Model.FinishingMaterialPullStatus != null
+                                 && jis.JobItemFinishingMaterial.HasValue
+                                 && Model.FinishingMaterialPullStatus.ContainsKey(jis.JobItemFinishingMaterial.Value))
+                            {
+                                var fmStatus = Model.FinishingMaterialPullStatus[jis.JobItemFinishingMaterial.Value];
+                                if (fmStatus == 2)
+                                {
+                                    <i class="fa-solid fa-circle-check ms-3 fs-18 fm-pull-indicator" style="color: #28a745;" title="Fully Pulled"></i>
+                                }
+                                else if (fmStatus == 1)
+                                {
+                                    <i class="fa-solid fa-circle-half-stroke ms-3 fs-18 fm-pull-indicator" style="color: #f0ad4e;" title="Partially Pulled"></i>
+                                }
+                            }
+                        </div>
+                        <div class="col-3 field-binder-row-flex justify-content-end">
+                            <input type="checkbox" id="sccb_@Html.DisplayFor(model => jis.Id)" class="service-complete-cb ms-5" @(jis.ServiceComplete ? "checked" : "") />
+                            <label class="ms-3 ff-dm-sans fw-bold fs-16" for="sccb_@Html.DisplayFor(model => jis.Id)">Complete</label>
+                        </div>
+                    }
+                    else
+                    {
+                        <!-- Standard Service Row -->
+                        <div class="col-5 field-binder-row-flex">
+                            @if ((jis.Service.IsTimed ?? false))
+                            {
+                                <!-- Start/Stop Button -->
+                                if (jis.UserContext_IsRunning)
+                                {
+                                    <script>
+                                        //start a timer
+                                        addTimeTrackingTimer('@jis.Id', '@jis.UserContext_UserElapsedMilliseconds');
+                                    </script>
+
+                                    <button type="button" class="btn btn-sm btn-danger ff-poppins fw-bold fs-18 stop-button stop-task-btn ms-2 me-5">Stop <i class="ms-3 fa-solid fa-stop"></i></button>
+                                    <button type="button" class="btn btn-sm btn-success ff-poppins fw-bold fs-18 start-button start-task-btn ms-2 me-5" style="display:none">Start <i class="ms-3 fa-solid fa-play"></i></button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm btn-success ff-poppins fw-bold fs-18 start-button start-task-btn ms-2 me-5">Start <i class="ms-3 fa-solid fa-play"></i></button>
+                                    <button type="button" class="btn btn-sm btn-danger ff-poppins fw-bold fs-18 stop-button stop-task-btn ms-2 me-5" style="display:none">Stop <i class="ms-3 fa-solid fa-stop"></i></button>
+                                }
+                            }
+                            <!-- Service Title -->
+                            <div class="field-binder-col-flex">
+                                <span class="ff-dm-sans fw-bold fs-18">@Html.DisplayFor(model => jis.Title)</span>
+                                <span class="ff-dm-sans fs-14 fw-normal">@Html.DisplayFor(model => jis.Notes)</span>
+                            </div>
+
+                            @if ((jis.Service.IsTimed ?? false))
+                            {
+                                <!-- Estimated Time (if timed) -->
+                                <span class="ff-dm-sans fw-normal fs-18 ms-5">Estimated: <span class="ff-lato">@Html.DisplayFor(model => jis.FormattedServiceTime)</span></span>
+                            }
+                        </div>
+                        <div class="col-4 field-binder-row-flex">
+                            @if (jis.Service.Title == "Print" || (jis.RequiresQualityCheck ?? false))
+                            {
+                                var serviceQARecords = Model.QARecords.Where(x => x.JobItemService == jis.Id).ToList();
+                                bool hasQARecords = serviceQARecords.Any();
+
+                                if (hasQARecords)
+                                {
+                                    bool hasSelfApproval = serviceQARecords.Any(x => x.SecondApprovalUser == x.FirstApprovalUser);
+
+                                    if (hasSelfApproval)
+                                    {
+                                        <i class="fa-solid fa-exclamation self-approval-icon"></i>
+                                    }
+
+                                    <span class="ff-poppins fs-16 fw-bold me-3 text-decoration-underline qa-service-link" style="cursor:pointer" data-jis-id="@Html.DisplayFor(model => jis.Id)">QA</span>
+                                    if (serviceQARecords.OrderByDescending(x => x.FirstApprovalTime).First().Passed)
+                                    {
+                                        <span class="green-circle"></span><span class="red-circle" style="display:none"></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="green-circle" style="display:none"></span>
+                                        <span class="red-circle"></span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="ff-poppins fs-16 fw-bold me-3 qa-service-link" style="cursor:pointer;opacity:0.5" data-jis-id="@Html.DisplayFor(model => jis.Id)">QA</span>
+                                    <span class="ff-dm-sans fs-14 fst-italic">No checks yet</span>
+                                }
+                            }
+                            @if (jis.Service.Title == "Pull Material")
+                            {
+                                <button type="button" class="btn btn-sm btn-warning open-pm-modal ff-poppins fs-18 fw-bold" data-modal-to-open="#pull_material_modal">Pull Material</button>
+                                if (Model.MaterialPullStatus == 2)
+                                {
+                                    <i class="fa-solid fa-circle-check ms-3 fs-18 material-pull-check" style="color: #28a745;" title="Fully Pulled"></i>
+                                }
+                                else if (Model.MaterialPullStatus == 1)
+                                {
+                                    <i class="fa-solid fa-circle-half-stroke ms-3 fs-18 material-pull-check" style="color: #f0ad4e;" title="Partially Pulled"></i>
+                                }
+                            }
+                            @if (jis.Service.Title == "Print")
+                            {
+                                <button type="button" class="btn btn-sm btn-warning open-ink-pull-modal ff-poppins fs-18 fw-bold ms-2" data-modal-to-open="#pull_ink_modal">Pull Ink</button>
+                            }
+                        </div>
+                        <div class="col-3 field-binder-row-flex justify-content-end">
+                            @if ((jis.Service.IsTimed ?? false))
+                            {
+                                <!-- QA Section -->
+                                <!-- My Time -->
+                                <span class="ff-dm-sans fw-bold fs-18 ms-5">My Time: <span class="ff-lato fs-18 my-time-display" id="mt_@Html.DisplayFor(model => jis.Id)">@Html.DisplayFor(model => jis.UserContext_UserServiceTimeFormatted)</span></span>
+                                <!-- Overall Time -->
+                                <span class="ff-dm-sans fw-normal fs-18 ms-5">Overall: <span class="ff-lato fs-18 overall-time-display" id="ot_@Html.DisplayFor(model => jis.Id)">@Html.DisplayFor(model => jis.UserContext_TotalOverallTimeFormatted)</span></span>
+                            }
+                            <!-- Complete -->
+                            <input type="checkbox" id="sccb_@Html.DisplayFor(model => jis.Id)" class="service-complete-cb ms-5" @(jis.ServiceComplete ? "checked" : "") />
+                            <label class="ms-3 ff-dm-sans fw-bold fs-16" for="sccb_@Html.DisplayFor(model => jis.Id)">Complete</label>
+                        </div>
+                    }
+                </div>
+            }
+            @if (!hasPullMaterialService && !pullMaterialRendered)
+            {
+                <!-- Pull Material row (all services were prepress or no services exist) -->
+                <div class="col-12 service-entry field-binder-row-flex justify-content-between">
+                    <div class="col-5 field-binder-row-flex">
+                        <div class="field-binder-col-flex">
+                            <span class="ff-dm-sans fw-bold fs-18">Pull Material</span>
+                        </div>
+                    </div>
+                    <div class="col-4 field-binder-row-flex">
+                        <button type="button" class="btn btn-sm btn-warning open-pm-modal ff-poppins fs-18 fw-bold" data-modal-to-open="#pull_material_modal">Pull Material</button>
+                        @if (Model.MaterialPullStatus == 2)
+                        {
+                            <i class="fa-solid fa-circle-check ms-3 fs-18 material-pull-check" style="color: #28a745;" title="Fully Pulled"></i>
+                        }
+                        else if (Model.MaterialPullStatus == 1)
+                        {
+                            <i class="fa-solid fa-circle-half-stroke ms-3 fs-18 material-pull-check" style="color: #f0ad4e;" title="Partially Pulled"></i>
+                        }
+                    </div>
+                    <div class="col-3 field-binder-row-flex justify-content-end">
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (Model.OtherItems.Count > 0)
+    {
+        <div class="container-fluid rounded-cont mt-2">
+            <div class="row">
+                <div class="col-12">
+                    <span class="ff-poppins fw-bolder fs-18 text-uppercase">Other/Next Items</span>
+                </div>
+            </div>
+            <div class="row service-list-row">
+                @foreach (FifthPress.Models.TimeTracking.OtherItem o in Model.OtherItems.OrderBy(x => x.JobNumberDisplay))
+                {
+                    <div class="col-12 service-entry field-binder-row-flex justify-content-between" data-job-id="@Html.DisplayFor(model => model.Job.Id)" data-item-id="@Html.DisplayFor(model => o.ItemId)">
+                        <span class="ff-dm-sans fs-18 fw-bold">#@Html.DisplayFor(model => o.JobNumberDisplay) - Item @Html.DisplayFor(model => o.Ordinal) of @Html.DisplayFor(model => itemCount)</span>
+                        <span class="ff-dm-sans fs-18 fw-bold">@Html.DisplayFor(model => o.Description)</span>
+                        <div class="tt-goto-item" style="cursor:pointer">
+                            <span class="ff-dm-sans fs-18 fw-bold">Track Time <i class="ms-3 fa-solid fa-play"></i></span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    var qaRecordJson = @Html.Raw(jsonQARecords);
+</script>
+
+@Html.Partial("~/Views/Partials/_QAListModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_MultipleServicePrompt.cshtml")
+
+@Html.Partial("~/Views/Partials/_PullMaterialModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_PullFinishingMaterialModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_PullInkModal.cshtml")

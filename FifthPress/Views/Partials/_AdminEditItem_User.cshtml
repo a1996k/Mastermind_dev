@@ -1,0 +1,27 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<VM_AdminTableItem_User>
+
+@foreach (FifthPress.Models.ViewModels.VM_AdminTableItem_User u in Model)
+{
+<tr class="admin-edit-item-user" data-record-id="@Html.DisplayFor(model => u.Id)">
+
+    <td>
+        <a href="javascript:void(0);">@Html.DisplayFor(model => u.LastName)</a>
+    </td>
+    <td>
+        <a href="javascript:void(0);">@Html.DisplayFor(model => u.FirstName)</a>
+    </td>
+    <td>
+        <a href="javascript:void(0);"> @Html.DisplayFor(model => u.Title)</a>
+    </td>
+    <td>
+        <a href="javascript:void(0);"> @Html.DisplayFor(model => u.Access)</a>
+    </td>
+    <td>
+        <a href="javascript:void(0);"> @Html.DisplayFor(model => u.UserId)</a>
+    </td>
+    <td>
+        <!-- Actions -->
+    </td>
+</tr>
+}

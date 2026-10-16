@@ -1,0 +1,1198 @@
+@model FifthPress.Models.ViewModels.Tournament.VM_EventSchedule
+@{
+    ViewBag.Title = "Event Scheduler";
+}
+
+@Styles.Render("~/Content/eventschedule")
+<link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+
+<div class="toolbar">
+    <h1>&#128202; Event Scheduler (<span id="current-year-display">@Model.CurrentYear</span>)</h1>
+
+    <div class="toolbar-group">
+        <button id="clear-btn" class="btn btn-outline-secondary btn-sm" title="Clear Selection">
+            <i class="bi bi-eraser"></i> Clear
+        </button>
+    </div>
+
+    <div class="toolbar-group">
+        @if (Model.IsAdmin)
+        {
+            <button id="manage-tournaments" class="btn btn-primary btn-sm" title="Manage Tournaments">
+                &#127942; Manage Tournaments
+            </button>
+            <button id="add-user-btn" class="btn btn-success btn-sm" title="Add User">
+                &#128100; Add User
+            </button>
+            <button id="check-availability-btn" class="btn btn-info btn-sm" title="Check Availability">
+                &#128197; Check Availability
+            </button>
+        }
+        <button id="tournament-filter-btn" class="btn btn-outline-info btn-sm btn-filter" title="Filter Tournaments">
+            &#128269; Filter: All Tournaments
+        </button>
+        <button id="assigned-users-toggle" class="btn btn-outline-secondary btn-sm btn-filter" title="Show only assigned users">
+            &#128101; Assigned Only
+        </button>
+        <button id="report-btn" class="btn btn-outline-warning btn-sm" title="Generate Report">
+            &#128202; Report
+        </button>
+        @*<button id="export-excel-btn" class="btn btn-outline-success btn-sm" title="Export to Excel">
+            &#128196; Export Excel
+        </button>*@
+    </div>
+
+    <div class="toolbar-group">
+        <select id="year-selector" class="form-select form-select-sm" title="Select Year" style="width: auto;"></select>
+        <button id="today-btn" class="btn btn-outline-success btn-sm" title="Go to Today">&#128205; Today</button>
+    </div>
+
+    <span id="selected-cell-count" class="toolbar-cell-count"></span>
+</div>
+
+<div class="spreadsheet-container">
+    <div class="spreadsheet" id="spreadsheet"></div>
+</div>
+
+@*<div class="status-bar">
+    <div class="status-bar-left"></div>
+    <div class="status-bar-right">
+        <span id="selected-cell-count"></span>
+    </div>
+</div>*@
+
+<div class="context-menu" id="context-menu">
+    <div class="context-menu-item" data-action="assign">
+        <i class="bi bi-person-plus"></i> Assign to Tournament
+    </div>
+    <div class="context-menu-item" data-action="clear">
+        <i class="bi bi-x-circle"></i> Clear Assignment
+    </div>
+    <div class="context-menu-separator"></div>
+    <div class="context-menu-item" data-action="travel">
+        <i class="bi bi-airplane"></i> Mark as Travel Day
+    </div>
+    <div class="context-menu-item" data-action="not-working">
+        <i class="bi bi-dash-circle"></i> Mark Not Working
+    </div>
+    <div class="context-menu-separator" id="role-separator"></div>
+    <div id="dynamic-roles-container">
+        <!-- Tournament roles will be loaded dynamically here -->
+    </div>
+    <div class="context-menu-item" data-action="role-unassigned">
+        <i class="bi bi-person-x"></i> Unassigned
+    </div>
+    <div class="context-menu-separator"></div>
+    <div class="context-menu-item" data-action="change-rate-type">
+        <i class="bi bi-currency-dollar"></i> Change Rate Type
+    </div>
+    <div class="context-menu-separator"></div>
+    <div class="context-menu-item" data-action="set-clock-times">
+        <i class="bi bi-clock"></i> Set Clock-In/Clock-Out Times
+    </div>
+    <div class="context-menu-separator"></div>
+    <div class="context-menu-item" data-action="copy">
+        <i class="bi bi-clipboard"></i> Copy
+    </div>
+    <div class="context-menu-item" data-action="paste">
+        <i class="bi bi-clipboard-check"></i> Paste
+    </div>
+</div>
+
+<div class="loading" id="loading" style="display: none;">
+    <div class="d-flex justify-content-center align-items-center" style="height: 200px;">
+        <div class="text-center">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="text-muted">Loading schedule data...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Error Alert Container -->
+<div id="error-container" style="display: none;">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <strong>Error:</strong> <span id="error-message"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<!-- Success Alert Container -->
+<div id="success-container" style="display: none;">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <span id="success-message"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+<!-- Bootstrap Tournaments Management Modal -->
+<div class="modal fade"
+     id="tournamentsModal"
+     tabindex="-1"
+     aria-labelledby="tournamentsModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tournamentsModalLabel">
+                    Tournaments for <span id="tournaments-year"></span>
+                </h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0">Current Tournaments</h6>
+                    <button type="button"
+                            class="btn btn-primary btn-sm"
+                            id="add-new-tournament">
+                        <i class="bi bi-plus"></i> Add New Tournament
+                    </button>
+                </div>
+
+                <div id="tournaments-list">
+                    <div class="text-center text-muted py-4" id="no-tournaments">
+                        <div class="mb-2">&#127942;</div>
+                        <div>No tournaments added yet</div>
+                        <small>Click "Add New Tournament" to get started</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Tournament Add/Edit Modal -->
+<div class="modal fade"
+     id="tournamentFormModal"
+     tabindex="-1"
+     aria-labelledby="tournamentFormModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tournamentFormModalLabel">
+                    Add Tournament
+                </h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="tournament-form">
+                    <div class="mb-3">
+                        <label for="tournament-name" class="form-label">Tournament Name:</label>
+                        <input type="text"
+                               class="form-control"
+                               id="tournament-name"
+                               required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="tournament-location" class="form-label">Location:</label>
+                        <input type="text"
+                               class="form-control"
+                               id="tournament-location"
+                               required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tournament-client" class="form-label">
+                            Client <span class="text-danger">*</span>
+                        </label>
+                        <select id="tournament-client" class="form-select" required>
+                            <option value="">-- Select Client --</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="minimum-wage" class="form-label">Minimum Wage:</label>
+                        <input type="number"
+                               class="form-control"
+                               id="minimum-wage"
+                               step="0.01"
+                               min="0"
+                               placeholder="Enter minimum wage amount" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="per-diem" class="form-label">Per Diem:</label>
+                        <input type="number"
+                               class="form-control"
+                               id="per-diem"
+                               step="0.01"
+                               min="0"
+                               placeholder="Enter per diem amount" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="travel-per-diem" class="form-label">Travel Per Diem:</label>
+                        <input type="number"
+                               class="form-control"
+                               id="travel-per-diem"
+                               step="0.01"
+                               min="0"
+                               placeholder="Enter travel per diem amount" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="bill-rate" class="form-label">Bill Rate (General):</label>
+                        <input type="number"
+                               class="form-control"
+                               id="bill-rate"
+                               step="0.01"
+                               min="0"
+                               placeholder="Enter general bill rate" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="manager-bill-rate" class="form-label">Manager Bill Rate:</label>
+                        <input type="number"
+                               class="form-control"
+                               id="manager-bill-rate"
+                               step="0.01"
+                               min="0"
+                               placeholder="Enter manager bill rate" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="print-bill-rate" class="form-label">Print Bill Rate:</label>
+                        <input type="number"
+                               class="form-control"
+                               id="print-bill-rate"
+                               step="0.01"
+                               min="0"
+                               placeholder="Enter print bill rate" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="ot-calculation" class="form-label">OT Calculation Basis:</label>
+                        <select class="form-select" id="ot-calculation">
+                            <option value="">Select calculation basis</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tournament-start" class="form-label">Tournament Start Date:</label>
+                        <input type="date"
+                               class="form-control"
+                               id="tournament-start"
+                               required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="tournament-end" class="form-label">Tournament End Date:</label>
+                        <input type="date"
+                               class="form-control"
+                               id="tournament-end"
+                               required />
+                    </div>
+
+                    <hr class="my-4">
+                    <h6 class="mb-3">Phase Dates <small class="text-muted">(Auto-calculated, but editable)</small></h6>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="setup-start" class="form-label">Setup Start:</label>
+                                <input type="date" class="form-control" id="setup-start">
+                                <div class="form-text">21 days before tournament</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="setup-end" class="form-label">Setup End:</label>
+                                <input type="date" class="form-control" id="setup-end">
+                                <div class="form-text">Day before Advanced Week</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="advanced-start" class="form-label">Advanced Week Start:</label>
+                                <input type="date" class="form-control" id="advanced-start">
+                                <div class="form-text">7 days before tournament</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="advanced-end" class="form-label">Advanced Week End:</label>
+                                <input type="date" class="form-control" id="advanced-end">
+                                <div class="form-text">Day before tournament</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="teardown-start" class="form-label">Teardown Start:</label>
+                                <input type="date" class="form-control" id="teardown-start">
+                                <div class="form-text">Day after tournament</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="teardown-end" class="form-label">Teardown End:</label>
+                                <input type="date" class="form-control" id="teardown-end">
+                                <div class="form-text">6 days after tournament</div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="btn btn-primary"
+                        id="save-tournament"
+                        form="tournament-form">
+                    Save Tournament
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tournament Selection Modal for Overlapping Tournaments -->
+<div class="modal fade"
+     id="tournamentSelectionModal"
+     tabindex="-1"
+     aria-labelledby="tournamentSelectionModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tournamentSelectionModalLabel">
+                    <i class="bi bi-trophy"></i> Select Tournament
+                </h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-info-circle"></i>
+                    Multiple tournaments are available on this date. Please select which tournament to assign to:
+                </p>
+                <div id="tournament-selection-list">
+                    <!-- Tournament options will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tournament and Role Selection Modals are created dynamically by JavaScript -->
+<!-- Tournament Filter Modal -->
+<div class="modal fade"
+     id="tournamentFilterModal"
+     tabindex="-1"
+     aria-labelledby="tournamentFilterModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tournamentFilterModalLabel">
+                    <i class="bi bi-funnel"></i> Filter Tournaments
+                </h5>
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-info-circle"></i>
+                    Select which tournaments to display in the schedule. Only dates for selected tournaments will be shown.
+                </p>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary me-2" id="select-all-tournaments">
+                        <i class="bi bi-check-all"></i> Select All
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-tournaments">
+                        <i class="bi bi-x"></i> Deselect All
+                    </button>
+                </div>
+                <div id="tournament-filter-list" class="max-height-300 overflow-auto">
+                    <!-- Tournament checkboxes will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-primary" id="apply-tournament-filter">
+                    <i class="bi bi-check-lg"></i> Apply Filter
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Clock Times Entry Modal -->
+<div class="modal fade" id="clock-times-modal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Set Clock-In/Clock-Out Times</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <h6 id="selected-tournament-info"></h6>
+                    <small class="text-muted" id="affected-dates-info"></small>
+                </div>
+
+                <!-- Bulk Time Setting -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Bulk Clock-In Time:</label>
+                        <input type="time" class="form-control" id="bulk-clock-in">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Bulk Clock-Out Time:</label>
+                        <input type="time" class="form-control" id="bulk-clock-out">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" id="apply-bulk-times">
+                        Apply to All Selected
+                    </button>
+                </div>
+
+                <hr>
+
+                <!-- Individual Staff Time Entries -->
+                <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="select-all-staff">
+                        <label class="form-check-label" for="select-all-staff">
+                            <strong>Select All Staff</strong>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="staff-time-entries" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Staff time entries will be populated here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-clock-times">Save Times</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily/Salary Rate Modal -->
+<div class="modal fade" id="rate-type-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assignment Rate Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">How should this assignment be paid?</p>
+
+                <div class="mb-3">
+                    <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer; transition: background-color 0.2s;">
+                        <label class="form-check-label w-100" for="salary-rate" style="cursor: pointer;">
+                            <div class="d-flex align-items-center">
+                                <input class="form-check-input me-3" type="radio" name="rateType" id="salary-rate" value="salary" checked>
+                                <div class="me-3">
+                                    <i class="bi bi-building text-primary" style="font-size: 1.2em;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">Salary</div>
+                                    <small class="text-muted">Fixed salary payment</small>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer; transition: background-color 0.2s;">
+                        <label class="form-check-label w-100" for="daily-rate" style="cursor: pointer;">
+                            <div class="d-flex align-items-center">
+                                <input class="form-check-input me-3" type="radio" name="rateType" id="daily-rate" value="daily">
+                                <div class="me-3">
+                                    <i class="bi bi-calendar-day text-success" style="font-size: 1.2em;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">Daily Rate</div>
+                                    <small class="text-muted">Per day payment</small>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="daily-rate-input" class="mb-3" style="display: none;">
+                    <label for="daily-rate-amount" class="form-label">Daily Rate Amount:</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" class="form-control" id="daily-rate-amount" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="assignment-role" class="form-label">Role:</label>
+                    <select class="form-select" id="assignment-role">
+                        <option value="Unassigned">Unassigned</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-rate-type">Confirm Assignment</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Absence Type Selection Modal -->
+<div class="modal fade" id="absence-type-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Absence Type</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Why is this person not working?</p>
+
+                <!-- Tournament Selection (shown when multiple tournaments available) -->
+                <div id="absence-tournament-selection" class="mb-3" style="display: none;">
+                    <label for="absence-tournament" class="form-label">Tournament:</label>
+                    <select class="form-select" id="absence-tournament">
+                        <option value="">Select Tournament</option>
+                    </select>
+                </div>
+
+                <!-- Absence Type Radio Buttons -->
+                <div class="mb-3">
+                    <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;">
+                        <label class="form-check-label w-100" for="absence-sick" style="cursor: pointer;">
+                            <div class="d-flex align-items-center">
+                                <input class="form-check-input me-3" type="radio" name="absenceType" id="absence-sick" value="3" checked>
+                                <div class="me-3">
+                                    <i class="bi bi-thermometer-half text-danger" style="font-size: 1.2em;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">Sick</div>
+                                    <small class="text-muted">Client pays labor per diem only</small>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;">
+                        <label class="form-check-label w-100" for="absence-timeoff-offsite" style="cursor: pointer;">
+                            <div class="d-flex align-items-center">
+                                <input class="form-check-input me-3" type="radio" name="absenceType" id="absence-timeoff-offsite" value="4">
+                                <div class="me-3">
+                                    <i class="bi bi-airplane text-primary" style="font-size: 1.2em;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">Time Off - Offsite</div>
+                                    <small class="text-muted">No client billing, no per diem</small>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-check mb-3 p-3 border rounded" style="cursor: pointer;">
+                        <label class="form-check-label w-100" for="absence-timeoff-onsite" style="cursor: pointer;">
+                            <div class="d-flex align-items-center">
+                                <input class="form-check-input me-3" type="radio" name="absenceType" id="absence-timeoff-onsite" value="5">
+                                <div class="me-3">
+                                    <i class="bi bi-house text-success" style="font-size: 1.2em;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-dark">Time Off - Onsite</div>
+                                    <small class="text-muted">No client billing, no per diem</small>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-absence-type">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Travel Day Selection Modal -->
+<div class="modal fade" id="travel-modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Configure Travel Day</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">Select your travel route:</p>
+
+                <div class="mb-3">
+                    <label for="travel-from" class="form-label">Traveling From:</label>
+                    <select class="form-select" id="travel-from">
+                        <option value="">Select starting location</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="travel-to" class="form-label">Traveling To:</label>
+                    <select class="form-select" id="travel-to">
+                        <option value="">Select destination</option>
+                    </select>
+                </div>
+
+                <div id="travel-summary" class="alert alert-info" style="display: none;">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>Travel Route:</strong> <span id="travel-summary-text"></span>
+                    <br>
+                    <strong>Per Diem Rate:</strong> <span id="travel-perdiem-text"></span>
+                </div>
+
+                <div id="travel-validation-error" class="alert alert-warning" style="display: none;">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span id="travel-validation-message"></span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirm-travel">Confirm Travel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Check Staff Availability Modal -->
+<div class="modal fade" id="checkAvailabilityModal" tabindex="-1" aria-labelledby="checkAvailabilityModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="checkAvailabilityModalLabel">
+                    <i class="bi bi-calendar-check"></i> Check Staff Availability
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Date Range Selection -->
+                <div class="row mb-4">
+                    <div class="col-md-5">
+                        <label for="availability-start-date" class="form-label">Start Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="availability-start-date" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="availability-end-date" class="form-label">End Date <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="availability-end-date" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-primary w-100" id="check-availability-search">
+                            <i class="bi bi-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+
+                <div id="availability-loading" style="display: none;" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="mt-2 text-muted">Checking staff availability...</div>
+                </div>
+
+                <div id="availability-error" style="display: none;" class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>Error:</strong> <span id="availability-error-message"></span>
+                </div>
+
+                <!-- Results Container -->
+                <div id="availability-results" style="display: none;">
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Active Tournaments:</strong> <span id="active-tournaments-list"></span>
+                        <br>
+                        <strong>Total Dates with Tournament Activity:</strong> <span id="total-tournament-dates"></span>
+                    </div>
+
+                    <div style="max-height: 60vh; overflow-y: auto;">
+                        <div id="availability-dates-container">
+                            <!-- Day-by-day availability will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="availability-no-results" style="display: none;" class="text-center py-5 text-muted">
+                    <i class="bi bi-calendar-x" style="font-size: 3rem;"></i>
+                    <p class="mt-3">No tournament activity found in the selected date range.</p>
+                    <small>Try selecting a different date range.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tournament Assignment Report Modal -->
+<div class="modal fade" id="reportModal" tabindex="-1" aria-labelledby="reportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reportModalLabel">
+                    <i class="bi bi-file-earmark-bar-graph"></i> Tournament Assignment Report
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Tournament Selection -->
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Select Tournaments:</label>
+                    <div class="mb-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary me-2" id="report-select-all">
+                            <i class="bi bi-check-all"></i> Select All
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary me-2" id="report-deselect-all">
+                            <i class="bi bi-x"></i> Deselect All
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary" id="generate-report-btn">
+                            <i class="bi bi-play-fill"></i> Generate Report
+                        </button>
+                    </div>
+                    <div id="report-tournament-list" class="border rounded p-2" style="max-height: 150px; overflow-y: auto;">
+                        <!-- Tournament checkboxes populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Staff Selection (shown after tournaments selected) -->
+                <div id="report-staff-selection" class="mb-3" style="display: none;">
+                    <label class="form-label fw-bold">Select Staff:</label>
+                    <div class="mb-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary me-2" id="report-staff-select-all">
+                            <i class="bi bi-check-all"></i> Select All
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="report-staff-deselect-all">
+                            <i class="bi bi-x"></i> Deselect All
+                        </button>
+                    </div>
+                    <div id="report-staff-list" class="border rounded p-2" style="max-height: 200px; overflow-y: auto;">
+                        <!-- Staff checkboxes populated dynamically -->
+                    </div>
+                    <small class="text-muted mt-1 d-block" id="report-staff-info"></small>
+                </div>
+
+                <!-- Report Results -->
+                <div id="report-results" style="display: none;">
+                    <hr>
+                    <!-- Summary Section -->
+                    <div class="alert alert-info">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>Selected Tournaments:</strong> <span id="report-tournament-count">0</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Total Tournament Days:</strong> <span id="report-total-days">0</span>
+                            </div>
+                            <div class="col-md-4">
+                                <strong>Staff Assigned:</strong> <span id="report-staff-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Detailed Results -->
+                    <div id="report-details" style="max-height: 50vh; overflow-y: auto;">
+                        <!-- Staff assignment details populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add User Modal (Admin Only) -->
+<div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUserModalLabel">
+                    <i class="bi bi-person-plus"></i> Add New User
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-user-form">
+                    <div class="mb-3">
+                        <label for="user-first-name" class="form-label">First Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="user-first-name" required>
+                        <div class="invalid-feedback">Please provide a first name.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="user-last-name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="user-last-name" required>
+                        <div class="invalid-feedback">Please provide a last name.</div>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <small>The new user will be added to the system and can be assigned to tournaments and roles.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg"></i> Cancel
+                </button>
+                <button type="button" class="btn btn-success" id="save-user">
+                    <i class="bi bi-check-lg"></i> Add User
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
+@Scripts.Render("~/bundles/eventschedule")
+
+<script type="text/javascript">
+    // Pass server-side data to JavaScript
+    window.EventStaffData = @Html.Raw(Json.Encode(Model.EventStaff));
+    window.TournamentsData = @Html.Raw(Json.Encode(Model.Tournaments));
+    window.CurrentYear = @Model.CurrentYear;
+    window.IsAdmin = @Json.Encode(Model.IsAdmin);
+
+    // Global variable to store tournament roles
+    window.TournamentRoles = [];
+
+    // Utility functions for UI feedback
+    window.showSuccess = function(message) {
+        $('#success-message').text(message);
+        $('#success-container').show();
+        setTimeout(() => $('#success-container').fadeOut(), 3000);
+    };
+
+    window.showError = function(message) {
+        $('#error-message').text(message);
+        $('#error-container').show();
+    };
+
+    window.showLoading = function() {
+        $('#loading').show();
+    };
+
+    window.hideLoading = function() {
+        $('#loading').hide();
+    };
+
+    // Function to load tournament roles from the backend
+    window.loadTournamentRoles = async function() {
+        try {
+            const response = await fetch(ProcessUrl('Tournament/GetAvailableTournamentRoles'));
+            if (response.ok) {
+                const data = await response.json();
+
+                // Check if this is an error response
+                if (data.success === false) {
+                    window.TournamentRoles = [];
+                    return;
+                }
+
+                // If data is an array, use it directly; otherwise it might be wrapped
+                window.TournamentRoles = Array.isArray(data) ? data : (data.roles || []);
+                updateRoleContextMenu();
+            } else {
+                window.TournamentRoles = [];
+            }
+        } catch (error) {
+            window.TournamentRoles = [];
+        }
+    };
+
+    // Function to update the context menu with dynamic roles
+    window.updateRoleContextMenu = function() {
+        const container = $('#dynamic-roles-container');
+        container.empty();
+
+        window.TournamentRoles.forEach(role => {
+            const roleItem = $(`
+                <div class="context-menu-item" data-action="role-${role.Id}" data-role-id="${role.Id}" data-role-name="${role.Title}" data-role-rate="${role.DailyRate}">
+                    <i class="bi bi-person-badge"></i> ${role.Title} ($${role.DailyRate}/day)
+                </div>
+            `);
+
+            // Add click handler for the dynamic role
+            roleItem.on('click', function() {
+                const roleId = $(this).data('role-id');
+                const roleName = $(this).data('role-name');
+                const roleRate = $(this).data('role-rate');
+
+                // Hide context menu
+                $('#context-menu').hide();
+
+                // Trigger role assignment with the selected role
+                if (window.spreadsheetApp && window.spreadsheetApp.selectedCell) {
+                    window.spreadsheetApp.assignRoleToSelectedCell(roleId, roleName, roleRate);
+                }
+            });
+
+            container.append(roleItem);
+        });
+    };
+
+    // Function to show/hide role options based on cell content
+    window.updateContextMenuForCell = function(cellElement) {
+        const $cell = $(cellElement);
+        const cellId = $cell.data('cell');
+        const hasAssignment = $cell.hasClass('assigned') || $cell.text().trim() !== '';
+
+        // Show/hide role options based on whether cell has an assignment
+        $('#dynamic-roles-container .context-menu-item').toggle(hasAssignment);
+        $('.context-menu-item[data-action="role-unassigned"]').toggle(hasAssignment);
+
+        // Also show/hide the separator before role options if needed
+        $('#role-separator').toggle(hasAssignment);
+    };
+
+    // Check Staff Availability Functions
+    window.openCheckAvailabilityModal = function() {
+        // Set default date range (current year start to end)
+        const today = new Date();
+        const startOfYear = new Date(today.getFullYear(), 0, 1);
+        const endOfYear = new Date(today.getFullYear(), 11, 31);
+
+        $('#availability-start-date').val(startOfYear.toISOString().split('T')[0]);
+        $('#availability-end-date').val(endOfYear.toISOString().split('T')[0]);
+
+        // Reset results
+        $('#availability-results').hide();
+        $('#availability-no-results').hide();
+        $('#availability-error').hide();
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('checkAvailabilityModal'));
+        modal.show();
+    };
+
+    window.checkStaffAvailability = async function() {
+        const startDate = $('#availability-start-date').val();
+        const endDate = $('#availability-end-date').val();
+
+        if (!startDate || !endDate) {
+            $('#availability-error-message').text('Please select both start and end dates.');
+            $('#availability-error').show();
+            return;
+        }
+
+        // Hide previous results/errors
+        $('#availability-results').hide();
+        $('#availability-no-results').hide();
+        $('#availability-error').hide();
+        $('#availability-loading').show();
+
+        try {
+            const url = ProcessUrl(`Tournament/CheckStaffAvailability?startDate=${startDate}&endDate=${endDate}`);
+            const response = await fetch(url);
+            const data = await response.json();
+
+            $('#availability-loading').hide();
+
+            if (!data.success) {
+                $('#availability-error-message').text(data.message || 'An error occurred while checking availability.');
+                $('#availability-error').show();
+                return;
+            }
+
+            // Check if we have results
+            if (!data.tournamentDates || data.tournamentDates.length === 0) {
+                $('#availability-no-results').show();
+                return;
+            }
+
+            // Display results
+            $('#active-tournaments-list').text(data.activeTournaments.join(', ') || 'None');
+            $('#total-tournament-dates').text(data.totalDatesWithTournaments || 0);
+
+            // Build day-by-day results
+            const container = $('#availability-dates-container');
+            container.empty();
+
+            data.tournamentDates.forEach(dateInfo => {
+                const dateCard = $(`
+                    <div class="availability-date-card">
+                        <div class="availability-date-header">
+                            <div class="availability-date-title">
+                                <i class="bi bi-calendar-date"></i> ${formatDate(dateInfo.Date)}
+                            </div>
+                            <div class="availability-count-badge">
+                                ${dateInfo.AvailableCount} Available
+                            </div>
+                        </div>
+                        <div class="availability-staff-list">
+                            ${dateInfo.AvailableCount > 0 ?
+                                `<ul class="staff-list-items">
+                                    ${dateInfo.AvailableStaff.map(staff => `
+                                        <li class="staff-list-item">
+                                            <span class="staff-item-content">
+                                                <i class="bi bi-person-check-fill"></i>
+                                                <span class="staff-name">${staff.FullName}</span>
+                                            </span>
+                                            <button class="btn btn-sm btn-success assign-staff-btn"
+                                                    data-user-id="${staff.UserId}"
+                                                    data-staff-name="${staff.FullName}"
+                                                    data-date="${dateInfo.Date}">
+                                                <i class="bi bi-plus-circle"></i> Assign
+                                            </button>
+                                        </li>
+                                    `).join('')}
+                                </ul>` :
+                                '<p class="no-staff-message"><i class="bi bi-x-circle"></i> No staff available on this date</p>'
+                            }
+                        </div>
+                    </div>
+                `);
+                container.append(dateCard);
+            });
+
+            $('#availability-results').show();
+        } catch (error) {
+            $('#availability-loading').hide();
+            $('#availability-error-message').text('An unexpected error occurred: ' + error.message);
+            $('#availability-error').show();
+        }
+    };
+
+    // Helper function to format date nicely
+    window.formatDate = function(dateString) {
+        const date = new Date(dateString + 'T00:00:00');
+        const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+        return date.toLocaleDateString('en-US', options);
+    };
+
+    // Initialize page
+    $(document).ready(async function() {
+        // Show loading initially
+        showLoading();
+
+        // Load tournament roles for dynamic context menu
+        await loadTournamentRoles();
+
+        // Hide loading after spreadsheet is initialized (will be handled by EventScheduleAPI.js)
+        setTimeout(() => {
+            if ($('.spreadsheet .cell').length > 0) {
+                hideLoading();
+            }
+        }, 2000);
+
+        // Wire up Check Availability button
+        $('#check-availability-btn').on('click', function() {
+            openCheckAvailabilityModal();
+        });
+
+        // Wire up Search button in modal
+        $('#check-availability-search').on('click', function() {
+            checkStaffAvailability();
+        });
+
+        // Event delegation for dynamically created Assign buttons
+        $(document).on('click', '.assign-staff-btn', function() {
+            const userId = $(this).data('user-id');
+            const staffName = $(this).data('staff-name');
+            const date = $(this).data('date');
+            if (window.spreadsheetApp) {
+                window.spreadsheetApp.assignStaffFromAvailability(userId, staffName, date);
+            }
+        });
+    });
+</script>
+
+<style>
+.clock-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 16px;
+    height: 16px;
+    background-color: #28a745;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    pointer-events: none;
+}
+
+.clock-indicator i {
+    font-size: 8px;
+}
+
+.cell {
+    position: relative;
+}
+
+/* Ensure clock indicator is visible on different cell backgrounds */
+.cell.assigned .clock-indicator {
+    background-color: #17a2b8; /* Different color for assigned cells */
+}
+
+.cell.travel .clock-indicator {
+    background-color: #ffc107; /* Yellow for travel */
+    color: #000;
+}
+
+.cell.not-working .clock-indicator {
+    background-color: #dc3545; /* Red for not working */
+}
+
+/* Rate Type Modal Styling */
+.form-check.border:hover {
+    background-color: #f8f9fa;
+}
+
+.form-check:has(input[type="radio"]:checked) {
+    border-color: #0d6efd !important;
+    background-color: #e7f3ff;
+}
+
+/* Fix radio button styling */
+.form-check-input[type="radio"] {
+    background-color: #fff !important;
+    border: 2px solid #ced4da !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin-top: 0 !important;
+    flex-shrink: 0;
+}
+
+.form-check-input[type="radio"]:checked {
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='2' fill='%23fff'/%3e%3c/svg%3e") !important;
+}
+
+.form-check-input[type="radio"]:focus {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+    background-color: #fff !important;
+}
+</style>
+

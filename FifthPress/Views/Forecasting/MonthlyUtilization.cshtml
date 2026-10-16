@@ -1,0 +1,366 @@
+@model List<sp_GetMonthlyUtilizationByDepartment_Result>
+
+@{
+    ViewBag.Title = "Monthly Utilization vs. 80% Goal";
+    var period = ViewBag.Period as ForecastPeriod;
+    var departments = ViewBag.Departments as List<Department>;
+    var selectedDeptId = ViewBag.SelectedDepartmentId;
+    var retainerFilter = ViewBag.RetainerFilter ?? 0;
+    var contractTypeFilter = ViewBag.ContractTypeFilter ?? 0;
+}
+
+@if (period == null)
+{
+    <div class="alert alert-danger">
+        <h4>Error: Period Not Found</h4>
+        <p>The forecast period could not be loaded.</p>
+        @Html.ActionLink("Back to Periods", "Index", null, new { @class = "btn btn-default" })
+    </div>
+    return;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12" style="position: relative;">
+            <h2>Monthly Utilization vs. 80% Goal</h2>
+            <p class="text-muted">
+                Period: @period.PeriodName (@period.StartDate.ToString("MM/dd/yyyy") - @period.EndDate.ToString("MM/dd/yyyy"))
+            </p>
+
+            <!-- Filters (Top Right) -->
+            <div style="position: absolute; top: 0; right: 15px; display: flex; gap: 10px;">
+                <select id="contractTypeSelector" class="form-control" style="width: 160px;">
+                    <option value="0" @(contractTypeFilter == 0 ? "selected" : "")>All Contracts</option>
+                    <option value="1" @(contractTypeFilter == 1 ? "selected" : "")>Actual Only</option>
+                    <option value="2" @(contractTypeFilter == 2 ? "selected" : "")>Forecast Only</option>
+                </select>
+                <select id="retainerSelector" class="form-control" style="width: 160px;">
+                    <option value="0" @(retainerFilter == 0 ? "selected" : "")>All Types</option>
+                    <option value="1" @(retainerFilter == 1 ? "selected" : "")>Retainer Only</option>
+                    <option value="2" @(retainerFilter == 2 ? "selected" : "")>Non-Retainer Only</option>
+                </select>
+                <select id="departmentSelector" class="form-control" style="width: 200px;">
+                    @foreach (var dept in departments)
+                    {
+                        <option value="@dept.Id" @(dept.Id == selectedDeptId ? "selected" : "")>
+                            @dept.Title
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="row" style="margin-bottom: 20px; margin-top: 10px;">
+                <div class="col-md-12">
+                    @Html.ActionLink("← Back to Contracts", "Contracts", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-default" })
+                    @Html.ActionLink("View Detailed Breakdown", "MonthlyUtilizationDetailed", new { periodId = period.ForecastPeriodID, departmentId = selectedDeptId }, new { @class = "btn btn-primary" })
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <!-- Chart Container -->
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <canvas id="utilizationChart" height="80"></canvas>
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="panel panel-info">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Average Booked</h4>
+                                <h2 style="color: #337ab7; margin: 10px 0;">
+                                    @Model.Average(x => (x.BookedPercentage ?? 0m)).ToString("N1")%
+                                </h2>
+                                <p class="text-muted">across all months</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-success">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Months at Target</h4>
+                                <h2 style="color: #5cb85c; margin: 10px 0;">
+                                    @Model.Count(x => x.BookedPercentage >= 75 && x.BookedPercentage <= 85)
+                                </h2>
+                                <p class="text-muted">within 75-85% range</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-warning">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Under-booked Months</h4>
+                                <h2 style="color: #f0ad4e; margin: 10px 0;">
+                                    @Model.Count(x => x.BookedPercentage < 75)
+                                </h2>
+                                <p class="text-muted">below 75%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-danger">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Over-booked Months</h4>
+                                <h2 style="color: #d9534f; margin: 10px 0;">
+                                    @Model.Count(x => x.BookedPercentage > 85)
+                                </h2>
+                                <p class="text-muted">above 85%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <h4>No Data Available</h4>
+                    <p>There is no utilization data for this period and department combination.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+        $(document).ready(function () {
+            var retainerFilter = @retainerFilter;
+            var contractTypeFilter = @contractTypeFilter;
+
+            // Navigation helper
+            function navigateWithFilters() {
+                var periodId = @period.ForecastPeriodID;
+                var departmentId = $('#departmentSelector').val();
+                var retainer = $('#retainerSelector').val();
+                var contractType = $('#contractTypeSelector').val();
+                window.location.href = '@Url.Action("MonthlyUtilization", "Forecasting")?periodId=' + periodId + '&departmentId=' + departmentId + '&retainerFilter=' + retainer + '&contractTypeFilter=' + contractType;
+            }
+
+            // Department selector change handler
+            $('#departmentSelector').change(navigateWithFilters);
+
+            // Retainer filter change handler
+            $('#retainerSelector').change(navigateWithFilters);
+
+            // Contract type filter change handler
+            $('#contractTypeSelector').change(navigateWithFilters);
+
+            @if (Model != null && Model.Any())
+            {
+                <text>
+                // Prepare chart data with retainer/non-retainer split
+                var chartData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(m => new {
+                    month = m.MonthStart.HasValue ? m.MonthStart.Value.ToString("MMM yyyy") : m.MonthName,
+                    retainer = Math.Round(m.RetainerPercentage ?? 0, 1),
+                    nonRetainer = Math.Round(m.NonRetainerPercentage ?? 0, 1),
+                    booked = Math.Round(m.BookedPercentage ?? 0, 1),
+                    remaining = Math.Round(m.RemainingToTargetPercentage ?? 0, 1),
+                    overbooked = Math.Round(m.OverbookedPercentage ?? 0, 1)
+                })));
+
+                var months = chartData.map(d => d.month);
+                var retainerData = chartData.map(d => d.retainer);
+                var nonRetainerData = chartData.map(d => d.nonRetainer);
+                var bookedData = chartData.map(d => d.booked);
+                var remainingData = chartData.map(d => d.remaining);
+                var overbookedData = chartData.map(d => d.overbooked);
+
+                // Custom plugin to draw bold black line between retainer and non-retainer
+                const retainerSeparatorPlugin = {
+                    id: 'retainerSeparator',
+                    afterDatasetsDraw: function(chart) {
+                        if (retainerFilter !== 0) return; // Only draw when "Both" is selected
+
+                        var ctx = chart.ctx;
+                        var meta = chart.getDatasetMeta(0); // Retainer dataset
+
+                        if (!meta.data || meta.data.length === 0) return;
+
+                        ctx.save();
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+
+                        meta.data.forEach(function(bar, index) {
+                            // Draw line at top of retainer bar (bottom of non-retainer)
+                            var x = bar.x;
+                            var y = bar.y;
+                            var halfWidth = bar.width / 2;
+
+                            if (index === 0) {
+                                ctx.moveTo(x - halfWidth, y);
+                            }
+                            ctx.lineTo(x - halfWidth, y);
+                            ctx.lineTo(x + halfWidth, y);
+                        });
+
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                };
+
+                // Build datasets based on retainer filter
+                var datasets = [];
+
+                if (retainerFilter === 0) {
+                    // Both: Show stacked retainer (bottom) and non-retainer (top)
+                    datasets = [
+                        {
+                            label: 'Retainer',
+                            data: retainerData,
+                            backgroundColor: '#1a5276',  // Darker blue
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Non-Retainer',
+                            data: nonRetainerData,
+                            backgroundColor: '#5dade2',  // Lighter blue
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Remaining to 80%',
+                            data: remainingData,
+                            backgroundColor: '#d3d3d3',
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Overbooked',
+                            data: overbookedData,
+                            backgroundColor: '#d9534f',
+                            stack: 'stack0'
+                        }
+                    ];
+                } else if (retainerFilter === 1) {
+                    // Retainer Only
+                    datasets = [
+                        {
+                            label: 'Retainer',
+                            data: retainerData,
+                            backgroundColor: '#1a5276',
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Remaining to 80%',
+                            data: remainingData,
+                            backgroundColor: '#d3d3d3',
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Overbooked',
+                            data: overbookedData,
+                            backgroundColor: '#d9534f',
+                            stack: 'stack0'
+                        }
+                    ];
+                } else {
+                    // Non-Retainer Only
+                    datasets = [
+                        {
+                            label: 'Non-Retainer',
+                            data: nonRetainerData,
+                            backgroundColor: '#5dade2',
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Remaining to 80%',
+                            data: remainingData,
+                            backgroundColor: '#d3d3d3',
+                            stack: 'stack0'
+                        },
+                        {
+                            label: 'Overbooked',
+                            data: overbookedData,
+                            backgroundColor: '#d9534f',
+                            stack: 'stack0'
+                        }
+                    ];
+                }
+
+                // Create chart
+                var ctx = document.getElementById('utilizationChart').getContext('2d');
+                var chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            x: {
+                                stacked: true,
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Utilization %'
+                                },
+                                grace: '10%'
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                color: '#fff',
+                                font: {
+                                    weight: 'bold',
+                                    size: 11
+                                },
+                                formatter: function(value, context) {
+                                    return value > 5 ? value.toFixed(1) + '%' : '';
+                                }
+                            },
+                            annotation: {
+                                annotations: {
+                                    goalLine: {
+                                        type: 'line',
+                                        yMin: 80,
+                                        yMax: 80,
+                                        borderColor: '#d9534f',
+                                        borderWidth: 2,
+                                        borderDash: [5, 5],
+                                        label: {
+                                            content: 'Goal (80%)',
+                                            enabled: true,
+                                            position: 'end',
+                                            backgroundColor: '#d9534f',
+                                            color: '#fff',
+                                            font: {
+                                                size: 10,
+                                                weight: 'bold'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels, retainerSeparatorPlugin]
+                });
+                </text>
+            }
+        });
+</script>

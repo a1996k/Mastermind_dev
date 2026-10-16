@@ -1,0 +1,42 @@
+﻿<div class="modal" tabindex="-1" id="dashboard_permission_config_modal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 field-binder-row-flex justify-content-between">
+                            <h5 class="modal-title ff-poppins fs-16">Configure <span class="db-requestor-name"></span>'s Permissions for <span class="db-card-title"></span></h5>
+                            <button type="button" data-bs-dismiss="modal" data-modal-to-close="#dashboard_permission_config_modal" aria-label="Cancel">X Cancel</button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <h3 class="ff-poppins fs-16">Assigned Users</h3>
+                        </div>
+                        <div class="col-6">
+                            <h3 class="ff-poppins fs-16">Unassigned Users</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" class="active-card-id" />
+                <div class="container">
+                    <div class="row">
+                        <div class="col-6">
+                            <ul class="assigned-users striped-ul">
+                            </ul>
+                        </div>
+                        <div class="col-6">
+                            <ul class="unassigned-users striped-ul">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-fc-primary" data-modal-to-close="#dashboard_permission_config_modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

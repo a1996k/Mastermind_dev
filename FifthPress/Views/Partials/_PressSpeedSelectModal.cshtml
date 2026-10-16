@@ -1,0 +1,41 @@
+﻿<div class="modal" tabindex="-1" id="press_speed_select_modal">
+    <input type="hidden" class="current-item-id" />
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Select Press Speed</h5>
+                <button type="button" data-bs-dismiss="modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="nu-viewport">
+                    <table id="press_speed_select_table">
+                        <thead>
+                            <tr>
+                                <th width="10%">
+                                    Select
+                                </th>
+                                <th width="40%">
+                                    Speed
+                                </th>
+                                <th width="50%">
+                                    Notes
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <!--<div class="custom-speed-entry mins-input" style="display:none">
+                        <label>Enter Speed</label>
+                        <input type="text" class="override-speed-numerator" />
+                        @Html.DropDownList("SpeedDenominator", ViewData["SpeedDenoinator"] as SelectList, htmlAttributes: new { })
+                    </div>-->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-fc-caution">Cancel</button>
+                <button type="button" class="btn btn-fc-primary update-press-speed" data-target-type="Press">Update</button>
+            </div>
+        </div>
+    </div>
+</div>

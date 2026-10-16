@@ -1,0 +1,31 @@
+﻿@model ValueTuple<List<Job>, string>
+
+@{
+    string gridId = String.Format("{0}_grid", Model.Item2);
+    string listId = String.Format("{0}_list", Model.Item2);
+}
+
+<div class="grid-area @Model.Item2-items" id="@gridId">
+
+    <div class="py-0 py-lg-3 d-flex flex-row justify-content-evenly align-items-center">
+        <div class="d-flex flex-column justify-content-evenly">
+            <i class="fa-solid fa-arrow-up-a-z sorter-active"></i>
+            <i class="fa-solid fa-arrow-down-a-z" style="padding-top: 15px;"></i>
+        </div>
+        <h5>@Model.Item2</h5>
+        <div class="d-flex flex-column justify-content-evenly">
+            <div class="m-icon-pairer finish-asc">
+                <i class="fa-solid fa-sort-up"></i>
+                <i class="fa-solid fa-calendar-days"></i>
+            </div>
+            <div class="m-icon-pairer finish-desc">
+                <i class="fa-solid fa-sort-down"></i>
+                <i class="fa-solid fa-calendar-days"></i>
+            </div>
+        </div>
+    </div>
+
+    <ul class="connected-sortable" id="@listId">
+        @Html.Partial("~/Views/Partials/_JobList.cshtml", Model.Item1)
+    </ul>
+</div>

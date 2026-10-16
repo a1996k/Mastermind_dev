@@ -1,0 +1,26 @@
+﻿@model List<Job>
+
+@{ int counter = 0; }
+@foreach (Job j in Model)
+{
+    <li class="job-item" draggable="true" id="draggable_@j.Id" data-job-id="@j.Id">
+        <div class="job-inner">
+            <div class="row position-relative">
+                <div class="col-6 text-start">
+                    <span class="job-start">Job Start Date</span>
+                </div>
+                <div class="col-6 text-end">
+                    <span class="job-end">Job Due Date</span>
+                </div>
+            </div>
+            <div class="row justify-content-center px-5 text-center fs-5">
+                @j.Title
+            </div>
+            <div class="row justify-content-center">
+                @j.JobStatus.Title
+            </div>
+            
+        </div>
+    </li>
+    counter++;
+}

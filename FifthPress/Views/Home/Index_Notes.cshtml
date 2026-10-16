@@ -1,0 +1,90 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_LiveJobTable
+
+<style>
+    textarea {
+        min-height: 100px;
+        width: 100%;
+    }
+
+    label {
+        font-weight: bold;
+    }
+</style>
+
+@Styles.Render("~/Content/joblistcss")
+
+<div class="slide-o-left auto-slide-me toast-overlay btn-group">
+    <button type="button" class="btn btn-fc-info toast-view-button">View Job</button>
+    <button type="button" class="btn btn-fc-info toast-job-ticket-button">View Job Ticket</button>
+    <button type="button" class="btn btn-fc-info toast-edit-job-button">Edit Job</button>
+    <!--<button type="button" class="btn btn-fc-caution toast-view-timing-entries-button">View Timing Entries</button>-->
+    <button type="button" class="btn btn-fc-info toast-delivery-ticket-button">Get Delivery Ticket</button>
+</div>
+
+<h2 class="mt-3">Note: "Tabbing" off of the field will update the Notes on the record</h2>
+
+<div class="print-table">
+    <ul>
+        @foreach (VM_ForecastedJob vm in Model.Jobs.ToList())
+        {
+            <li>
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="field-binder-col-flex fs-3">
+                                <div class="ps-3">
+                                    <label>Min. Start Date</label>
+                                    @Html.DisplayFor(model => vm.MinStartDateFormatted)
+                                </div>
+                                <div class="ps-3">
+                                    <label>Job Number</label>
+                                    @Html.DisplayFor(model => vm.JobNumber)
+                                </div>
+                                <div class="ps-3">
+                                    <label>Customer</label>
+                                    @Html.DisplayFor(model => vm.Customer)
+                                </div>
+                                <div class="ps-3">
+                                    <label>Description</label>
+                                    @Html.DisplayFor(model => vm.TruncatedDescription)
+                                </div>
+                                <div class="ps-3">
+                                    <label>Due Date</label>
+                                    @Html.DisplayFor(model => vm.DueDateFormatted)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="field-binder-row-flex" data-record-id="@Html.DisplayFor(model => vm.JobItemId)">
+                                @Html.TextAreaFor(model => vm.Notes)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        }
+    </ul>
+</div>
+
+<script>
+    function SaveNotesToItem() {
+        var $ele = $(this);
+        var rId = $ele.parent().attr('data-record-id');
+        var content = $ele.val();
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('save-item-notes-from-table'),
+            data: {
+                recordId: rId,
+                content: content
+            }
+        });
+    };
+    $(function () {
+    })
+        .on('blur', 'textarea', SaveNotesToItem);
+</script>

@@ -1,0 +1,9 @@
+*service order - save order when saving record (need to include apex ordinal)
+*in progress jobs = jobs with no Completed value
+--record lookup higher priority
+^ Jobs In Progress view (like left hand side)
+
+* Invoice (Tax) 5.5% on all jobs for invoice
+* Client - Tax Exempt (and by job)
+
+Collate, Staple and Numbering <-- Add numbering and allow to be selected on item

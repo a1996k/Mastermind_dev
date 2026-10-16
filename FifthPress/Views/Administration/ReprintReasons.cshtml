@@ -1,0 +1,70 @@
+@model List<FifthPress.Reprint_Reasons>
+@{
+    ViewBag.Title = "Reprint Reasons";
+}
+
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Reprint Categories &amp; Reasons</h2>
+        <div>
+            <a href="@Url.Action("Index", "Administration")" class="btn btn-secondary">&larr; Back to Admin</a>
+            <a href="@Url.Action("CreateReprintReason")" class="btn btn-success">Add Reason</a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">No reprint reasons defined yet. Click <strong>Add Reason</strong> to create one.</div>
+    }
+    else
+    {
+        <table class="table table-striped table-bordered" id="reprintReasonsTable">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Reason</th>
+                    <th>Default Cost Allocation</th>
+                    <th class="text-center">Sort</th>
+                    <th class="text-center">Active</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr class="@(r.IsActive ? "" : "text-muted")">
+                        <td>@r.Category</td>
+                        <td>@r.ReasonText</td>
+                        <td>@r.DefaultCostAllocation</td>
+                        <td class="text-center">@r.SortOrder</td>
+                        <td class="text-center">
+                            @if (r.IsActive)
+                            {
+                                <span class="badge bg-success">Active</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Inactive</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a href="@Url.Action("EditReprintReason", new { id = r.ReasonId })" class="btn btn-sm btn-primary">Edit</a>
+                            @using (Html.BeginForm("ToggleReprintReason", "Administration", new { id = r.ReasonId }, FormMethod.Post, new { style = "display:inline" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm @(r.IsActive ? "btn-warning" : "btn-success")">
+                                    @(r.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

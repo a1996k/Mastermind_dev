@@ -1,0 +1,613 @@
+﻿@model FifthPress.Models.ViewModels2.PO25.VM_BudgetManagement25
+
+@{
+    ViewBag.Title = "Budget Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fa fa-money"></i> Budget Management</h2>
+            <hr />
+            <a href="@Url.Action("Index")" class="btn btn-default">
+                <i class="fa fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <!-- Budget Summary -->
+    @if (Model.BudgetSummary != null)
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-pie-chart"></i> Overall Budget Summary</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h4>Total Allocated</h4>
+                                <h3 class="text-primary">$@Model.BudgetSummary.TotalBudget.ToString("N0")</h3>
+                            </div>
+                            <div class="col-md-3">
+                                <h4>Total Spent</h4>
+                                <h3 class="text-info">$@Model.BudgetSummary.TotalSpent.ToString("N0")</h3>
+                            </div>
+                            <div class="col-md-3">
+                                <h4>Remaining</h4>
+                                <h3 class="@(Model.BudgetSummary.TotalRemaining < 0 ? "text-danger" : "text-success")">
+                                    $@Model.BudgetSummary.TotalRemaining.ToString("N0")
+                                </h3>
+                            </div>
+                            <div class="col-md-3">
+                                <h4>Avg Utilization</h4>
+                                <h3 class="@(Model.BudgetSummary.AveragePercentUsed > 100 ? "text-danger" : Model.BudgetSummary.AveragePercentUsed > 90 ? "text-warning" : "text-success")">
+                                    @Model.BudgetSummary.AveragePercentUsed.ToString("F1")%
+                                </h3>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar @(Model.BudgetSummary.AveragePercentUsed > 100 ? "progress-bar-danger" : Model.BudgetSummary.AveragePercentUsed > 90 ? "progress-bar-warning" : "progress-bar-success")"
+                                         style="width: @(Math.Min(Model.BudgetSummary.AveragePercentUsed, 100))%">
+                                        @Model.BudgetSummary.AveragePercentUsed.ToString("F1")%
+                                    </div>
+                                    @if (Model.BudgetSummary.AveragePercentUsed > 100)
+                                    {
+                                        <div class="progress-bar progress-bar-danger progress-bar-striped"
+                                             style="width: @(Model.BudgetSummary.AveragePercentUsed - 100)%">
+                                            Over by @((Model.BudgetSummary.AveragePercentUsed - 100).ToString("F1"))%
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Add New Department Budget -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-plus"></i> Add/Update Department Budget</h3>
+                </div>
+                <div class="panel-body">
+                    @using (Html.BeginForm("UpdateBudget", "PO25Admin", FormMethod.Post, new { @class = "form-horizontal" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="departmentId" class="control-label">Department</label>
+                                    <select id="departmentId" name="departmentId" class="form-control" required>
+                                        <option value="">Select Department...</option>
+                                        @foreach (var dept in Model.AvailableDepartments)
+                                        {
+                                            <option value="@dept.Value">@dept.Text</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="budget" class="control-label">Annual Budget</label>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">$</span>
+                                        <input type="number" id="budget" name="budget" class="form-control" min="0" step="0.01" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="control-label">&nbsp;</label>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" name="allowOverages" value="true" />
+                                            Allow Budget Overages
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label class="control-label">&nbsp;</label>
+                                    <div>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fa fa-save"></i> Update Budget
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Department Budgets Table -->
+    @if (Model.DepartmentBudgets != null && Model.DepartmentBudgets.Any())
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-table"></i> Department Budgets</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="budgetTable">
+                                <thead>
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Annual Budget</th>
+                                        <th>YTD Spent</th>
+                                        <th>Available Balance</th>
+                                        <th>% Used</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var budget in Model.DepartmentBudgets.OrderBy(b => b.DepartmentName))
+                                    {
+                                        <tr class="@(budget.IsOverBudget ? "danger" : budget.PercentUsed > 90 ? "warning" : "")">
+                                            <td>
+                                                <strong>@budget.DepartmentName</strong>
+                                            </td>
+                                            <td>$@budget.AnnualBudget.ToString("N0")</td>
+                                            <td>$@budget.YtdSpent.ToString("N0")</td>
+                                            <td class="@(budget.AvailableBalance < 0 ? "text-danger" : "text-success")">
+                                                $@budget.AvailableBalance.ToString("N0")
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="margin-bottom: 0;">
+                                                    <div class="progress-bar @(budget.PercentUsed > 100 ? "progress-bar-danger" : budget.PercentUsed > 90 ? "progress-bar-warning" : "progress-bar-success")"
+                                                         style="width: @(Math.Min(budget.PercentUsed, 100))%">
+                                                        @budget.PercentUsed.ToString("F1")%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if (budget.IsOverBudget)
+                                                {
+                                                    <span class="label label-danger">Over Budget</span>
+                                                }
+                                                else if (budget.PercentUsed > 90)
+                                                {
+                                                    <span class="label label-warning">Near Limit</span>
+                                                }
+                                                else if (budget.PercentUsed > 75)
+                                                {
+                                                    <span class="label label-info">Monitoring</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="label label-success">Good</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-xs">
+                                                    <a href="@Url.Action("BudgetDetails", new { id = budget.DepartmentId })"
+                                                       class="btn btn-info" title="View Details">
+                                                        <i class="fa fa-eye"></i>
+                                                    </a>
+                                                    <button type="button" class="btn btn-warning"
+                                                            onclick="editBudget(@budget.DepartmentId, '@budget.DepartmentName', @budget.AnnualBudget)"
+                                                            title="Edit Budget">
+                                                        <i class="fa fa-edit"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <i class="fa fa-info-circle"></i> No department budgets have been configured yet. Use the form above to add department budgets.
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ========== COMPANY-WIDE BUDGETS SECTION ========== -->
+    <div class="row">
+        <div class="col-md-12">
+            <hr />
+            <h3><i class="fa fa-building"></i> Company-Wide Budgets</h3>
+            <p class="text-muted">Company budgets are shared pools that can be used across departments for company-wide purchases.</p>
+        </div>
+    </div>
+
+    <!-- Company Budget Summary -->
+    @if (Model.CompanyBudgetSummary != null && Model.CompanyBudgets?.Any() == true)
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-pie-chart"></i> Company Budget Summary - FY @Model.SelectedFiscalYear</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <h4>Total Allocated</h4>
+                                <h3 class="text-primary">@Model.CompanyBudgetSummary.TotalAllocated.ToString("C0")</h3>
+                            </div>
+                            <div class="col-md-3">
+                                <h4>Total Spent</h4>
+                                <h3 class="text-info">@Model.CompanyBudgetSummary.TotalSpent.ToString("C0")</h3>
+                            </div>
+                            <div class="col-md-3">
+                                <h4>Available</h4>
+                                <h3 class="@(Model.CompanyBudgetSummary.TotalAvailable < 0 ? "text-danger" : "text-success")">
+                                    @Model.CompanyBudgetSummary.TotalAvailable.ToString("C0")
+                                </h3>
+                            </div>
+                            <div class="col-md-3">
+                                <h4>Avg Utilization</h4>
+                                <h3 class="@(Model.CompanyBudgetSummary.AveragePercentUsed > 100 ? "text-danger" : Model.CompanyBudgetSummary.AveragePercentUsed > 90 ? "text-warning" : "text-success")">
+                                    @Model.CompanyBudgetSummary.AveragePercentUsed.ToString("F1")%
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Fiscal Year Selector & Add Company Budget -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-plus"></i> Add Company Budget</h3>
+                </div>
+                <div class="panel-body">
+                    @using (Html.BeginForm("CreateCompanyBudget", "PO25Admin", FormMethod.Post, new { @class = "form-horizontal" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="companyFiscalYear" class="control-label">Fiscal Year</label>
+                                    <select id="companyFiscalYear" name="fiscalYear" class="form-control" required>
+                                        @if (Model.AvailableFiscalYears != null)
+                                        {
+                                            foreach (var year in Model.AvailableFiscalYears)
+                                            {
+                                                <option value="@year" @(year == Model.SelectedFiscalYear ? "selected" : "")>@year</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="companyBudgetName" class="control-label">Budget Name</label>
+                                    <input type="text" id="companyBudgetName" name="budgetName" class="form-control" placeholder="e.g., Office Supplies" required />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label for="companyBudgetAmount" class="control-label">Allocated Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">$</span>
+                                        <input type="number" id="companyBudgetAmount" name="allocated" class="form-control" min="0" step="0.01" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="companyBudgetDescription" class="control-label">Description</label>
+                                    <input type="text" id="companyBudgetDescription" name="description" class="form-control" placeholder="Optional description" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label class="control-label">&nbsp;</label>
+                                    <div>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fa fa-plus"></i> Add Budget
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Company Budgets Table -->
+    @if (Model.CompanyBudgets != null && Model.CompanyBudgets.Any())
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-table"></i> Company Budgets - FY @Model.SelectedFiscalYear</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover" id="companyBudgetTable">
+                                <thead>
+                                    <tr>
+                                        <th>Budget Name</th>
+                                        <th>Description</th>
+                                        <th>Allocated</th>
+                                        <th>Spent YTD</th>
+                                        <th>Available</th>
+                                        <th>% Used</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var budget in Model.CompanyBudgets.OrderBy(b => b.BudgetName))
+                                    {
+                                        <tr class="@(budget.IsOverBudget ? "danger" : budget.PercentUsed > 90 ? "warning" : "")">
+                                            <td><strong>@budget.BudgetName</strong></td>
+                                            <td>@budget.Description</td>
+                                            <td>@budget.Allocated.ToString("C0")</td>
+                                            <td>@budget.YtdSpent.ToString("C0")</td>
+                                            <td class="@(budget.AvailableBalance < 0 ? "text-danger" : "text-success")">
+                                                @budget.AvailableBalance.ToString("C0")
+                                            </td>
+                                            <td>
+                                                <div class="progress" style="margin-bottom: 0; min-width: 80px;">
+                                                    <div class="progress-bar @(budget.PercentUsed > 100 ? "progress-bar-danger" : budget.PercentUsed > 90 ? "progress-bar-warning" : "progress-bar-success")"
+                                                         style="width: @(Math.Min(budget.PercentUsed, 100))%">
+                                                        @budget.PercentUsed.ToString("F1")%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                @if (!budget.IsActive)
+                                                {
+                                                    <span class="label label-default">Inactive</span>
+                                                }
+                                                else if (budget.IsOverBudget)
+                                                {
+                                                    <span class="label label-danger">Over Budget</span>
+                                                }
+                                                else if (budget.PercentUsed > 90)
+                                                {
+                                                    <span class="label label-warning">Near Limit</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="label label-success">Active</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group btn-group-xs">
+                                                    <button type="button" class="btn btn-warning"
+                                                            onclick="editCompanyBudget(@budget.CompanyBudgetId, '@budget.BudgetName', '@budget.Description', @budget.Allocated, @(budget.AllowOverages ? "true" : "false"), @(budget.IsActive ? "true" : "false"))"
+                                                            title="Edit Budget">
+                                                        <i class="fa fa-edit"></i>
+                                                    </button>
+                                                    @if (budget.IsActive)
+                                                    {
+                                                        <button type="button" class="btn btn-danger"
+                                                                onclick="deactivateCompanyBudget(@budget.CompanyBudgetId, '@budget.BudgetName')"
+                                                                title="Deactivate Budget">
+                                                            <i class="fa fa-ban"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-info">
+                    <i class="fa fa-info-circle"></i> No company budgets have been configured for FY @Model.SelectedFiscalYear. Use the form above to add company budgets.
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Edit Budget Modal -->
+<div class="modal fade" id="editBudgetModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            @using (Html.BeginForm("UpdateBudget", "PO25Admin", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">Edit Budget</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editDepartmentId" name="departmentId" />
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" id="editDepartmentName" class="form-control" readonly />
+                    </div>
+                    <div class="form-group">
+                        <label for="editBudget">Annual Budget</label>
+                        <div class="input-group">
+                            <span class="input-group-addon">$</span>
+                            <input type="number" id="editBudget" name="budget" class="form-control" min="0" step="0.01" required />
+                        </div>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="allowOverages" value="true" />
+                            Allow Budget Overages
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Budget</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Edit Company Budget Modal -->
+<div class="modal fade" id="editCompanyBudgetModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            @using (Html.BeginForm("UpdateCompanyBudget", "PO25Admin", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-building"></i> Edit Company Budget</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editCompanyBudgetId" name="companyBudgetId" />
+                    <div class="form-group">
+                        <label for="editCompanyBudgetName">Budget Name</label>
+                        <input type="text" id="editCompanyBudgetName" name="budgetName" class="form-control" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="editCompanyBudgetDescription">Description</label>
+                        <input type="text" id="editCompanyBudgetDescription" name="description" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label for="editCompanyBudgetAllocated">Allocated Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-addon">$</span>
+                            <input type="number" id="editCompanyBudgetAllocated" name="allocated" class="form-control" min="0" step="0.01" required />
+                        </div>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="editCompanyBudgetAllowOverages" name="allowOverages" value="true" />
+                            Allow Budget Overages
+                        </label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="editCompanyBudgetIsActive" name="isActive" value="true" />
+                            Active
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Budget</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Deactivate Company Budget Confirmation Modal -->
+<div class="modal fade" id="deactivateCompanyBudgetModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            @using (Html.BeginForm("DeactivateCompanyBudget", "PO25Admin", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title"><i class="fa fa-exclamation-triangle text-danger"></i> Deactivate Company Budget</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="deactivateCompanyBudgetId" name="id" />
+                    <p>Are you sure you want to deactivate the company budget "<strong id="deactivateBudgetName"></strong>"?</p>
+                    <p class="text-muted">Deactivated budgets cannot be used for new purchase orders but existing POs will not be affected.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Deactivate</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Initialize DataTable if available
+        if ($.fn.DataTable) {
+            $('#budgetTable').DataTable({
+                "order": [[4, "desc"]], // Sort by % Used descending
+                "pageLength": 25
+            });
+            $('#companyBudgetTable').DataTable({
+                "order": [[5, "desc"]], // Sort by % Used descending
+                "pageLength": 25
+            });
+        }
+
+        // Auto-dismiss alerts
+        setTimeout(function () {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    });
+
+    function editBudget(deptId, deptName, currentBudget) {
+        $('#editDepartmentId').val(deptId);
+        $('#editDepartmentName').val(deptName);
+        $('#editBudget').val(currentBudget);
+        $('#editBudgetModal').modal('show');
+    }
+
+    function editCompanyBudget(budgetId, budgetName, description, allocated, allowOverages, isActive) {
+        $('#editCompanyBudgetId').val(budgetId);
+        $('#editCompanyBudgetName').val(budgetName);
+        $('#editCompanyBudgetDescription').val(description);
+        $('#editCompanyBudgetAllocated').val(allocated);
+        $('#editCompanyBudgetAllowOverages').prop('checked', allowOverages);
+        $('#editCompanyBudgetIsActive').prop('checked', isActive);
+        $('#editCompanyBudgetModal').modal('show');
+    }
+
+    function deactivateCompanyBudget(budgetId, budgetName) {
+        $('#deactivateCompanyBudgetId').val(budgetId);
+        $('#deactivateBudgetName').text(budgetName);
+        $('#deactivateCompanyBudgetModal').modal('show');
+    }
+</script>

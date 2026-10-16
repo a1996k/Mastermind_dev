@@ -1,0 +1,201 @@
+﻿﻿<div class="container pt-5">
+    <div class="row">
+        <div class="col">
+            <input type="hidden" id="ac_helper" />
+            <!-- Autocomplete field for material name -->
+            <input type="text" id="material_autocomplete" />
+            <button type="button" class="btn btn-sm btn-fc-caution load-material-inventory">Load Inventory</button>
+        </div>
+        <div class="col">
+            <button type="button" class="btn btn-sm btn-fc-info general-inventory-report">General Inventory Report</button>
+            <button type="button" class="btn btn-sm btn-fc-info reorder-report">Reorder Report</button>
+        </div>
+    </div>
+    <div class="row inventory-adjustment-row" style="display:none">
+        <div class="col-lg-12">
+            <div class="row values-row fs-3">
+                <div class="col d-flex flex-column">
+                    <label class="fw-bold">Stock</label>
+                    <span class="avail-stock"></span>
+                </div>
+                <div class="col d-flex flex-column">
+                    <label class="fw-bold">Allocated</label>
+                    <span class="avail-allocated"></span>
+                </div>
+                <div class="col d-flex flex-column">
+                    <label class="fw-bold">Available</label>
+                    <span class="avail-available"></span>
+                </div>
+                <div class="col d-flex flex-column">
+                    <label class="fw-bold">On Order</label>
+                    <span class="avail-on-order"></span>
+                </div>
+                <div class="col d-flex flex-column">
+                    <label class="fw-bold">Min Level</label>
+                    <span class="stock-min-level"></span>
+                </div>
+            </div>
+            <div class="row actions-row">
+                <div class="col-lg-12">
+                    <button type="button" class="btn btn-sm btn-fc-info adjust-stock-btn" data-modal-to-open="#adjust_stock_modal">Adjust Stock</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_AdjustStockModal.cshtml")
+
+<script>
+    var curAvailable = 0;
+    var curAllocated = 0;
+    var curStock = 0;
+    var curOnOrder = 0;
+    var stockMinLevel = 0;
+
+    function LoadReorderReport() {
+        window.open(ProcessUrl('reorder-inventory-report'), "_blank");
+    };
+    function LoadGeneralInventoryReport() {
+        window.open(ProcessUrl("gen-inventory-report"), "_blank");
+    };
+
+    function LoadMaterialInventory() {
+        var matId = $('#ac_helper').val();
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('get-material-inventory'),
+            beforeSend: function () {
+                $('.inventory-adjustment-row').hide();
+            },
+            data: {
+                id: matId
+            },
+            success: function (data) {
+                try {
+                    var res = JSON.parse(data);
+                    let displayStringStock = (res.Stock + ' ' + res.stockType);
+                    let displayStringAllocated = (res.Allocated + ' ' + res.stockType);
+                    let displayStringAvailable = (res.Available + ' ' + res.stockType);
+                    let displayStringOnOrder = (res.remainingOnOrder + ' ' + res.stockType);
+                    let displayStringMinLevel = (res.MinLevel + ' ' + res.stockType);
+
+                    $('.avail-stock').html(displayStringStock);
+                    $('.avail-allocated').html(displayStringAllocated);
+                    $('.avail-available').html(displayStringAvailable);
+                    $('.avail-on-order').html(displayStringOnOrder);
+                    $('.stock-min-level').html(displayStringMinLevel);
+
+                    curAvailable = Number(res.Available);
+                    curAllocated = Number(res.Allocated);
+                    curStock = Number(res.Stock);
+                    curOnOrder = Number(res.remainingOnOrder);
+                    stockMinLevel = Number(res.minLevel);
+
+                    //put min level into modal input field #adjust_stock_modal .new-min-level
+                    $('#adjust_stock_modal .new-min-level').val(res.MinLevel);
+
+                    $('.inventory-adjustment-row').show();
+                } catch (e) { }
+            }
+        });
+    };
+
+    function UpdateMaterialInventory(endpoint, matId, theVal, minLevel) {
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl(endpoint),
+            data: {
+                materialId: matId,
+                enteredValue: theVal,
+                minLevel
+            },
+            complete: LoadMaterialInventory
+        });
+    };
+
+    function NewMaterialOrder(matId, theVal, price, po, ct, st) {
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('new-material-order'),
+            data: {
+                materialId: matId,
+                enteredValue: theVal,
+                price,
+                po,
+                ct,
+                st
+            }
+        });
+    };
+
+    function LoadPendingOrders() {
+        let matId = $('#ac_helper').val();
+
+        $.ajax({
+            type: 'GET',
+            url: ProcessUrl('get-pending-orders') + '/' + matId,
+            success: function (data) {
+                try {
+                    var res = JSON.parse(data);
+
+                    $('.pending-deliveries li:not(.header-line)').remove();
+
+                    for (var i = 0; i < res.length; i++) {
+                        let thisRow =
+                            `<li>
+                            <div class="container fs-4">
+                                <div class="row align-items-center">
+                                    <div class="col">
+                                        ${res[i].PurchaseOrderNumber}
+                                    </div>
+                                    <div class="col">
+                                        ${res[i].AmountOrdered}
+                                    </div>
+                                    <div class="col">
+                                        $${res[i].Price} ${res[i].MaterialCostType.Title}
+                                    </div>
+                                    <div class="col fs-5">
+                                        <button type="button" class="btn btn-sm btn-fc-info accept-order" data-record-id="${res[i].Id}">Accept Delivery</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>`;
+
+                        $('.pending-deliveries').append(thisRow);
+                    }
+
+                } catch (e) { }
+            }
+        });
+    };
+
+    $(function () {
+        $('#material_autocomplete').autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: ProcessUrl("AutocompleteMaterial"),
+                    type: 'GET',
+                    data: {
+                        'q': request.term
+                    },
+                    success: function (data) {
+                        let d = JSON.parse(data);
+
+                        response($.map(d, function (item) {
+                            return { label: item.Title, value: item.Title, recordId: item.Id }
+                        }));
+                    }
+                });
+            },
+            select: function (event, ui) {
+                $('#ac_helper').val(ui.item.recordId);
+            }
+        });
+    })
+        .on('click', '.load-material-inventory', LoadMaterialInventory)
+        .on('click', '.general-inventory-report', LoadGeneralInventoryReport)
+        .on('click', '.reorder-report', LoadReorderReport)
+        .on('click', '.receive-stock-btn', LoadPendingOrders);
+</script>

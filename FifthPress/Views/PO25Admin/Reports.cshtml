@@ -1,0 +1,415 @@
+﻿@model FifthPress.Models.ViewModels2.PO25.VM_AdminReports25
+
+@{
+    ViewBag.Title = "Admin Reports";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fa fa-bar-chart"></i> Purchase Order Reports & Analytics</h2>
+            <hr />
+            <a href="@Url.Action("Index")" class="btn btn-default">
+                <i class="fa fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Approval Metrics -->
+    @if (Model.ApprovalMetrics != null)
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-gavel"></i> Approval Metrics (Last 30 Days)</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <h3 class="text-primary">@Model.ApprovalMetrics.TotalPOsLast30Days</h3>
+                                    <p class="text-muted">Total POs</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <h3 class="text-success">@Model.ApprovalMetrics.ApprovedLast30Days</h3>
+                                    <p class="text-muted">Approved</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <h3 class="text-danger">@Model.ApprovalMetrics.DeniedLast30Days</h3>
+                                    <p class="text-muted">Denied</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <h3 class="text-warning">@Model.ApprovalMetrics.PendingApprovals</h3>
+                                    <p class="text-muted">Pending</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    <h3 class="text-info">@Model.ApprovalMetrics.AverageApprovalTimeHours.ToString("F1")</h3>
+                                    <p class="text-muted">Avg Hours</p>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="text-center">
+                                    @if (Model.ApprovalMetrics.TotalPOsLast30Days > 0)
+                                    {
+                                        var approvalRate = (decimal)Model.ApprovalMetrics.ApprovedLast30Days / Model.ApprovalMetrics.TotalPOsLast30Days * 100;
+                                        <h3 class="text-success">@approvalRate.ToString("F1")%</h3>
+                                    }
+                                    else
+                                    {
+                                        <h3 class="text-muted">0%</h3>
+                                    }
+                                    <p class="text-muted">Approval Rate</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Budget Utilization and SLA Performance -->
+    <div class="row">
+        <!-- Budget Utilization -->
+        @if (Model.BudgetUtilization != null && Model.BudgetUtilization.Any())
+        {
+            <div class="col-md-6">
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-money"></i> Budget Utilization by Department</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Budget</th>
+                                        <th>Spent</th>
+                                        <th>Utilization</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var budget in Model.BudgetUtilization)
+                                    {
+                                        <tr class="@(budget.UtilizationPercent > 100 ? "danger" : budget.UtilizationPercent > 90 ? "warning" : "")">
+                                            <td>@budget.DepartmentName</td>
+                                            <td>$@budget.BudgetAmount.ToString("N0")</td>
+                                            <td>$@budget.SpentAmount.ToString("N0")</td>
+                                            <td>
+                                                <div class="progress" style="margin-bottom: 0;">
+                                                    <div class="progress-bar @(budget.UtilizationPercent > 100 ? "progress-bar-danger" : budget.UtilizationPercent > 90 ? "progress-bar-warning" : "progress-bar-success")"
+                                                         style="width: @(Math.Min(budget.UtilizationPercent, 100))%">
+                                                        @budget.UtilizationPercent.ToString("F1")%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <!-- SLA Performance -->
+        @if (Model.SLAPerformance != null)
+        {
+            <div class="col-md-6">
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-clock-o"></i> SLA Performance</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h3 class="text-primary">@Model.SLAPerformance.TotalCompletedPOs</h3>
+                                    <p class="text-muted">Total Completed</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h3 class="text-success">@Model.SLAPerformance.SLACompliancePercent.ToString("F1")%</h3>
+                                    <p class="text-muted">SLA Compliance</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h3 class="text-success">@Model.SLAPerformance.SLAMetCount</h3>
+                                    <p class="text-muted">SLA Met</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center">
+                                    <h3 class="text-danger">@Model.SLAPerformance.SLABreachCount</h3>
+                                    <p class="text-muted">SLA Breached</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-success" style="width: @Model.SLAPerformance.SLACompliancePercent%">
+                                @Model.SLAPerformance.SLACompliancePercent.ToString("F1")% Compliance
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Popular Tags -->
+    @if (Model.PopularTags != null && Model.PopularTags.Any())
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-tags"></i> Most Used Approval Tags</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            @foreach (var tag in Model.PopularTags.Take(10))
+                            {
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="panel panel-default">
+                                        <div class="panel-body">
+                                            <div class="row">
+                                                <div class="col-xs-8">
+                                                    <strong>@tag.TagName</strong>
+                                                </div>
+                                                <div class="col-xs-4 text-right">
+                                                    <span class="badge">@tag.UsageCount</span>
+                                                </div>
+                                            </div>
+                                            <div class="progress" style="margin-top: 5px; margin-bottom: 0;">
+                                                @{
+                                                    var maxUsage = Model.PopularTags.Max(t => t.UsageCount);
+                                                    var percentage = maxUsage > 0 ? (decimal)tag.UsageCount / maxUsage * 100 : 0;
+                                                }
+                                                <div class="progress-bar progress-bar-info" style="width: @percentage%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Vendor Performance -->
+    @if (Model.VendorPerformance != null && Model.VendorPerformance.TopVendors != null && Model.VendorPerformance.TopVendors.Any())
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-truck"></i> Top Vendor Performance</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row" style="margin-bottom: 15px;">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-primary">@Model.VendorPerformance.TotalActiveVendors</h4>
+                                    <p class="text-muted">Active Vendors</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-success">@Model.VendorPerformance.TotalVendorSpend.ToString("C0")</h4>
+                                    <p class="text-muted">Total Vendor Spend</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <h4 class="text-info">@Model.VendorPerformance.TotalVendorOrders</h4>
+                                    <p class="text-muted">Total Orders</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Vendor</th>
+                                        <th>Total Orders</th>
+                                        <th>Total Spend</th>
+                                        <th>Avg Order Value</th>
+                                        <th>Last 30 Days</th>
+                                        <th>Last Order</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var vendor in Model.VendorPerformance.TopVendors)
+                                    {
+                                        <tr>
+                                            <td><strong>@vendor.VendorName</strong></td>
+                                            <td>@vendor.TotalOrders</td>
+                                            <td>@vendor.TotalSpend.ToString("C0")</td>
+                                            <td>@vendor.AverageOrderValue.ToString("C0")</td>
+                                            <td>
+                                                <span class="badge @(vendor.OrdersLast30Days > 0 ? "badge-success" : "badge-default")">
+                                                    @vendor.OrdersLast30Days orders (@vendor.SpendLast30Days.ToString("C0"))
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if (vendor.LastOrderDate.HasValue)
+                                                {
+                                                    @vendor.LastOrderDate.Value.ToString("MM/dd/yyyy")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No orders</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <small class="text-muted"><i class="fa fa-info-circle"></i> Showing top 10 vendors by total spend</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Export Options -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-download"></i> Export Options</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary" onclick="exportReport('approval-metrics')">
+                            <i class="fa fa-file-excel-o"></i> Export Approval Metrics
+                        </button>
+                        <button type="button" class="btn btn-success" onclick="exportReport('budget-utilization')">
+                            <i class="fa fa-file-excel-o"></i> Export Budget Report
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="exportReport('sla-performance')">
+                            <i class="fa fa-file-excel-o"></i> Export SLA Report
+                        </button>
+                        <button type="button" class="btn btn-warning" onclick="exportReport('full-report')">
+                            <i class="fa fa-file-pdf-o"></i> Export Full Report (PDF)
+                        </button>
+                    </div>
+                    <p class="text-muted" style="margin-top: 10px;">
+                        <small><i class="fa fa-info-circle"></i> Reports include data from the last 30 days unless otherwise specified.</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Analytics -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-line-chart"></i> Additional Analytics</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="well text-center">
+                                <i class="fa fa-calendar fa-2x text-primary"></i>
+                                <h4>Monthly Trends</h4>
+                                <p class="text-muted">View month-over-month PO trends and patterns</p>
+                                <button type="button" class="btn btn-primary" onclick="loadMonthlyTrends()">
+                                    View Trends
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="well text-center">
+                                <i class="fa fa-users fa-2x text-success"></i>
+                                <h4>User Activity</h4>
+                                <p class="text-muted">Analyze user submission and approval patterns</p>
+                                <button type="button" class="btn btn-success" onclick="loadUserActivity()">
+                                    View Activity
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="well text-center">
+                                <i class="fa fa-building fa-2x text-info"></i>
+                                <h4>Department Analysis</h4>
+                                <p class="text-muted">Compare department spending and approval times</p>
+                                <button type="button" class="btn btn-info" onclick="loadDepartmentAnalysis()">
+                                    View Analysis
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Auto-refresh data every 5 minutes
+   /* setInterval(function() {
+        if (confirm('Refresh report data?')) {
+            location.reload();
+        }
+    }, 300000);*/ // 5 minutes
+});
+
+function exportReport(reportType) {
+    // This would integrate with your export functionality
+    var url = '@Url.Action("ExportReport", "PO25Admin")' + '?type=' + reportType;
+    window.open(url, '_blank');
+}
+
+function loadMonthlyTrends() {
+    // This would load monthly trends data
+    alert('Monthly trends feature - integrate with your charting library');
+}
+
+function loadUserActivity() {
+    // This would load user activity data
+    alert('User activity feature - integrate with your analytics');
+}
+
+function loadDepartmentAnalysis() {
+    // This would load department analysis
+    alert('Department analysis feature - integrate with your reporting system');
+}
+</script>
+
+<style>
+    .progress {
+        height: 18px;
+    }
+
+    .panel-body .row {
+        margin-bottom: 15px;
+    }
+
+    .well {
+        min-height: 200px;
+    }
+</style>

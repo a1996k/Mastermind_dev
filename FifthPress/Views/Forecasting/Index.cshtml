@@ -1,0 +1,74 @@
+﻿@model List<ForecastPeriod>
+
+@{
+    ViewBag.Title = "Forecast Periods";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Utilization Forecast Periods</h2>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade in">
+                    <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
+                    @TempData["Success"]
+                </div>
+            }
+
+            <p>
+                @Html.ActionLink("Create New Period", "CreatePeriod", null, new { @class = "btn btn-primary" })
+                @Html.ActionLink("Budget Tracker", "BudgetTracker", null, new { @class = "btn btn-default" })
+            </p>
+
+            @if (Model != null && Model.Any())
+            {
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Period Name</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var period in Model)
+                        {
+                            <tr>
+                                <td>@period.PeriodName</td>
+                                <td>@period.StartDate.ToString("MM/dd/yyyy")</td>
+                                <td>@period.EndDate.ToString("MM/dd/yyyy")</td>
+                                <td>
+                                    @if (period.IsActive)
+                                    {
+                                        <span class="label label-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="label label-default">Inactive</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        @Html.ActionLink("View Contracts", "Contracts", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-sm btn-info" })
+                                        @Html.ActionLink("Reports", "ViewUtilization", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-sm btn-success" })
+                                    </div>
+                                    @Html.ActionLink("Edit", "EditPeriod", new { id = period.ForecastPeriodID }, new { @class = "btn btn-sm btn-default" })
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <strong>No forecast periods found.</strong> Create your first forecast period to get started.
+                </div>
+            }
+        </div>
+    </div>
+</div>

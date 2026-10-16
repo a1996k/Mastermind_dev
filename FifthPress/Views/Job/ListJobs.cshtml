@@ -1,0 +1,296 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<Job>
+
+<style>
+    table tbody tr {
+        font-size: 18px;
+    }
+
+    td button {
+        font-size: 14px !important;
+    }
+
+    td.fw-bolder {
+        white-space: nowrap !important;
+    }
+</style>
+
+<div class="container pt-3">
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="field-binder-row-flex justify-content-center">
+                <div class="btn-group">
+                    <label class="ps-3 fs-3 d-flex">
+                        <input type="radio" name="jobStage" data-filter-val="All" id="all_jobs" />
+                        <span class="ps-2">All</span>
+                    </label>
+                    <label class="ps-3 fs-3 d-flex">
+                        <input type="radio" name="jobStage" id="in_progress_jobs" data-filter-val="InProgress" checked />
+                        <span class="ps-2">In Progress</span>
+                    </label>
+                    <label class="ps-3 fs-3 d-flex">
+                        <input type="radio" name="jobStage" data-filter-val="ReadyToShip" id="ready_to_ship_jobs" />
+                        <span class="ps-2">Ready To Ship</span>
+                    </label>
+                    <label class="ps-3 fs-3 d-flex">
+                        <input type="radio" name="jobStage" data-filter-val="ReadyToPost" id="ready_to_post_jobs" />
+                        <span class="ps-2">Ready To Post</span>
+                    </label>
+                    <label class="ps-3 fs-3 d-flex">
+                        <input type="radio" name="jobStage" data-filter-val="Completed" id="history_jobs" />
+                        <span class="ps-2">History</span>
+                    </label>
+                </div>
+                <!--<div class="ps-3 fs-3">
+                    <input type="checkbox" id="hide_invalid_items_cb" />
+                    <label for="hide_invalid_items_cb">Hide Invalid Items</label>
+                </div>-->
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <table id="job_list_table">
+                <thead>
+                    <tr>
+                        <th style="display:none">JobStage</th>
+                        <th>Edit</th>
+                        <th>Job Number</th>
+                        <th>Client</th>
+                        <th>Description (Click -> More Info)</th>
+                        <th>Date Added</th>
+                        <th>Min. Start Date</th>
+                        <th>Due Date</th>
+                        <th>CSR</th>
+                        <th>Ready To Ship</th>
+                        <th>Ready To Bill</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Job j in Model)
+                    {
+
+                        if (j.JobSchedule_JobIsValid)
+                        {
+                            <tr>
+                                <td style="display:none">@Html.DisplayFor(model => j.OverallJobStage)</td> <!-- Stage -->
+                                <td><button type="button" class="btn btn-fc-caution list-edit-btn" data-record-id="@Html.DisplayFor(model => j.Id)">Edit</button></td> <!-- Edit Button -->
+                                <td class="fw-bolder">@Html.DisplayFor(model => j.JobNumber)</td> <!-- Job Number -->
+                                <td>@Html.DisplayFor(model => j.Client1.Title) </td> <!-- Client Name -->
+                                <td data-full-description="@Html.DisplayFor(model => j.Description)">@Html.DisplayFor(model => j.TruncatedTitle)</td> <!-- Description -->
+                                <!-- Start Date Added -->
+                                @if (j.CreatedAt.HasValue)
+                                {
+                                    <td>@j.CreatedAt.Value.ToString("M/d/yyyy")</td>
+                                }
+                                else
+                                {
+                                    <td></td>
+                                }
+                                <!-- End Date Added -->
+                                <!-- Start Min Start Date -->
+                                @if (!j.MinStartDate.HasValue)
+                                {
+                                    <td class="text-center"><i class="fa-solid fa-triangle-exclamation" style="color: #fe0b0b;"></i></td>
+                                }
+                                else
+                                {
+                                    <td>@j.MinStartDate.Value.ToString("M/d/yyyy")</td>
+                                }
+                                <!-- End Min Start Date -->
+                                <!-- Start Due Date -->
+                                @if (!j.DueDate.HasValue)
+                                {
+                                    <td class="text-center"><i class="fa-solid fa-triangle-exclamation" style="color: #fe0b0b;"></i></td>
+                                }
+                                else
+                                {
+                                    <td>@j.DueDate.Value.ToString("M/d/yyyy")</td>
+                                }
+                                <!-- End Due Date -->
+                                <td>@Html.DisplayFor(model => j.User.FirstName) @Html.DisplayFor(model => j.User.LastName)</td> <!-- CSR -->
+                                <!-- Start Ready to Ship -->
+                                <td class="fs-5">
+                                    @if (j.Complete.HasValue)
+                                    {
+                                        <button type="button" class="ms-3 btn btn-lg btn-fc-info" disabled>Completed</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="ms-3 btn btn-lg btn-fc-info ready-to-ship-btn" data-record-id="@Html.DisplayFor(model => j.Id)">Ship</button>
+                                    }
+                                </td>
+                                <!-- End ready to ship -->
+                                <!-- Start ready to bill -->
+                                <td class="fs-5">
+                                    @if (j.Shipped.HasValue)
+                                    {
+                                        <button type="button" class="ms-3 btn btn-lg btn-fc-info" disabled>Completed</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="ms-3 btn btn-lg btn-fc-info ready-to-bill-btn" data-record-id="@Html.DisplayFor(model => j.Id)">Bill</button>
+                                    }
+                                </td>
+                                <!-- End ready to bill-->
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr class="invalid-job-item">
+                                <td style="display:none">@Html.DisplayFor(model => j.OverallJobStage)</td> <!-- Job Stage -->
+                                <td><button type="button" class="btn btn-fc-caution list-edit-btn" data-record-id="@Html.DisplayFor(model => j.Id)">Edit</button></td> <!-- Edit Button -->
+                                <td class="fw-bolder">@Html.DisplayFor(model => j.JobNumber)</td> <!-- Job Number -->
+                                <td>@Html.DisplayFor(model => j.Client1.Title) </td> <!-- Client Name -->
+                                <td data-full-description="@Html.DisplayFor(model => j.Description)">@Html.DisplayFor(model => j.TruncatedTitle)</td> <!-- Description -->
+                                <!-- Start Date Added -->
+                                @if (j.CreatedAt.HasValue)
+                                {
+                                    <td>@j.CreatedAt.Value.ToString("M/d/yyyy")</td>
+                                }
+                                else
+                                {
+                                    <td></td>
+                                }
+                                <!-- End Date Added -->
+                                <!-- Start Min Start Date -->
+                                @if (!j.MinStartDate.HasValue)
+                                {
+                                    <td class="text-center"><i class="fa-solid fa-triangle-exclamation" style="color: #fe0b0b;"></i></td>
+                                }
+                                else
+                                {
+                                    <td>@j.MinStartDate.Value.ToString("M/d/yyyy")</td>
+                                }
+                                <!-- End Min Start Date -->
+                                <!-- Start Due date -->
+                                @if (!j.DueDate.HasValue)
+                                {
+                                    <td class="text-center"><i class="fa-solid fa-triangle-exclamation" style="color: #fe0b0b;"></i></td>
+                                }
+                                else
+                                {
+                                    <td>@j.DueDate.Value.ToString("M/d/yyyy")</td>
+                                }
+                                <!-- End Due Date -->
+                                <td>@Html.DisplayFor(model => j.User.FirstName) @Html.DisplayFor(model => j.User.LastName)</td> <!-- CSR -->
+                                <!-- Start ready to bill -->
+                                <td class="fs-5">
+                                    @if (j.Complete.HasValue)
+                                    {
+                                        <button type="button" class="ms-3 btn btn-lg btn-fc-info" disabled>Completed</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="ms-3 btn btn-lg btn-fc-info ready-to-ship-btn" data-record-id="@Html.DisplayFor(model => j.Id)">Ship</button>
+                                    }
+                                </td>
+                                <!-- end ready to bill -->
+                                <!-- Start ready to shiip -->
+                                <td class="fs-5">
+                                    @if (j.Shipped.HasValue)
+                                    {
+                                        <button type="button" class="ms-3 btn btn-lg btn-fc-info" disabled>Completed</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="ms-3 btn btn-lg btn-fc-info ready-to-bill-btn" data-record-id="@Html.DisplayFor(model => j.Id)">Bill</button>
+                                    }
+                                </td>
+                                <!-- End Ready to Ship -->
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    var vmJobListTable;
+
+    function FilterList() {
+        let $e = $(this);
+        let filterVal = $e.attr('data-filter-val');
+
+        if (filterVal === 'All') {
+            vmJobListTable.column(0).search('').draw();
+        } else {
+            vmJobListTable.column(0).search(filterVal).draw();
+        }
+    };
+
+    function ListItemEdit() {
+        var recordId = $(this).attr('data-record-id');
+        window.location = ProcessUrl('Job/Edit/' + recordId);
+    };
+
+    function HideShowInvalidJobItems() {
+        var checked = $(this).is(':checked');
+        if (checked) {
+            $('.invalid-job-item').hide();
+        } else {
+            $('.invalid-job-item').show();
+        }
+    };
+
+    function ReadyToShip() {
+        var $ele = $(this);
+        $ele.off('click');
+        $ele.removeClass('ready-to-ship-btn');
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('set-job-complete/') + $ele.attr('data-record-id'),
+            success: function (data) {
+                $ele.prop('disabled', true);
+            }
+        })
+    };
+
+    function ReadyToBill() {
+        var $ele = $(this);
+        $ele.off('click');
+        $ele.removeClass('ready-to-bill-btn');
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('set-job-shipped/') + $ele.attr('data-record-id'),
+            success: function (data) {
+                $ele.prop('disabled', true);
+            }
+        });
+    };
+
+    $(function () {
+        vmJobListTable = $('#job_list_table').DataTable({
+            'paging': true,
+            'pageLength': 50,
+            "columnDefs": [
+                {
+                    "targets": [5, 6, 7],
+                    "render": function (data, type, row) {
+                        if (type === 'display' || type === 'filter') {
+                            var date = moment(data, "MM/DD/YYYY");
+                            if (!date.isValid()) {
+                                return ''; // Custom message for invalid date
+                            }
+                            return date.format('MM/DD/YYYY'); // Change this format if needed
+                        }
+                        return moment(data, "MM/DD/YYYY").format(); // ISO format for sorting
+                    },
+                    "type": "date"
+                }
+            ]
+        });
+        $('#hide_invalid_items_cb').trigger('click');
+    })
+        .on('click', '.list-edit-btn', ListItemEdit)
+        .on('click', '#hide_invalid_items_cb', HideShowInvalidJobItems)
+        .on('click', 'input[name="jobStage"]', FilterList)
+        .on('click', '.ready-to-ship-btn', ReadyToShip)
+        .on('click', '.ready-to-bill-btn', ReadyToBill);
+</script>

@@ -1,0 +1,75 @@
+﻿<div class="container p-5">
+    <div class="row">
+        <h1>Photo Upload with Geolocation</h1>
+
+        <!-- Visible button to trigger photo upload -->
+        <button id="trigger-btn">Upload Photo</button>
+
+        <!-- Hidden file input button -->
+        <input type="file" id="upload-btn" accept="image/*" capture="camera" style="display: none;">
+    </div>
+</div>
+
+<script>
+    // Get elements
+    const triggerBtn = document.getElementById('trigger-btn');
+    const uploadBtn = document.getElementById('upload-btn');
+
+    // Click event for the visible button to trigger the hidden file input
+    triggerBtn.addEventListener('click', () => {
+        console.log("Upload button clicked");
+        uploadBtn.click();
+    });
+
+    // Handle both input and change events
+    uploadBtn.addEventListener('input', handleFileChange);
+    uploadBtn.addEventListener('change', handleFileChange);
+
+    function handleFileChange(event) {
+        const file = event.target.files[0]; // Get the selected file
+
+        if (file) {
+            console.log("File selected:", file.name);
+
+            // Get the geolocation
+            if (navigator.geolocation) {
+                console.log("Requesting geolocation...");
+                navigator.geolocation.getCurrentPosition((position) => {
+                    // Create FormData object
+                    const formData = new FormData();
+                    formData.append('image', file); // Append the file
+                    formData.append('latitude', position.coords.latitude); // Append latitude
+                    formData.append('longitude', position.coords.longitude); // Append longitude
+
+                    console.log("Geolocation obtained:", position.coords.latitude, position.coords.longitude);
+
+                    // Send AJAX request with FormData
+                    $.ajax({
+                        type: 'POST',
+                        url: ProcessUrl('test-geo'), // Adjust URL based on your route
+                        data: formData,
+                        processData: false, // Prevent jQuery from processing the data
+                        contentType: false, // Prevent jQuery from setting the content type
+                        success: function (response) {
+                            console.log('Upload success:', response);
+                            alert('File uploaded successfully!');
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Upload failed:', error);
+                            alert('Upload failed: ' + error);
+                        }
+                    });
+                }, (error) => {
+                    console.error('Geolocation error:', error.message);
+                    alert('Geolocation error: ' + error.message);
+                });
+            } else {
+                console.error('Geolocation is not supported by this browser.');
+                alert('Geolocation is not supported by this browser.');
+            }
+        } else {
+            console.error("No file selected");
+            alert('No file selected.');
+        }
+    }
+</script>

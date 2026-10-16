@@ -1,0 +1,24 @@
+﻿@model List<PressSpeed>
+
+@foreach (PressSpeed ps in Model)
+{
+    <tr data-record-id="@Html.DisplayFor(model => ps.Id)" data-speed-val="@Html.DisplayFor(model => ps.SpeedNumerator)" data-speed-unit-val="@Html.DisplayFor(model => ps.SpeedDenominator)" data-speed-unit-text="@Html.DisplayFor(model => ps.SpeedDenominator1.Text)">
+        @if ((ps.IsDefault ?? false) == true)
+        {
+            <td>@Html.RadioButtonFor(model => ps.IsDefault, "", htmlAttributes: new { @checked = "checked" })</td>
+        }
+        else
+        {
+            <td>@Html.RadioButtonFor(model => ps.IsDefault, "")</td>
+        }
+
+        <td>@Html.DisplayFor(model => ps.SpeedNumerator) &nbsp; @Html.DisplayFor(model => ps.SpeedDenominator1.Text)</td>
+        <td>@Html.DisplayFor(model => ps.Notes)</td>
+    </tr>
+}
+<!--
+<tr class="custom-speed" data-record-id="0" data-speed-val="" data-speed-unit-val="" data-speed-unit-text="">
+    <td>@Html.RadioButton("ps.IsDefault", "", false)</td>
+    <td>Custom</td>
+    <td>Use the fields below for this option</td>
+</tr>-->

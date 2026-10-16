@@ -1,0 +1,155 @@
+﻿@using FifthPress.Models.ViewModels2;
+@model VM_PurchaseOrderSearch
+
+@Styles.Render("~/Content/daterangepicker")
+@Styles.Render("~/Content/recordsearch")
+
+<div class="container-fluid ps-5 pb-5 pe-5">
+    <h1>Purchase Order Lookup</h1>
+    <button type="button" class="btn btn-success btn-sm new-po-btn">New PO</button>
+    <div class="row">
+        <div class="col-12 text-end mb-3">
+            <button type="button" class="btn btn-sm reset-search r-white-action-btn">Clear Search <i class="fa-light fa-rotate-right refresh-icon"></i></button>
+        </div>
+        <div class="col-4">
+            <div class="search-filter-wrapper">
+                <div class="row mb-5">
+                    <label class="ff-dm-sans fs-12" for="po_number">PO Number</label>
+                    <div class="col-12">
+                        <input type="text" id="po_number" name="PONumber" class="styled-input fs-18 pt-1" placeholder="Purchase Order #" />
+                    </div>
+                </div>
+                <div class="row">
+                    <h3 class="ff-poppins fs-14 fw-bolder">Vendor</h3>
+                    <div class="col-2 field-binder-col-flex align-items-center justify-content-center">
+                        <input type="radio" id="vendor_sl_radio" name="vendorSLRadio" checked />
+                    </div>
+                    <div class="col-10 field-binder-col-flex align-items-center">
+                        @Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.VendorSelect)
+                    </div>
+                </div>
+                <div class="row py-5">
+                    <div class="col-12">
+                        <span class="fw-bolder ff-poppins fs-16">OR</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2 field-binder-col-flex align-items-center">
+                        <input type="radio" id="vendor_pn_radio" name="vendorSLRadio" />
+                    </div>
+                    <div class="col-10 field-binder-col-flex">
+                        <label class="ff-dm-sans fw-bold fs-16">Partial Name</label>
+                        <input type="text" id="partial_vendor_name" placeholder="Vendor Name" class="styled-input fs-12 w-100" name="PartialVendorName" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="search-filter-wrapper">
+                <div class="field-binder-col-flex h-100 justify-content-between">
+                    <div class="col-12 field-binder-col-flex mb-4">
+                        <h3 class="fs-16 fw-bolder ff-poppins">PO STATUS</h3>
+                        <div class="field-binder-row-flex py-1">
+                            <input type="checkbox" id="draft_po" name="POStatus" value="Draft">
+                            <label for="draft_po" class="ff-dm-sans fs-14 ps-3">Draft</label>
+                        </div>
+                        <div class="field-binder-row-flex py-1">
+                            <input type="checkbox" id="waiting_approval" name="POStatus" value="Waiting for Approval">
+                            <label for="waiting_approval" class="ff-dm-sans fs-14 ps-3">Waiting for Approval</label>
+                        </div>
+                        <div class="field-binder-row-flex py-1">
+                            <input type="checkbox" id="approved_not_received" name="POStatus" value="Approved Not Received">
+                            <label for="approved_not_received" class="ff-dm-sans fs-14 ps-3">Approved Not Received</label>
+                        </div>
+                        <div class="field-binder-row-flex py-1">
+                            <input type="checkbox" id="received_complete" name="POStatus" value="Received/Complete">
+                            <label for="received_complete" class="ff-dm-sans fs-14 ps-3">Received/Complete</label>
+                        </div>
+                        <div class="field-binder-row-flex py-1">
+                            <input type="checkbox" id="denied_po" name="POStatus" value="Denied">
+                            <label for="denied_po" class="ff-dm-sans fs-14 ps-3">Denied</label>
+                        </div>
+                        <div class="field-binder-row-flex py-1">
+                            <input type="checkbox" id="cancelled_po" name="POStatus" value="Cancelled">
+                            <label for="cancelled_po" class="ff-dm-sans fs-14 ps-3">Cancelled</label>
+                        </div>
+                    </div>
+                    <div class="col-12 field-binder-col-flex mb-5">
+                        <h3 class="fs-16 fw-bolder ff-poppins">CREATED BY...</h3>
+                        @Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.UserSelect)
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="search-filter-wrapper">
+                <div class="row">
+                    <div class="field-binder-row-flex justify-content-between">
+                        <h3 class="fs-16 fw-bolder ff-poppins">DATE ENTERED RANGE</h3>
+                        <div class="field-binder-row-flex">
+                            <input type="checkbox" class="enable-date-filter" id="enable_df" />
+                            <label for="enable_df" class="ff-poppins fs-12 ps-3">Enable Date Filter</label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <input type="text" id="range_filter" name="rangeFilter" class="styled-input w-100" disabled />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field-binder-row-flex justify-content-between">
+                        <h3 class="fs-16 fw-bolder ff-poppins">DUE DATE RANGE</h3>
+                        <div class="field-binder-row-flex">
+                            <input type="checkbox" class="enable-due-filter" id="enable_due_df" />
+                            <label for="enable_due_df" class="ff-poppins fs-12 ps-3">Enable Due Date Filter</label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <input type="text" id="due_range_filter" name="dueRangeFilter" class="styled-input w-100" disabled />
+                    </div>
+                </div>
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <span class="ff-dm-sans fw-bold fs-16">Keywords</span>
+                        <div class="field-binder-row-flex mins-input">
+                            <ul class="search-terms"></ul>
+                            <div class="field-binder-row-flex mt-2">
+                                <button type="button" class="btn btn-secondary fs-12 add-search-term r-navy-action-btn">+ Add Keyword</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="field-binder-row-flex justify-content-center mt-5">
+        <button class="btn btn-lg r-red-action-btn submit-search-btn" type="submit">Search</button>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <table class="table table-striped" id="results_table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>PO #</th>
+                        <th>Job #</th>
+                        <th>Vendor</th>
+                        <th>Item Title</th>
+                        <th>Status</th>
+                        <th>Requestor</th>
+                        <th>Approver</th>
+                        <th>Approval Date</th>
+                        <th>Total Price</th>
+                        <th>Go To</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@Scripts.Render("~/bundles/daterangepicker")
+
+@Scripts.Render("~/bundles/purchaseordersearch")

@@ -1,0 +1,36 @@
+﻿<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <input type="button" class="btn btn-fc-caution create-job-pricing" value="Creeate Job Pricing" />
+            <input type="button" class="btn btn-fc-caution create-quote-pricing" value="Create Quote Pricing" />
+            <input type="button" class="btn btn-fc-caution create-quote-print-records" value="Create Quote Print Records" />
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function CreateQuotePrintRecords() {
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('m-quote-print-services')
+        });
+    };
+    function CreatePricingRecords(){
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('m-job-pricing-records')
+        });
+    };
+    function CreateQuotePricingRecords() {
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('m-quote-pricing-records')
+        });
+    };
+    $(function () {
+    })
+        .on('click', '.create-job-pricing', CreatePricingRecords)
+        .on('click', '.create-quote-pricing', CreateQuotePricingRecords)
+        .on('click', '.create-quote-print-records', CreateQuotePrintRecords);
+</script>

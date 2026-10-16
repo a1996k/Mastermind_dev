@@ -1,0 +1,301 @@
+﻿﻿@model List<Job>
+
+<style>
+    .f-target h3 {
+        font-family: Poppins;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .f-target table th {
+        font-family: Poppins;
+        font-size: 12px;
+    }
+
+    .f-target table td {
+        font-family: 'DM Sans';
+        font-size: 12px;
+    }
+
+    .os-edit-row > div {
+        padding: 5px;
+    }
+</style>
+
+<input type="hidden" id="currentJobId" />
+
+<div class="container f-target">
+    <div class="row">
+        <div class="col-12 ready-for-prebilling">
+            <h3>Jobs Ready For Pre-Billing</h3>
+            <table class="table table-bordered table-striped" id="preBillingTable">
+                <thead>
+                    <tr>
+                        <th>Job Number</th>
+                        <th>Description</th>
+                        <th>Customer</th>
+                        <th>Project Manager</th>
+                        <th>Completed Date</th>
+                        <th>Shipped/Picked Up</th>
+                        <th><!-- Edit shipped orders --></th>
+                        <th><!-- View invoice btn --></th>
+                        <th><!-- Mark as pre billed --></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in Model)
+                    {
+                        var hasShippedOrders = (job.OrdersShippeds != null && job.OrdersShippeds.Any()) ||
+                                               (job.JobItems != null && job.JobItems.Any(ji => ji.JobShipmentPivots != null && ji.JobShipmentPivots.Any(jsp => jsp.JobShipment != null && jsp.JobShipment.ShippedAtUTC != null)));
+                        <tr data-record-id="@Html.DisplayFor(model => job.Id)" data-has-shipped-orders="@hasShippedOrders.ToString().ToLower()">
+                            <td>@Html.DisplayFor(model => job.JobNumber)</td>
+                            <td>@Html.DisplayFor(model => job.Description)</td>
+                            <td>@Html.DisplayFor(model => job.Client1.Title)</td>
+                            <td>@Html.DisplayFor(model => job.User.FirstName) @Html.DisplayFor(model => job.User.LastName)</td>
+                            <td>@job.Complete.Value.ToLongDateString()</td>
+                            <td>@job.Shipped.Value.ToLongDateString()</td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-fc-info edit-shipped-orders-btn fs-12" @(!hasShippedOrders ? "disabled" : "")>
+                                    Edit Shipped Orders
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-warning view-invoice fs-12">
+                                    View Invoice
+                                </button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-success mark-as-prebilled fs-12">
+                                    Release To Billing
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_EditShippedOrdersModal.cshtml")
+
+<script>
+
+    let preBillingDataTable;
+    let currentJobIdContext;
+
+    function SaveShippedOrders() {
+        let legacyModels = [];
+        let shipmentModels = [];
+
+        // Legacy Orders
+        $('#edit_shipped_orders_modal .modal-body .os-edit-row').each(function () {
+            let $row = $(this);
+            legacyModels.push({
+                FreightCost: $row.find('input[name^="os.FreightCost"]').val(),
+                Markup: $row.find('input[name^="os.Markup"]').val(),
+                FreightPrice: $row.find('input[name^="os.FreightPrice"]').val(),
+                Id: $row.attr('data-record-id'),
+                InternalCharge: $row.find('input[name^="os.InternalCharge.Value"]').is(':checked'),
+                Notes: $row.find('textarea[name^="os.Notes"]').val(),
+                TrackingNumber: $row.find('input[name^="os.TrackingNumber"]').val(),
+                Job: currentJobIdContext
+            });
+        });
+
+        // Job Shipments
+        $('#edit_shipped_orders_modal .modal-body .field-binder-row[data-jobshipment-id]').each(function () {
+            let $row = $(this);
+            shipmentModels.push({
+                Id: $row.attr('data-jobshipment-id'),
+                FreightCost: $row.find('input[name^="js.FreightCost"]').val(),
+                Markup: $row.find('input[name^="js.Markup"]').val(),
+                FreightPrice: $row.find('input[name^="js.FreightPrice"]').val(),
+                Notes: $row.find('textarea[name^="js.Notes"]').val(),
+                TrackingNumber: $row.find('input[name^="js.TrackingNumber"]').val(),
+                InternalCharge: $row.find('input[name^="js.InternalCharge"]').is(':checked')
+            });
+        });
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('save-edited-shipped-orders'),
+            data: {
+                legacyOrders: legacyModels,
+                jobShipments: shipmentModels
+            },
+            success: function (data) {
+                console.log(data);
+                alert('Shipment data saved.');
+                $('#edit_shipped_orders_modal').modal('hide');
+            },
+            error: function (err) {
+                alert('Error saving shipment data.');
+                console.error(err);
+            }
+        });
+    };
+
+    function LoadShippedOrders() {
+        //load the modal body partial view
+        let $btn = $(this);
+        let jobId = $btn.parents('tr').attr('data-record-id');
+
+        //currentJobIdContext set here!
+        currentJobIdContext = jobId;
+
+        $.ajax({
+            type: 'GET',
+            url: ProcessUrl('get-shipped-orders-for-edit') + '/' + jobId,
+            success: function (data) {
+
+                $('#edit_shipped_orders_modal .modal-body').html(data);
+                AttachAllFreightListeners();
+                $('#edit_shipped_orders_modal').modal('show');
+
+                AttachAllFreightListeners();
+            },
+            error: function (err) {
+                alert(err);
+            }
+        })
+
+    };
+
+    function AttachAllFreightListeners() {
+        console.log("Attaching freight listeners...");
+
+        const selectors = [
+            'input[name^="os.FreightCost"]',
+            'input[name^="os.Markup"]',
+            'input[name^="os.FreightPrice"]',
+            'input[name^="js.FreightCost"]',
+            'input[name^="js.Markup"]',
+            'input[name^="js.FreightPrice"]'
+        ];
+
+        const inputs = $(selectors.join(','));
+        console.log(`Found ${inputs.length} inputs to attach listeners to.`);
+
+        const attachTo = new Set();
+
+        inputs.each(function () {
+            const $input = $(this);
+            const $row = $input.closest('.field-binder-row');
+
+            if (!attachTo.has($row[0])) {
+                attachTo.add($row[0]);
+
+                // Forward: Cost or Markup → Price
+                $row.on('blur', 'input[name^="os.FreightCost"], input[name^="os.Markup"], input[name^="js.FreightCost"], input[name^="js.Markup"]', function () {
+                    const $thisRow = $(this).closest('.field-binder-row');
+                    const cost = parseFloat($thisRow.find('input[name^="os.FreightCost"], input[name^="js.FreightCost"]').val());
+                    const markup = parseFloat($thisRow.find('input[name^="os.Markup"], input[name^="js.Markup"]').val());
+
+                    if (!isNaN(cost) && !isNaN(markup)) {
+                        const price = cost + (cost * markup);
+                        $thisRow.find('input[name^="os.FreightPrice"], input[name^="js.FreightPrice"]').val(price.toFixed(2));
+                    }
+                });
+
+                // Reverse: Price → Markup
+                $row.on('blur', 'input[name^="os.FreightPrice"], input[name^="js.FreightPrice"]', function () {
+                    const $thisRow = $(this).closest('.field-binder-row');
+                    const cost = parseFloat($thisRow.find('input[name^="os.FreightCost"], input[name^="js.FreightCost"]').val());
+                    const price = parseFloat($(this).val());
+
+                    if (!isNaN(cost) && cost !== 0 && !isNaN(price)) {
+                        const markup = (price - cost) / cost;
+                        $thisRow.find('input[name^="os.Markup"], input[name^="js.Markup"]').val(markup.toFixed(2));
+                    }
+                });
+            }
+        });
+    };
+
+    function OpenInvoiceInNewTab() {
+        let $row = $(this).parents('tr');
+        let jId = $row.attr('data-record-id');
+
+        window.open(ProcessUrl('job-invoice') + '/' + jId);
+    };
+
+    function RemoveRowAndReinitPrebillingTable(jobId) {
+        // Destroy the existing DataTable instance
+        preBillingDataTable.destroy();
+
+        // Remove the row from the table
+        $('#preBillingTable tr[data-record-id="' + jobId + '"]').remove();
+
+        // Re-initialize the DataTable
+        preBillingDataTable = $('#preBillingTable').DataTable();
+    };
+
+    function MarkAsPrebilled() {
+        let $row = $(this).parents('tr');
+        let jId = $row.attr('data-record-id');
+
+        //ajax to mark as billed
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('mark-job-as-prebilled'),
+            data: {
+                jobId: jId
+            },
+            success: function () {
+                alert('billing status updated');
+                RemoveRowAndReinitPrebillingTable(jId);
+            }
+        });
+    };
+
+    function CalculateFreightPrice() {
+        let $input = $(this);
+        let $row = $input.parents('.os-edit-row');
+
+        let dollarAmount = parseFloat($row.find('input[name="os.FreightCost"]').val());
+        let markup = parseFloat($row.find('input[name="os.Markup"]').val());
+
+        let price = 0;
+
+        // Check if the inputs are valid numbers
+        if (isNaN(dollarAmount) || isNaN(markup)) {
+            price = 0; //just so it's not empty in here
+        } else {
+            // Calculate the price
+            price = dollarAmount + (dollarAmount * markup);
+        }
+
+        // Display the calculated price
+        $row.find('input[name="os.FreightPrice"]').val(price.toFixed(2));
+    };
+
+    $(function () {
+        preBillingDataTable = $('#preBillingTable').DataTable({
+            "columnDefs": [
+                {
+                    "targets": [4, 5],
+                    "render": function (data, type, row) {
+                        // Adjust the date format to match the format in your table
+                        var date = moment(data, "dddd, MMMM D, YYYY", true);
+
+                        if (type === 'display' || type === 'filter') {
+                            if (!date.isValid()) {
+                                return ''; // Custom message for invalid date
+                            }
+                            return date.format('dddd, MMMM D, YYYY'); // Display format
+                        }
+
+                        // Use ISO format for sorting
+                        return date.isValid() ? date.toISOString() : ''; // ISO format ensures proper sorting
+                    }
+                }
+            ]
+        });
+    })
+        .on('click', '.view-invoice', OpenInvoiceInNewTab)
+        .on('click', '.mark-as-prebilled', MarkAsPrebilled)
+        .on('click', '.edit-shipped-orders-btn', LoadShippedOrders)
+        .on('click', '.save-shipped-orders', SaveShippedOrders);
+    //.on('blur', '#edit_shipped_orders_modal input[name="os.FreightCost"], #edit_shipped_orders_modal input[name="os.Markup"]', CalculateFreightPrice);
+</script>

@@ -1,0 +1,405 @@
+Name: Heidi
+Type: Sheetfed
+Operator Count: 1
+Lift Height: 24
+Side Allowance: 0.5
+Color Bar: 0.25
+Gripper: 1
+Tail: 0.5
+Front Colors: 6
+Back Colors: 0
+Coater: yes
+Min sheet: 11x8.5
+Min Sheet Height: 11
+Max Sheet Height: 29
+Min Sheet Width: 8.5
+Max Sheet Width: 20.5
+Max Image Height: 28
+Max Image Width: 18.5
+Min Caliper: 0.0035
+Max Caliper: 0.025
+Make Ready (Sheets): 200
+Dry Time: 0
+Min Run Time: 30 min
+Lift Change: 20 min
+Lift Change Scrap: 25 sheets
+Scrap: 0.02
+Burn Plates: 10 min
+Plate Life: 100000
+
+---------------------
+
+Name: Komori
+Type: Sheetfed
+Operator Count: 1
+Lift Height: 36
+Side Allowance: 0.5
+Color Bar: 0.25
+Gripper: 1
+Tail: 0.5
+Front Colors: 5
+Back Colors: 0
+Coater: yes
+Min sheet: 22x16
+Max sheet: 40.5x28.375
+Max image: 39x26
+Min caliper: 0.0035
+Max caliper: 0.03
+MR: 30 min / color
+Gripper change: 15 min / color
+Make Ready (Sheets): 200
+Make Ready (Sheets) / color: 50
+WU: 20 mim / color
+WU PMS: 30 min / color
+Dry Time: 0
+Min Run Time: 30 min
+Lift Change: 30 min
+Lift Change Scrap: 25 sheets
+Run speed: 4800 shts/hr
+Scrap: 0.02
+MR - Hang plates: 35 min / color
+Burn Plates: 10 min
+Plate Life: 100000
+
+---------------------
+
+Name: Roland
+Type: Sheetfed
+Operator Count: 2
+Lift Height: 48
+Side Allowance: 0.25
+Color Bar: 0.5
+Gripper: 0.375
+Tail: 0.5
+Front Colors: 6
+Back Colors: 0
+Coater: yes
+Min sheet: 18x13
+Max sheet: 40x28
+Max image: 37.75x27.5
+Min caliper: 0.002
+Max caliper: 0.039
+MR: 15 min / color
+Gripper change: 0
+Make Ready (Sheets): 100
+Make Ready (Sheets) / color: 100
+WU: 15 min / color
+WU PMS: 15 min / color
+Dry Time: 1.5 hours
+Min Run Time: 30 min
+Lift Change: 0
+Lift Change Scrap: 0
+Run speed: 6m-10m shts/hr*
+Scrap: 0.0175
+MR - Hang plates: 7.5 min / color
+Burn Plates: 10 min
+Plate Life: 100000
+
+---------------------
+
+Name: QM
+Type: Sheetfed
+Operator Count: 1
+Lift Height: 18
+Side Allowance: 0.25
+Color Bar: 0.25
+Gripper: 0.28
+Tail: 0
+Front Colors: 2
+Back Colors: 0
+Coater: no
+Min sheet: 5.52x3.5
+Max sheet: 18.11x13.39
+Max image: 17.83x12.98
+Min caliper: 0.002
+Max caliper: 0.015
+MR: 15 min / color
+Gripper change: 5 min - side guide
+Make Ready (Sheets): 0
+Make Ready (Sheets) / color: 50
+WU: 25 min / color
+WU PMS: 25 min / color
+Dry Time: 1 Hour
+Min Run Time: 15 min
+Lift Change: 5 min
+Lift Change Scrap: 25 sheets
+Run speed: 3500 - 6500 shts/hr*
+Scrap: 0.02
+MR - Hang plates: 20 min / color
+Burn Plates: 4 min
+Plate Life: 20000
+
+---------------------
+
+Name: Envelope
+Type: Sheetfed
+Operator Count: 1
+Lift Height: 4
+Side Allowance: 0
+Color Bar: 0.25
+Gripper: 0.31
+Tail: 0
+Front Colors: 1
+Back Colors: 0
+Coater: no
+Min sheet: 5x3
+Max sheet: 17x13
+Max image: 16.5x12.5
+Min caliper: 0.0024
+Max caliper: 0.016
+MR: 15 min / color
+Gripper change: 10 min - side guide
+Make Ready (Sheets): 0
+Make Ready (Sheets) / color: 50
+WU: 15 min / color
+WU PMS: 15 min / color
+Dry Time: 1 Hour
+Min Run Time: 0
+Lift Change: 5 min
+Lift Change Scrap: 25 sheets
+Run speed: 2500 shts/hr
+Scrap: 0.02
+MR - Hang plates: 20 min / color
+Burn Plates: 5 min
+Plate Life: 25000
+
+---------------------
+
+Name: Acuity - 1 Layer
+Type: Digital
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 4
+Back Colors: 0
+Coater: no
+Min sheet: 5x5
+Max sheet: 49.6x99.2
+Max image: 49.6x99.2
+Min caliper: 0.0001
+Max caliper: 2
+MR: 15 min
+Gripper change: 0
+Make Ready (Sheets): 0
+Make Ready (Sheets) / color: 0
+WU: 0
+WU PMS: 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Run speed: 100 sqft/hr
+Scrap: 0.05
+MR - Hang plates: 0
+Burn Plates: 0
+Plate Life: 0
+
+---------------------
+
+Name: Acuity - 2 Layers
+Type: Digital
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 8
+Back Colors: 0
+Coater: no
+Min sheet: 5x5
+Max sheet: 49.6x99.2
+Max image: 49.6x99.2
+Min caliper: 0.0001
+Max caliper: 2
+MR: 15 min
+Gripper change: 0
+Make Ready (Sheets): 0
+Make Ready (Sheets) / color: 0
+WU: 0
+WU PMS: 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Run speed: 50 sqft/hr
+Scrap: 0.05
+MR - Hang plates: 0
+Burn Plates: 0
+Plate Life: 0
+
+---------------------
+
+Name: Vutek HS - 1 Layer
+Type: Digital
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 4
+Back Colors: 0
+Coater: no
+Min sheet: 12x12
+Max sheet: 126x…
+Max image: 126x…
+Min caliper: 0.0001
+Max caliper: 2
+MR: 15 min
+Gripper change: 0
+Make Ready (Sheets): 0
+Make Ready (Sheets) / color: 0
+WU: 0
+WU PMS: 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Run speed: 500-1000 sqft/hr*
+Scrap: 3%-5%*
+MR - Hang plates: 0
+Burn Plates: 0
+Plate Life: 0
+
+---------------------
+
+Name: Vutek HS - 2 Layers
+Type: Digital
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 8
+Back Colors: 0
+Coater: no
+Min sheet: 12x12
+Max sheet: 126x…
+Max image: 126x…
+Min caliper: 0.0001
+Max caliper: 2
+MR: 15 min
+Gripper change: 0
+Make Ready (Sheets): 0
+Make Ready (Sheets) / color: 0
+WU: 0
+WU PMS: 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Run speed: 320 sqft/hr
+Scrap: 0.05
+MR - Hang plates: 0
+Burn Plates: 0
+Plate Life: 0
+
+---------------------
+
+Name: Vutek HS - 3 Layers
+Type: Digital
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 12
+Back Colors: 0
+Coater: no
+Min sheet: 12x12
+Max sheet: 126x…
+Max image: 126x…
+Min caliper: 0.0001
+Max caliper: 2
+MR: 15 min
+Gripper change: 0
+Make Ready (Sheets): 0
+Make Ready (Sheets) / color: 0
+WU: 0
+WU PMS: 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Run speed: 100 sqft/hr
+Scrap: 0.05
+MR - Hang plates: 0
+Burn Plates: 0
+Plate Life: 0
+
+---------------------
+
+Name: Ricoh B/W
+Type: Copier
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: Blk
+Back Colors: Blk
+Coater: no
+Min sheet: 5.5x8.5
+Max sheet: 12x18
+Max image: 12x18
+Min caliper: 0.0024
+Max caliper: 0.012
+MR: 0
+Gripper change: 0
+Make Ready (Sheets): 5
+Make Ready (Sheets) / color: 0
+WU: 0
+WU PMS: 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Run speed: 2700-5400 shts/hr*
+Scrap: 0.05
+MR - Hang plates: 0
+Burn Plates: 0
+Plate Life: 0
+
+---------------------
+
+Name: Savin Pro C651EX
+Type: Copier
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 5
+Back Colors: 5
+Coater: no
+Min sheet: 5.5x8.5
+Max sheet: 13x48
+Max image: 13x47.25
+Min caliper: 0.0024
+Max caliper: 0.015
+MR: 0
+Gripper change: 0
+Make Ready (Sheets): 5
+Make Ready (Sheets) / color: 0
+WU: 0
+WU PMS: 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Run speed: 720-5400 shts/hr*
+Scrap: 0.05
+MR - Hang plates: 0
+Burn Plates: 0
+Plate Life: 0
+
+---------------------
+

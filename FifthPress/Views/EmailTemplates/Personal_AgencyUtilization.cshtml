@@ -1,0 +1,176 @@
+﻿@model FifthPress.Models.ViewModels.EmailTemplateModels.VM_PersonalAgencyUtilization
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Report</title>
+
+    <style>
+        td.met {
+            color: green !important;
+        }
+
+        td.not-met {
+            color: red !important;
+        }
+        /* Mobile-specific adjustments */
+        @@media screen and (max-width: 600px) {
+            th, td {
+                padding: 5px; /* Smaller padding for smaller screens */
+                font-size: 12px; /* Reduce font size */
+            }
+
+            p, table {
+                font-size: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8;">
+    <!-- Outer Wrapper -->
+    <div style="max-width: 800px; margin: 20px auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+
+        <!-- Header -->
+        <div style="background-color: #4a90e2; color: white; text-align: center; padding: 20px;">
+            <h3 style="margin: 0;">Employee Utilization Report</h3>
+        </div>
+
+        <!-- Content Wrapper -->
+        <div style="padding: 20px;">
+            <!-- Pretext Section -->
+            <div style="margin-bottom: 20px;">
+                <p style="font-size: 16px; color: #333;">
+                    Hi @Html.DisplayFor(model => model.Yesterday.FirstName) @Html.DisplayFor(model => model.Yesterday.LastName),<br />
+                    <br />
+                    Attached is today’s Agency Billable Utilization Report for your review. This report highlights key metrics and insights to help keep our team aligned and focused on achieving our goals.<br />
+                    <br />
+                    Please take a moment to review the details and feel free to reach out with any questions or if you need further clarification.<br />
+                    <br />
+                    Thank you for your continued commitment to efficiency and excellence!
+                </p>
+            </div>
+
+            <!-- Utilization Report Table -->
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; font-size:16px;">
+                    <thead>
+                        <tr style="background-color: #f0f4fa;">
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: left;">Time</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">Yesterday Time</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">Yesterday %</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">YTD Time</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; text-align: center;">YTD %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Internal Billable Row -->
+                        <tr>
+                            <td style="padding: 5px; border: 1px solid #ddd;">Internal Billable Time</td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(Model.Yesterday.TotalHours_InternalBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round((Model.Yesterday.Utilization_InternalBillable) * 100m, 2))%
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(Model.YTD.TotalHours_InternalBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round((Model.YTD.Utilization_InternalBillable) * 100m, 2))%
+                            </td>
+                        </tr>
+
+                        <!-- External Billable Row -->
+                        <tr>
+                            <td style="padding: 5px; border: 1px solid #ddd;">External Billable Time</td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(Model.Yesterday.TotalHours_ExternalBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round((Model.Yesterday.Utilization_ExternalBillable) * 100m, 2))%
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(Model.YTD.TotalHours_ExternalBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round((Model.YTD.Utilization_ExternalBillable) * 100m, 2))%
+                            </td>
+                        </tr>
+                        <!-- Billable row-->
+                        <tr>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align:end; font-size:18px;">Total Billable Time</td>
+
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Html.DisplayFor(model => model.Yesterday.dailyTotals.BillableTotals.BillableTimeString)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@(!Model.MeetsDailyBillableTarget ? "not-met" : "met")">
+                                @Html.DisplayFor(model => model.Yesterday.dailyTotals.BillableTotals.BillableUtilizationString)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Html.DisplayFor(model => model.YTD.yearlyTotals.BillableTotals.BillableTimeString)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@(!Model.MeetsYearlyBillableTarget ? "not-met" : "met")">
+                                @Html.DisplayFor(model => model.YTD.yearlyTotals.BillableTotals.BillableUtilizationString)
+                            </td>
+                        </tr>
+
+                        <!-- Target Utilization Row  -->
+                        <tr style="background-color: #f8f8f8; font-weight:bold">
+                            <td style="padding: 5px; border: 1px solid #ddd; color: blue; font-weight: bold;">Target Billable Utilization</td>
+                            <td></td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align:center;">
+                                @Html.DisplayFor(model => model.TargetUtilizationString)
+                            </td>
+                            <td></td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align:center;">
+                                @Html.DisplayFor(model => model.TargetUtilizationString)
+                            </td>
+                        </tr>
+
+                        <!-- Non-Billable Row -->
+                        <tr>
+                            <td style="padding: 5px; border: 1px solid #ddd;">Non-Billable Time</td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(Model.Yesterday.TotalHours_NonBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round((Model.Yesterday.Utilization_NonBillable) * 100m, 2))%
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(Model.YTD.TotalHours_NonBillable)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @(Math.Round((Model.YTD.Utilization_NonBillable) * 100m, 2))%
+                            </td>
+                        </tr>
+
+                        <!-- Totals Row -->
+                        <tr style="background-color: #f0f4fa;">
+                            <td style="padding: 5px; border: 1px solid #ddd; font-weight: bold;">Total Utilization</td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Html.DisplayFor(model => model.Yesterday.dailyTotals.TotalTimeString)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@(!Model.MeetsDailyOverallTarget ? "not-met" : "met")">
+                                @Html.DisplayFor(model => model.Yesterday.dailyTotals.TotalUtilizationString)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;">
+                                @Html.DisplayFor(model => model.YTD.yearlyTotals.TotalTimeString)
+                            </td>
+                            <td style="padding: 5px; border: 1px solid #ddd; text-align: center;" class="@(!Model.MeetsYearlyOverallTarget ? "not-met" : "met")">
+                                @Html.DisplayFor(model => model.YTD.yearlyTotals.TotalUtilizationString)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #4a90e2; color: white; text-align: center; padding: 10px;">
+            <p style="margin: 0; font-size:16px;">&copy; 2025 FifthColor. All Rights Reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

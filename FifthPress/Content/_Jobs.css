@@ -1,0 +1,196 @@
+﻿/*NOT CURRENTLY USED!! */
+
+table#job_items {
+    margin: 0 auto;
+    margin-top: 30px;
+    display: block;
+    overflow-x: scroll;
+}
+
+.item-quantity,
+.item-sheets,
+.layout-margin-y,
+.layout-margin-x,
+.side-guides,
+.gripper,
+.tail,
+.chosen-material-run-size input,
+.chosen-press-speed input,
+.press-color-count,
+.press-color-string {
+    width: 75px;
+}
+
+.service-order-list {
+    list-style-type: none;
+    cursor: ns-resize;
+}
+
+.service-order-list li {
+    border: 1px solid black;
+    padding: 10px 75px 10px 10px;
+    font-size: 18px;
+    position: relative;
+    background: #ffffff;
+}
+
+.service-order-list li a {
+    position: absolute;
+    bottom: 10px;
+    right: 15px;
+}
+
+.chosen-material-details span {
+    font-size: 16px;
+}
+
+.chosen-material-details .material-title {
+    text-decoration: underline;
+}
+
+.item-width,
+.item-length {
+    width: 75px;
+}
+
+#job_items th {
+    text-align: center;
+    font-size: 20px;
+}
+
+.nu-viewport {
+    height: 70vh;
+    overflow-y: scroll;
+}
+
+.ms-modal-left {
+
+}
+
+#materials_select_modal h2 {
+    cursor: pointer;
+}
+
+.column-labels > label {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.modal table th,
+.modal table td {
+    padding: 5px;
+}
+
+.item-row input {
+    font-size: 15px;
+}
+
+.item-row label {
+    font-size: 15px;
+    padding-right: 5px;
+}
+
+.product-service-list {
+    list-style-type: none;
+}
+
+.selected-items-row {
+    font-size: 16px;
+}
+
+.material-list {
+    font-weight: 700;
+    font-size: 20px;
+}
+
+.material-list .selected-materials {
+    padding-left: 5px;
+    font-weight: normal;
+    font-style: italic;
+}
+
+.material-list .list-title {
+    font-size: 20px;
+}
+
+#job_builder input[type="submit"] {
+    margin: 0 auto;
+}
+
+#job_builder input[type="submit"]:not(:disabled) {
+    animation: glowing-box-shadow 1.5s infinite;
+}
+
+@keyframes glowing-box-shadow {
+    0% {
+        box-shadow: 1px 0px 15px #104107;
+    }
+
+    50% {
+        box-shadow: 1px 0px 8px #104107;
+    }
+
+    100% {
+        box-shadow: 1px 0px 15px #104107;
+    }
+}
+.create-wrapper,
+.edit-wrapper {
+    padding-bottom: 100px;
+}
+
+.selected-items-row ul {
+    list-style-type: none;
+}
+
+
+.contact-list {
+    max-height: 200px;
+    overflow-y: scroll;
+    list-style-type: none;
+}
+
+.contact-list li {
+    border-bottom: 1px solid black;
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.contact-list input {
+    font-size: 14px;
+}
+
+.contact-list-row {
+    background: white;
+    margin: 25px 0 15px;
+    padding: 20px;
+}
+
+.contact-list-row + .show-hide-contacts {
+    margin-top: 10px;
+}
+.service-materials-btns ul li {
+    display: flex;
+    justify-content: space-between;
+}
+.service-material-btns ul li .remove-link {
+    cursor: pointer;
+}
+
+.swap-val-icon {
+    transform: scale(2.0);
+    color: var(--fc-navy);
+}
+
+.swap-icon-label {
+    font-size: 1.75rem;
+    margin-left: 1rem;
+    color: var(--fc-navy);
+}
+
+.swap-icon-wrapper {
+    cursor: pointer;
+}

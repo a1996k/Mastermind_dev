@@ -1,0 +1,92 @@
+@model FifthPress.Models.ViewModels2.VM_ShippedOrdersModal
+
+<form id="shippedOrdersForm">
+
+    @if (!Model.JobShipments.Any() && !Model.LegacyShippedOrders.Any())
+    {
+        <div class="alert alert-info">No shipments found for this job.</div>
+    }
+
+    @* Grouped shipments (bundle shipping flow) *@
+    @foreach (var shipment in Model.JobShipments)
+    {
+        var detail = shipment.ShipmentsShippeds.FirstOrDefault();
+        var jobGroups = shipment.JobShipmentPivots
+            .Where(p => p.Job1 != null || (p.JobItem1 != null && p.JobItem1.Job1 != null))
+            .GroupBy(p => p.Job1?.JobNumber ?? p.JobItem1?.Job1?.JobNumber)
+            .Where(g => g.Key != null)
+            .ToList();
+
+        <div class="field-binder-row mb-3" data-jobshipment-id="@shipment.Id">
+            <div class="field-binder-row-header">
+                <div class="mb-2"><strong>Shipped:</strong> @(shipment.ShippedAtUTC?.ToLocalTime().ToString("g"))</div>
+
+                @if (detail != null)
+                {
+                    <div class="field-binder-col">
+                        Freight Cost: <input type="number" name="js.FreightCost[@shipment.Id]" value="@detail.FreightCost" step="0.01" class="form-control" />
+                    </div>
+                    <div class="field-binder-col">
+                        Markup: <input type="number" name="js.Markup[@shipment.Id]" value="@detail.Markup" step="0.01" class="form-control" />
+                    </div>
+                    <div class="field-binder-col">
+                        Freight Price: <input type="number" name="js.FreightPrice[@shipment.Id]" step="0.01" value="@detail.FreightPrice" class="form-control" />
+                    </div>
+                    <div class="field-binder-col">
+                        Tracking #: <input type="text" name="js.TrackingNumber[@shipment.Id]" value="@detail.TrackingNumber" class="form-control" />
+                    </div>
+                    <div class="field-binder-col">
+                        Internal Charge: <input type="checkbox" name="js.InternalCharge[@shipment.Id]" value="true" @(detail.InternalCharge == true ? "checked" : "") />
+                    </div>
+                    <div class="field-binder-col">
+                        Notes: <textarea class="form-control" name="js.Notes[@shipment.Id]">@Html.Raw(detail.Notes)</textarea>
+                    </div>
+                }
+            </div>
+
+            @foreach (var group in jobGroups)
+            {
+                <div class="field-binder-row-details mb-2" style="border: 1px dashed #ccc; padding: 10px;">
+                    <div class="field-binder-col">
+                        <strong>Job:</strong> @group.Key
+                    </div>
+                    <div class="field-binder-col">
+                        <strong>Items:</strong> @group.Count()
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    @* Legacy shipments (individual ReadyToShip flow) *@
+    @foreach (var order in Model.LegacyShippedOrders)
+    {
+        <div class="os-edit-row field-binder-row mb-3" data-record-id="@order.Id">
+            <div class="field-binder-row-details">
+                <div class="field-binder-col">
+                    Freight Cost: <input type="number" name="os.FreightCost[@order.Id]" value="@order.FreightCost" step="0.01" class="form-control" />
+                </div>
+                <div class="field-binder-col">
+                    Markup: <input type="number" name="os.Markup[@order.Id]" value="@order.Markup" step="0.01" class="form-control" />
+                </div>
+                <div class="field-binder-col">
+                    Freight Price: <input type="number" name="os.FreightPrice[@order.Id]" value="@order.FreightPrice" step="0.01" class="form-control" />
+                </div>
+                <div class="field-binder-col">
+                    Internal Charge: <input type="checkbox" name="os.InternalCharge[@order.Id]" value="true" @(order.InternalCharge == true ? "checked" : "") />
+                </div>
+                <div class="field-binder-col">
+                    Tracking #: <input type="text" name="os.TrackingNumber[@order.Id]" value="@order.TrackingNumber" class="form-control" />
+                </div>
+                <div class="field-binder-col">
+                    Notes: <textarea name="os.Notes[@order.Id]" class="form-control">@order.Notes</textarea>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="modal-footer d-flex justify-content-end mt-3">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="saveShippedOrdersBtn" class="btn btn-primary save-shipped-orders">Save Changes</button>
+    </div>
+</form>

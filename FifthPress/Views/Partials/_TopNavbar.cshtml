@@ -1,0 +1,93 @@
+﻿<style>
+    .load-bug-form,
+    .load-fr-form {
+        cursor: pointer;
+    }
+
+    .nav-link-danger {
+        color: red;
+    }
+
+    .nav-link-alt {
+        color: var(--fc-blue);
+    }
+
+    .red-link {
+        padding: 0 10px;
+        border-radius: 20px;
+        background: red;
+        white-space: nowrap;
+    }
+
+        .red-link .nav-link {
+            font-weight: 700;
+        }
+
+    .navbar {
+        position: fixed;
+        width: 100%;
+        margin-left: 0px;
+        z-index: 999;
+    }
+
+    .nav-item label {
+        color: white;
+        font-weight: 500;
+        font-size: 16px;
+    }
+
+    .navbar-brand {
+        width: 175px;
+        height: auto;
+        margin-left: 25px;
+    }
+
+    .search-icon-place {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+    }
+
+    .nav-item.mx-3.job-quote-lookup {
+        position: relative;
+    }
+
+    .fa-magnifying-glass::before {
+        font-size: 14px;
+    }
+
+    /* Hide the file input button */
+    #upload-btn {
+        display: none;
+    }
+</style>
+
+<nav class="navbar navbar-expand-lg top-navbar">
+    <div class="logo-search-wrapper d-flex align-items-center">
+        <img class="navbar-brand" src="~/Content/images/nb-logo.png" />
+        <div class="nav-item mx-3 job-quote-lookup field-binder-col-flex">
+            <input type="text" placeholder="Lookup" class="navbar-duo-lookup" autocomplete="off" /> 
+        </div>
+    </div>
+    <div class="collapse navbar-collapse navbar-nav-section justify-content-end" id="navbarNav">
+        <ul class="navbar-nav ml-auto align-items-center">
+            <li class="nav-item mx-3">
+                <!-- <a class="nav-link nav-link-danger load-bug-form" data-modal-to-open="#bug_modal">Submit Bug</a> -->
+                <i class="fa-solid fa-bug load-bug-form fs-16" style="color:red" data-modal-to-open="#bug_modal" title="Submit Bug"></i>
+            </li>
+            <li class="nav-item mx-3">
+                <!--<a class="nav-link nav-link-alt load-fr-form" data-modal-to-open="#feature_request_modal">Feature Request</a>-->
+                <i class="fa-solid fa-hand-point-up load-fr-form fs-16" data-modal-to-open="#feature_request_modal" title="Feature Request"></i>
+            </li>
+            <li class="nav-item mx-3" data-permissions="1d">
+                <a class="nav-link" href="/Dashboard/Index">My Dashboard</a>
+            </li>
+            <li class="nav-item mx-3">
+                <a class="nav-link" href="/Home/Index_New">Print Overview</a>
+            </li>
+            <li class="nav-item red-link mx-3" data-permissions="1a">
+                <a class="nav-link" href="/Quote/Create">New Quote <span class="ms-3">+</span></a>
+            </li>
+        </ul>
+    </div>
+</nav>

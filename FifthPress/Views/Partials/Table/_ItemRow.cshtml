@@ -1,0 +1,52 @@
+﻿@model FifthPress.Models.ViewModels.VM_ItemRow
+
+@{
+    int ct = 0;
+}
+<tr class="quote-item-row" data-record-id="@Model.RecordId">
+    <td class="text-center">
+        <button type="button" class="btn btn-danger btn-sm remove-btn"><i class="fas fa-times"></i></button>
+    </td>
+    <td>
+        <input type="text" class="item-title" name="QuoteItems.Title" />
+    </td>
+    <td>
+        <input type="number" class="item-quantity" name="QuoteItems.Quantity" />
+    </td>
+    <td>
+        <input type="number" class="item-sheets" name="QuoteItems.Sheets" />
+    </td>
+    <td>
+        <select name="QuoteItems.PriceLevelId">
+            @foreach (SelectListItem i in Model.PriceLevels)
+            {
+                <option value="@i.Value" @(ct == 0 ? "selected" : "")>@i.Text</option>
+                ct++;
+            }
+            @{ ct = 0; }
+        </select>
+    </td>
+    <td class="text-center">
+        <input type="checkbox" class="item-round-price" name="QuoteItems.RoundPrice" />
+    </td>
+    <td>
+        <select name="QuoteItems.FormatUnitPrice">
+            @foreach (SelectListItem i in Model.FormatUnitPrices)
+            {
+                <option value="@i.Value" @(ct == 0 ? "selected" : "")>@i.Text</option>
+                ct++;
+            }
+            @{ ct = 0; }
+        </select>
+    </td>
+    <td class="d-flex flex-row flex-nowrap">
+        <input type="text" class="item-width" name="QuoteItems.Width" placeholder="w" title="Width" />
+        <input type="text" class="item-height" placeholder="h" name="QuoteItems.Height" title="Height" />
+    </td>
+    <td class="text-center">
+        <button type="button" class="btn btn-fc-info item-materials-btn" data-modal-to-open="#materials_select_modal">Materials...</button>
+    </td>
+    <td class="text-center">
+        <button type="button" class="btn btn-fc-info item-services-btn" data-modal-to-open="#service_select_modal">Services...</button>
+    </td>
+</tr>

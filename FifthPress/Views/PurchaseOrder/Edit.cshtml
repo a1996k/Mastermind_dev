@@ -1,0 +1,226 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_POEdit
+
+<script>
+    let purchaseOrderApproved = '@Model.Order.Status' === 'approved';
+    let purchaseOrderPending = '@Model.Order.Status' === 'pending';
+</script>
+
+@Styles.Render("~/Content/pocss")
+@Scripts.Render("~/bundles/pojs")
+
+@{
+    bool canCancel = (string)ViewData["UserRole"] == "Admin" || (string)ViewData["UserRole"] == "Approver" || (string)ViewData["UserRole"] == "Special Approver" || (Model.Order.Requestor ?? 0) == (int)ViewData["ThisUser"];
+    bool canApprove = (string)ViewData["UserRole"] == "Admin" || (string)ViewData["UserRole"] == "Approver" || (string)ViewData["UserRole"] == "Special Approver" || (Model.Order.Requestor ?? 0) != (int)ViewData["ThisUser"];
+}
+
+<!-- Hiding all unused property items until needed; make sure to remove the hidden field from below -->
+@Html.HiddenFor(model => model.Order.Id, htmlAttributes: new { @class = "purchase-order-id" })
+@Html.HiddenFor(model => model.Order.Job)
+@Html.HiddenFor(model => model.Order.Job1.JobNumber)
+@Html.HiddenFor(model => model.Order.Status)
+@Html.HiddenFor(model => model.Order.RequestDate)
+@Html.HiddenFor(model => model.Order.Requestor)
+@Html.HiddenFor(model => model.Order.SubTotal)
+@Html.HiddenFor(model => model.Order.Price)
+@Html.HiddenFor(model => model.Order.DateEntered)
+@Html.HiddenFor(model => model.Order.DateReceived)
+@Html.HiddenFor(model => model.Order.Received)
+@Html.HiddenFor(model => model.Order.Emailed)
+@Html.HiddenFor(model => model.Order.ShipToFax)
+@Html.HiddenFor(model => model.Order.ShipToPhone)
+@Html.HiddenFor(model => model.Order.SubTotal)
+@Html.HiddenFor(model => model.Order.POTotal)
+@Html.HiddenFor(model => model.Order.Paid)
+@Html.HiddenFor(model => model.Order.Total)
+@Html.HiddenFor(model => model.Order.CancelDate)
+@Html.HiddenFor(model => model.Order.CancelledBy)
+@Html.HiddenFor(model => model.Order.RequiredSpecialApproval)
+@Html.HiddenFor(model => model.Order.SpecialApprovalDate)
+@Html.HiddenFor(model => model.Order.SpecialApprovalApprover)
+@Html.HiddenFor(model => model.Order.SpecialApprovalSent)
+@Html.HiddenFor(model => model.Order.SpecialApprovalSentDate)
+@Html.HiddenFor(model => model.Order.CreatedBy)
+
+<div class="container-fluid po-hdr-ctr">
+    <div class="row">
+        <div class="col-4 p-2 border-end">
+            <div class="field-binder-row-flex justify-content-between flex-wrap align-items-start w-100">
+                <div class="field-binder-col-flex w-100">
+                    <h3 class="ff-poppins fs-16 fw-bold">Vendor</h3>
+                    <div class="field-binder-row-flex justify-content-between align-items-center w-100">
+                        @Html.DropDownListFor(model => model.Order.Vendor, ViewData["Order.Vendor"] as SelectList, "<Please select>", htmlAttributes: new { @class = "styled-input" })
+                        <button type="button" class="btn r-red-action-btn add-vendor-btn" data-modal-to-open="#dynamic_vendor_modal">+</button>
+                    </div>
+                    <div class="vendor-addr-info mt-3">
+                        <h3 class="ff-poppins fs-16 fw-bold link-underline">Address Details</h3>
+                        <span class="street-addr">@Html.DisplayFor(model => model.Order.Vendor1.Address)</span>
+                        <span class="street-addr2">@Html.DisplayFor(model => model.Order.Vendor1.Address2)</span>
+                        <div class="city-state-zip">
+                            <span class="city">@Html.DisplayFor(model => model.Order.Vendor1.City)</span> <span class="state">@Html.DisplayFor(model => model.Order.Vendor1.USState.Abbreviation)</span> <span class="zip">@Html.DisplayFor(model => model.Order.Vendor1.Zip)</span>
+                        </div>
+                        <div class="phone">@Html.DisplayFor(model => model.Order.Vendor1.Phone)</div>
+                        <div class="email">@Html.DisplayFor(model => model.Order.Vendor1.Email)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4 p-2 border-end">
+            <div class="field-binder-col-flex align-items-stretch">
+                <h3 class="ff-poppins fs-16 fw-bold">Ship To</h3>
+                @Html.EditorFor(model => model.Order.ShipTo, new { htmlAttributes = new { @class = "styled-input" } })
+                @Html.EditorFor(model => model.Order.ShipToAddress, new { htmlAttributes = new { @class = "styled-input" } })
+            </div>
+        </div>
+        <div class="col-4 p-2">
+            <div class="field-binder-col-flex align-items-end">
+                <span class="ff-dm-sans fw-bold fs-18"><span class="fw-normal">Purchase Order #</span>@Html.DisplayFor(model => model.Order.PONumber)</span>
+
+                <span class="ff-dm-sans fw-bold fs-18"><span class="fw-normal">Status: </span>@Html.DisplayFor(model => model.Order.Status)</span>
+
+                <span class="ff-dm-sans fw-bold fs-18"><span class="fw-normal">Created: </span>@Html.DisplayFor(model => model.Order.DateEntered)</span>
+
+                <div class="ff-dm-sans fw-bold fs-18"><span class="fw-normal">Requested by: </span>@Html.DisplayFor(model => model.Order.User2.FirstName) @Html.DisplayFor(model => model.Order.User2.LastName)</div>
+
+                <div class="ff-dm-sans fw-bold fs-18"><span class="fw-normal">Created by: </span>@Html.DisplayFor(model => model.Order.User3.FirstName) @Html.DisplayFor(model => model.Order.User3.LastName)</div>
+            </div>
+
+            <div class="field-binder-row-flex fs-2 justify-content-between approval-btn-section mt-3">
+                @switch (Model.Order.OrderState)
+                {
+                    case PO_Orders.POState.Cancelled:
+                    case PO_Orders.POState.New:
+                        break;
+                    case PO_Orders.POState.Pending:
+                        if (canApprove)
+                        {
+                            <button type="button" class="btn btn-sm btn-fc-caution approve-po-btn ff-dm-sans fs-14 po-action-btn" data-record-id="@Html.DisplayFor(model => model.Order.Id)">Approve for Delivery</button>
+                            <button type="button" class="btn btn-sm btn-fc-danger deny-po-btn ff-dm-sans fs-14 po-action-btn" data-modal-to-open="#denial_reason_modal" data-record-id="@Html.DisplayFor(model => model.Order.Id)">Deny PO</button>
+                        }
+                        break;
+                    case PO_Orders.POState.Approved:
+                        <h3 class="text-success approved-text">Order Approved</h3>
+
+                        if (canCancel)
+                        {
+                            <button type="button" class="btn btn-sm btn-fc-danger cancel-po-btn ff-dm-sans fs-14 po-action-btn" data-record-id="@Html.DisplayFor(model => model.Order.Id)">Cancel PO</button>
+                        }
+                        break;
+                    case PO_Orders.POState.Denied:
+                        <h3 class="text-danger denied-text">Order Denied</h3>
+                        break;
+                    case PO_Orders.POState.Complete:
+                        break;
+                    default:
+                        break;
+                }
+            </div>
+        </div>
+    </div>
+    <div class="row mt-5 p-5 outer-row">
+        <div class="col-lg-12">
+            <div class="po-item-wrapper">
+                @foreach (VM_PO_Items i in Model.Items)
+                {
+                    @Html.Partial("~/Views/Partials/_PurchaseOrderRow.cshtml", i)
+                }
+            </div>
+        </div>
+    </div>
+    <div class="row p-5">
+        <div class="col-lg-12 text-center">
+            @if ((PO_Orders.POState)Model.Order.OrderState != PO_Orders.POState.Approved)
+            {
+                <button type="button" class="btn btn-sm r-red-action-btn add-po-row-btn" data-po-id="@Html.DisplayFor(model => model.Order.Id)">Add New Row</button>
+                <button type="button" class="btn btn-sm r-navy-action-btn add-material-button" data-modal-to-open="#dynamic_material_modal">Add New Material</button>
+            }
+        </div>
+    </div>
+    <div class="pan-wrapper bg-body mt-5 p-5">
+        <div class="row pricing-and-notes-row-one">
+            <div class="col-lg-4">
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Order.Notes)
+                    @Html.TextAreaFor(model => model.Order.Notes, new { @class = "styled-input", @rows = 4, @style = "width:100%;" })
+                </div>
+            </div>
+            <div class="col-lg-4 offset-lg-4">
+                <div class="row border-bottom py-2">
+                    <div class="col-12">
+                        <div class="field-binder-row-flex justify-content-between">
+                            <span class="freight-label">@Html.LabelFor(model => model.Order.Freight)</span>
+                            <span class="freight-value mins-input">$@Html.EditorFor(model => model.Order.Freight, new { htmlAttributes = new { @class = "styled-input" } })</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row border-bottom py-2">
+                    <div class="col-12">
+                        <div class="field-binder-row-flex justify-content-between">
+                            <span class="subtotal-label">@Html.LabelFor(model => model.Order.SubTotal)</span>
+                            <span class="subtotal-value">$@Html.DisplayFor(model => model.Order.SubTotal)</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row border-bottom py-2">
+                    <div class="col-12">
+                        <div class="field-binder-row-flex justify-content-between">
+                            <div class="field-binder-row-flex justify-content-start">
+                                <span class="tax-percent-label">@Html.LabelFor(model => model.Order.TaxPercent)</span>
+                                <span class="tax-percent-value mins-input ps-3">@Html.EditorFor(model => model.Order.TaxPercent, new { htmlAttributes = new { @class = "styled-input" } })</span>
+                            </div>
+
+                            <div class="field-binder-row-flex justify-content-start mins-input">
+                                <span class="tax-value">$</span>
+                                @Html.EditorFor(model => model.Order.Tax, new { htmlAttributes = new { @class = "styled-input" } })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row py-2">
+                    <div class="col-12">
+                        <div class="field-binder-row-flex justify-content-between">
+                            <span class="pototal-label">@Html.LabelFor(model => model.Order.POTotal)</span>
+                            <span class="pototal-value">$@Html.DisplayFor(model => model.Order.POTotal)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-lg-12 field-binder-row-flex">
+            @switch (Model.Order.OrderState)
+            {
+                case PO_Orders.POState.Cancelled:
+                case PO_Orders.POState.New:
+                    <button type="button" class="btn btn-lg r-navy-action-btn submit-for-app-btn po-action-btn">Submit For Approval</button>
+                    break;
+                case PO_Orders.POState.Pending:
+                    <button type="button" class="btn btn-lg r-red-action-btn awaiting-approval-btn po-action-btn" disabled>Awaiting Approval</button>
+                    break;
+                case PO_Orders.POState.Approved:
+                    <h3 class="text-success approved-text">Order Approved</h3>
+                    break;
+                case PO_Orders.POState.Denied:
+                    <h3 class="text-danger denied-text">Order Denied</h3>
+                    <button type="button" class="btn btn-lg r-navy-action-btn submit-for-app-btn po-action-btn">Submit For Approval</button>
+                    break;
+                case PO_Orders.POState.Complete:
+                    <h3 class="text-success complete-text">Order Complete</h3>
+                    break;
+                default:
+                    break;
+            }
+            <button type="button" class="btn btn-lg r-red-action-btn save-btn po-action-btn ms-3">Save</button>
+            <button type="button" class="btn btn-lg r-navy-action-btn print-btn ms-3">Printable Version</button>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_DynamicVendorAdditionModal.cshtml", new Vendor())
+@Html.Partial("~/Views/Partials/_DynamicMaterialAdditionModal.cshtml", new Material())
+@Html.Partial("~/Views/Partials/_JobSelectModal.cshtml")
+@Html.Partial("~/Views/Partials/_AcceptDeliveryModal.cshtml")
+@Html.Partial("~/Views/Partials/_DeliveryHistoryModal.cshtml")
+@Html.Partial("~/Views/Partials/_InvoiceModal.cshtml")
+@Html.Partial("~/Views/Partials/_DenialReasonModal.cshtml")

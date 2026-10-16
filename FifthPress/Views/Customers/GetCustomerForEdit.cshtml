@@ -1,0 +1,515 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Customer
+
+<style>
+    .contact-list li:not(:first-child) {
+        border-top: 2px solid black;
+    }
+
+    form[data-item-type="Customer"] h3 {
+        text-decoration: underline;
+    }
+
+    .client-edit-tabs {
+        border-bottom: 2px solid #ddd;
+        margin-bottom: 20px;
+    }
+
+    .client-edit-tabs button {
+        background: none;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        font-size: 16px;
+        border-bottom: 3px solid transparent;
+    }
+
+    .client-edit-tabs button.active {
+        border-bottom: 3px solid #0066cc;
+        font-weight: bold;
+    }
+
+    .tab-content-section {
+        display: none;
+    }
+
+    .tab-content-section.active {
+        display: block;
+    }
+
+    #budgetTab:not(.active) {
+        display: none;
+    }
+</style>
+
+<form method="post" action="client/save" enctype="multipart/form-data" data-item-type="Customer" novalidate>
+    @Html.HiddenFor(model => model.Client.Id)
+
+    <div class="client-edit-tabs d-flex justify-content-between align-items-center">
+        <div>
+            <button type="button" class="tab-button active" data-tab="general">General Info</button>
+            <button type="button" class="tab-button" data-tab="onboarding">Onboarding</button>
+            @if (Model.Client.IsGolfClient == true)
+            {
+                <button type="button" data-permissions="3d" class="tab-button" data-tab="budget">Tournament Budget</button>
+            }
+        </div>
+        @if (Model.Client.Id > 0)
+        {
+            <div>
+                <button type="button" class="btn btn-outline-primary btn-sm" id="generateOnboardingLinkBtn">New Client Onboarding Link</button>
+            </div>
+        }
+    </div>
+    <div id="onboardingLinkResult" style="display:none; margin-bottom:15px;" class="alert alert-success">
+        <label class="mb-1"><strong>Onboarding Link (expires in 7 days):</strong></label>
+        <div class="input-group">
+            <input type="text" id="onboardingLinkUrl" class="form-control form-control-sm" readonly />
+            <button type="button" class="btn btn-sm btn-outline-secondary" id="copyOnboardingLinkBtn">Copy</button>
+        </div>
+    </div>
+
+    <div class="tab-content-section active" id="generalTab">
+        <div class="container">
+            <div class="row">
+                <div class="col-3">
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.Title)
+                    @Html.EditorFor(model => model.Client.Title, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+
+                <h2 class="pt-3"><u>Billing Address</u></h2>
+
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.Address)
+                    @Html.EditorFor(model => model.Client.Address, new { htmlAttribues = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.AddressAlt)
+                    @Html.EditorFor(model => model.Client.AddressAlt, new { htmlAttribues = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.City)
+                    @Html.EditorFor(model => model.Client.City, new { htmlAttribues = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.USStateId)
+                    @Html.DropDownListFor(model => model.Client.USStateId, ViewData["Client.USStateId"] as SelectList, htmlAttributes: new { })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.Zip)
+                    @Html.EditorFor(model => model.Client.Zip, new { htmlAttribues = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.AREmail)
+                    @Html.EditorFor(model => model.Client.AREmail, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                    <span class="text-muted small">Use commas to separate multiple emails</span>
+                </div>
+
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.Notes)
+                    @Html.TextAreaFor(model => model.Client.Notes, htmlAttributes: new { @data_changed = false, @class = "single-line styled-input" })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.Markup)
+                    @Html.EditorFor(model => model.Client.Markup, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    <label>Third-Party Shipping Account</label>
+                    @Html.EditorFor(model => model.Client.ThirdPartyShippingAccount, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+
+                <div class="mt-3">
+                    <input type="submit" data-modal-to-close="#" value="Save" />
+                    <button type="button" data-modal-to-close="#">Cancel</button>
+                </div>
+            </div>
+            <div class="col-9">
+                <div class="field-binder-row-flex">
+                    <div class="field-binder-col-flex me-3">
+                        <label>Blind Shipping</label>
+                        @* Coalesce nulls: these flags are nullable in the DB and .Value throws
+                           "Nullable object must have a value" on NULL (e.g. client 3344). Keep the
+                           Client_<Prop>_Value element ids — the save JS reads them by id. *@
+                        @Html.CheckBox("Client.BlindShipping.Value", Model.Client.BlindShipping ?? false)
+                    </div>
+                    <div class="field-binder-col-flex me-3">
+                        <label>Tax Exempt</label>
+                        @Html.CheckBox("Client.TaxExempt.Value", Model.Client.TaxExempt ?? false)
+                    </div>
+                    <div class="field-binder-col-flex me-3">
+                        <label>Golf Client</label>
+                        @Html.CheckBox("Client.IsGolfClient.Value", Model.Client.IsGolfClient ?? false)
+                    </div>
+                    <div class="field-binder-col-flex">
+                        <label>Credit Hold</label>
+                        @Html.CheckBox("Client.CreditHold.Value", Model.Client.CreditHold ?? false)
+                    </div>
+                </div>
+
+                <h2 class="mt-5">Contacts</h2>
+
+                <ul class="contact-list p-2 tan-bg">
+
+                    @foreach (Contact contact in Model.Client.Contacts.Where(x => x.Deleted == null).ToList())
+                    {
+                        @Html.Partial("~/Views/Partials/_ClientContactRow.cshtml", contact)
+                    }
+                </ul>
+                <button type="button" class="btn btn-sm btn-success add-contact-btn">Add New Contact</button>
+
+                <h2 class="mt-5"><u>Shipping Addresses</u></h2>
+
+                <ul class="ship-address-list p-2 tan-bg">
+                    @foreach (ShippingAddress sa in Model.Client.ShippingAddresses.Where(x => x.Deleted == null).ToList())
+                    {
+                        @Html.Partial("~/Views/Partials/_ShippingAddressRow.cshtml", sa)
+                    }
+                </ul>
+
+                <button type="button" class="btn btn-success new-address-btn">Add Address</button>
+
+                <h2 class="mt-5"><u>Freight Addresses</u></h2>
+
+                <ul class="sp-address-list p-2 tan-bg">
+                    @foreach (FreightShippingAddress fsa in Model.Client.FreightShippingAddresses.Where(x => x.Deleted == null).ToList())
+                    {
+                        @Html.Partial("~/Views/Partials/_FreightAddressRow.cshtml", fsa)
+                    }
+                </ul>
+
+                <button type="button" class="btn btn-success new-sp-address-btn">Add Freight Address</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div class="tab-content-section" id="onboardingTab">
+        <div class="container">
+            <div class="row">
+                <div class="col-6">
+                    <div class="field-binder-col-flex mb-3">
+                        <label>Credit Application</label>
+                        @if (!string.IsNullOrEmpty(Model.Client.CreditAppFilePath))
+                        {
+                            <a href="@Url.Action("DownloadOnboardingFile", "Customers", new { path = Model.Client.CreditAppFilePath })" target="_blank">
+                                @System.IO.Path.GetFileName(Model.Client.CreditAppFilePath)
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No file uploaded</span>
+                        }
+                    </div>
+                    <div class="field-binder-col-flex mb-3">
+                        <label>W-9 File</label>
+                        @if (!string.IsNullOrEmpty(Model.Client.W9FilePath))
+                        {
+                            <a href="@Url.Action("DownloadOnboardingFile", "Customers", new { path = Model.Client.W9FilePath })" target="_blank">
+                                @System.IO.Path.GetFileName(Model.Client.W9FilePath)
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No file uploaded</span>
+                        }
+                    </div>
+                    <div class="field-binder-col-flex mb-3">
+                        <label>Tax Exempt Certificate</label>
+                        @if (!string.IsNullOrEmpty(Model.Client.TaxCertFilePath))
+                        {
+                            <a href="@Url.Action("DownloadOnboardingFile", "Customers", new { path = Model.Client.TaxCertFilePath })" target="_blank">
+                                @System.IO.Path.GetFileName(Model.Client.TaxCertFilePath)
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="text-muted">No file uploaded</span>
+                        }
+                    </div>
+                    <div class="field-binder-col-flex mb-3">
+                        <label>Credit &amp; Reference Check Requested</label>
+                        @{ var creditRefChecked = Model.Client.CreditRefCheckRequested ?? false; }
+                        <input type="checkbox" name="Client.CreditRefCheckRequested" value="true" @(creditRefChecked ? "checked" : "") />
+                    </div>
+                    <div class="field-binder-col-flex mb-3">
+                        <label>Credit References</label>
+                        @if (!string.IsNullOrEmpty(Model.Client.CreditReferences))
+                        {
+                            try
+                            {
+                                var refs = Newtonsoft.Json.JsonConvert.DeserializeObject<List<FifthPress.Models.ViewModels.VM_CreditReference>>(Model.Client.CreditReferences);
+                                var validRefs = refs?.Where(r => !string.IsNullOrWhiteSpace(r.CompanyName) || !string.IsNullOrWhiteSpace(r.ContactName) || !string.IsNullOrWhiteSpace(r.Phone) || !string.IsNullOrWhiteSpace(r.Email)).ToList();
+                                if (validRefs != null && validRefs.Any())
+                                {
+                                    <div class="tan-bg p-2">
+                                    @foreach (var r in validRefs)
+                                    {
+                                        <div class="mb-2">
+                                            @if (!string.IsNullOrWhiteSpace(r.CompanyName))  { <div><strong>Company:</strong> @r.CompanyName</div> }
+                                            @if (!string.IsNullOrWhiteSpace(r.ContactName))  { <div><strong>Contact:</strong> @r.ContactName</div> }
+                                            @if (!string.IsNullOrWhiteSpace(r.Phone))        { <div><strong>Phone:</strong> @r.Phone</div> }
+                                            @if (!string.IsNullOrWhiteSpace(r.Email))        { <div><strong>Email:</strong> @r.Email</div> }
+                                        </div>
+                                    }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No references provided</span>
+                                }
+                            }
+                            catch
+                            {
+                                <span class="text-muted">Unable to parse references</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="text-muted">No references provided</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Client.IsGolfClient == true)
+    {
+        <div class="tab-content-section" id="budgetTab">
+
+            <div class="mb-4">
+                <h2 class="pt-3"><u>Taxable Address</u></h2>
+                <p class="text-muted small">Used for Avalara tax calculation. Falls back to billing address if blank.</p>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.TaxAddress)
+                    @Html.EditorFor(model => model.Client.TaxAddress, new { htmlAttribues = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.TaxAddressAlt)
+                    @Html.EditorFor(model => model.Client.TaxAddressAlt, new { htmlAttribues = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.TaxCity)
+                    @Html.EditorFor(model => model.Client.TaxCity, new { htmlAttribues = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.TaxUSStateId)
+                    @Html.DropDownListFor(model => model.Client.TaxUSStateId, ViewData["Client.TaxUSStateId"] as SelectList, "-- Select State --", htmlAttributes: new { })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Client.TaxZip)
+                    @Html.EditorFor(model => model.Client.TaxZip, new { htmlAttribues = new { @data_changed = false, @class = "single-line styled-input" } })
+                </div>
+                <div class="mt-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="validateTaxAddressBtn">
+                        Validate Address
+                    </button>
+                </div>
+                <div id="taxAddressValidationResult" class="address-validation-feedback mt-2" style="display:none; padding:10px; border-radius:4px;"></div>
+                <div class="mt-3">
+                    <input type="submit" data-modal-to-close="#" value="Save" />
+                    <button type="button" data-modal-to-close="#">Cancel</button>
+                </div>
+            </div>
+
+            @Html.Partial("~/Views/Partials/_ClientBudgetEditor.cshtml", Model.Client)
+        </div>
+    }
+</form>
+
+<script>
+    // Initialize client edit tabs for this specific client
+    window.initializeClientEditTabs = function() {
+        // Reset global budget variables to ensure clean state
+        window.budgetData = null;
+        window.budgetCategories = null;
+        window.currentCategory = 'Hardware Rental';
+
+        // Get the client ID from the budgetEditorContainer if it exists, otherwise from the hidden field
+        var currentClientId = $('#budgetEditorContainer').data('client-id') || parseInt($('#Client_Id').val()) || @Model.Client.Id;
+
+        console.log('Initializing client edit tabs for client ID:', currentClientId);
+
+        // Remove any existing handlers to prevent duplicates
+        $('.tab-button').off('click.clientTabs');
+
+        // Tab switching logic using namespaced event
+        $('.tab-button').on('click.clientTabs', function() {
+            var targetTab = $(this).data('tab');
+            console.log('Tab clicked:', targetTab, 'for client:', currentClientId);
+
+            // Update button states
+            $('.tab-button').removeClass('active');
+            $(this).addClass('active');
+
+            // Update content visibility
+            $('.tab-content-section').removeClass('active');
+            if (targetTab === 'general') {
+                $('#generalTab').addClass('active');
+            } else if (targetTab === 'onboarding') {
+                $('#onboardingTab').addClass('active');
+            } else if (targetTab === 'budget') {
+                $('#budgetTab').addClass('active');
+
+                // Get the current client ID dynamically in case it changed
+                var budgetClientId = $('#budgetEditorContainer').data('client-id') || currentClientId;
+
+                console.log('Loading budget data for client:', budgetClientId);
+
+                // Show loading state
+                $('.budget-loading').show();
+                $('#budgetEditorContent').hide();
+
+                // Always load the data
+                loadBudgetData(budgetClientId);
+            }
+        });
+    };
+
+    // Execute initialization immediately
+    window.initializeClientEditTabs();
+
+    // ── Taxable Address Validation ────────────────────────────────────────────
+    $(document).off('click', '#validateTaxAddressBtn')
+               .on('click',  '#validateTaxAddressBtn', function () {
+        var btn      = $(this);
+        var resultEl = $('#taxAddressValidationResult');
+
+        btn.prop('disabled', true).text('Validating...');
+        resultEl.hide().empty();
+
+        $.ajax({
+            url:  ProcessUrl('Customers/ValidateTaxAddress'),
+            type: 'POST',
+            data: {
+                clientId:      $('#Client_Id').val(),
+                taxAddress:    $('#Client_TaxAddress').val(),
+                taxAddressAlt: $('#Client_TaxAddressAlt').val(),
+                taxCity:       $('#Client_TaxCity').val(),
+                taxUSStateId:  $('#Client_TaxUSStateId').val(),
+                taxZip:        $('#Client_TaxZip').val()
+            },
+            success: function (res) {
+                var html = '';
+                var bgColor, borderColor, textColor;
+
+                if (res.success && res.suggested && IsSuggestedDifferent(res.original, res.suggested)) {
+                    if (res.isValid) {
+                        html += '<strong>✓ Address is Valid</strong><br>';
+                        html += '<em>Avalara suggests a standardized format:</em><br><br>';
+                        bgColor = '#d4edda'; borderColor = '#c3e6cb'; textColor = '#155724';
+                    } else {
+                        html += '<strong>⚠ Address Suggestions</strong><br><br>';
+                        bgColor = '#fff3cd'; borderColor = '#ffeaa7'; textColor = '#856404';
+                    }
+
+                    html += '<div class="address-comparison">';
+                    html += '<div class="address-column"><strong>Your Address:</strong><br>' + FormatAddressMultiline(res.original) + '</div>';
+                    html += '<div class="address-column"><strong>Avalara Suggested:</strong><br>' + FormatAddressMultiline(res.suggested) + '</div>';
+                    html += '</div>';
+
+                    if (res.messages && res.messages.length) {
+                        html += '<br><strong>Improvements:</strong><ul>';
+                        $.each(res.messages, function (_, m) { html += '<li>' + m.summary + '</li>'; });
+                        html += '</ul>';
+                    }
+
+                    html += '<div class="address-action-buttons">';
+                    html += '<button type="button" class="btn btn-fc-primary apply-suggested-tax-address" style="margin-right:10px;">Apply Suggested Address</button>';
+                    html += '<button type="button" class="btn btn-fc-caution keep-my-tax-address">Keep My Address</button>';
+                    html += '</div>';
+
+                    resultEl.removeClass('address-error address-warning').addClass('address-valid')
+                            .html(html).css({ 'background-color': bgColor, 'border': '1px solid ' + borderColor, 'color': textColor })
+                            .data('suggested', res.suggested).show();
+
+                } else if (res.success && res.isValid) {
+                    resultEl.removeClass('address-error address-warning').addClass('address-valid')
+                            .html('<strong>✓ Address is valid</strong>')
+                            .css({ 'background-color': '#d4edda', 'border': '1px solid #c3e6cb', 'color': '#155724' })
+                            .show();
+                } else {
+                    var errorMsg = (res.messages && res.messages.length) ? res.messages[0].summary : 'Address validation failed';
+                    resultEl.removeClass('address-valid address-warning').addClass('address-error')
+                            .html('<strong>✗ ' + errorMsg + '</strong>')
+                            .css({ 'background-color': '#f8d7da', 'border': '1px solid #f5c6cb', 'color': '#721c24' })
+                            .show();
+                }
+            },
+            error: function () {
+                resultEl.removeClass('address-valid address-warning').addClass('address-error')
+                        .html('<strong>✗ Validation request failed</strong>')
+                        .css({ 'background-color': '#f8d7da', 'border': '1px solid #f5c6cb', 'color': '#721c24' })
+                        .show();
+            },
+            complete: function () {
+                btn.prop('disabled', false).text('Validate Address');
+            }
+        });
+    });
+
+    $(document).off('click', '.apply-suggested-tax-address')
+               .on('click',  '.apply-suggested-tax-address', function () {
+        var suggested = $('#taxAddressValidationResult').data('suggested');
+        if (!suggested) return;
+        $('#Client_TaxAddress').val(suggested.Line1 || '');
+        $('#Client_TaxAddressAlt').val(suggested.Line2 || '');
+        $('#Client_TaxCity').val(suggested.City || '');
+        $('#Client_TaxZip').val(suggested.PostalCode || '');
+        $('#taxAddressValidationResult')
+            .removeClass('address-warning address-error').addClass('address-valid')
+            .html('<strong>✓ Suggested address applied!</strong><br>Form fields have been updated with Avalara\'s validated address.')
+            .css({ 'background-color': '#d4edda', 'border': '1px solid #c3e6cb', 'color': '#155724' });
+    });
+
+    $(document).off('click', '.keep-my-tax-address')
+               .on('click',  '.keep-my-tax-address', function () {
+        $('#taxAddressValidationResult')
+            .html('<strong>ℹ Your original address will be kept.</strong>')
+            .css({ 'background-color': '#d1ecf1', 'border': '1px solid #bee5eb', 'color': '#0c5460' })
+            .delay(3000).fadeOut();
+    });
+    // ─────────────────────────────────────────────────────────────────────────
+
+    console.log('Client edit modal loaded for client ID:', @Model.Client.Id);
+
+    // Re-apply permissions for dynamically loaded modal content
+    if (typeof window.applyPermissions === 'function') {
+        window.applyPermissions();
+    }
+
+    // Onboarding Link generation
+    $(document).off('click', '#generateOnboardingLinkBtn')
+               .on('click',  '#generateOnboardingLinkBtn', function () {
+        var hint = prompt('Enter company name (optional — pre-fills the onboarding form):');
+        if (hint === null) return; // user cancelled
+
+        var btn = $(this);
+        btn.prop('disabled', true).text('Generating...');
+
+        $.post(ProcessUrl('Customers/GenerateOnboardingLink'), {
+            companyNameHint: hint
+        }, function (res) {
+            if (res.success) {
+                $('#onboardingLinkUrl').val(res.link);
+                $('#onboardingLinkResult').show();
+            } else {
+                alert('Error generating link: ' + res.message);
+            }
+        }).fail(function () {
+            alert('Failed to generate onboarding link.');
+        }).always(function () {
+            btn.prop('disabled', false).text('New Client Onboarding Link');
+        });
+    });
+
+    $(document).off('click', '#copyOnboardingLinkBtn')
+               .on('click',  '#copyOnboardingLinkBtn', function () {
+        var linkInput = document.getElementById('onboardingLinkUrl');
+        linkInput.select();
+        document.execCommand('copy');
+        $(this).text('Copied!');
+        setTimeout(function () { $('#copyOnboardingLinkBtn').text('Copy'); }, 2000);
+    });
+</script>

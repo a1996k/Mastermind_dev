@@ -1,0 +1,39 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_ItemizedTimeRecords
+
+<ul class="itemized-sublist">
+    @foreach (VM_RecordTitleGroup v in Model.TheRecords)
+    {
+        <li class="border-bottom py-2">
+            <div class="container">
+                <div class="row">
+                    <div class="col-4">
+                        <div class="field-binder-row-flex justify-content-between">
+                            <div class="field-binder-col-flex">
+                                @Html.DisplayFor(model => v.ServiceTitle)
+                            </div>
+                            <div class="field-binder-row-flex">
+                                <div class="field-binder-col-flex">
+                                    <div class="field-binder-row-flex">
+                                        <span>Start: </span>
+                                        <span class="ps-3">@Html.DisplayFor(model => v.StartTimingRecord.UtcTimestamp)</span>
+                                    </div>
+                                    <div class="field-binder-row-flex">
+                                        <span>End: </span>
+                                        <span class="ps-3">@Html.DisplayFor(model => v.EndTimingRecord.UtcTimestamp)</span>
+                                    </div>
+                                </div>
+                                <div class="field-binder-col-flex">
+                                    <div class="field-binder-row-flex">
+                                        <span>Elapsed Minutes: </span>
+                                        <span class="ps-3 fw-bold">@Html.DisplayFor(model => v.DecimalMinutesElapsed)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </li>
+    }
+</ul>

@@ -1,0 +1,58 @@
+08:40 - Amy reporting item 2 not calculating on a quote -> she's reviewing the info on the second item and will get back to me
+Troubleshooting zund: had her remove the "cutting" zund and add via finishing; calc still not working 
+Quote #1223L <- only discrepancy between main record and items is that second item doesn't have ink cost (which tracks if calcs not completing)
+-Reviewing Services... <-- nothing that stands out as an issue
+-Tried creating a new item and removing the one that wasn't calculating; no success. taking a live db backup and moving it to dev for debugging
+-decimal was entered as MagTape length which was breaking calculations
+
+Cannot change scrap sheets <- ScrapSheets = 0; VariableScrapSheets = 1; TotalScrap = ScrapSheets + VariableScrap; <-- on override, ScrapSheets and clear VariableScrap <-- ensure variable scrap is not being calculated if sheets are overridden (right?)
+
+
+TODO
+====
+
+Front/Back colors set on selected press {Ready for testing} {Verified working on staging}
+
+Quote Ticket UI Changes (shipping/design time) {tested and working}
+Job Ticket UI changes (description position) {ready for review}
+Clear Sheet Override functionality {ready for testing}
+
+
+
+
+!TODO(2)!
+record lookup (relegated to bottom)
+finishing materials (config; parse; conversion from quote ->  job)
+job start functionality (double start entry)
+
+Test w/ Jason after meeting {DONE}
+Faster Server
+Storage Server
+Record lookup
+
+Kelly, Courteney, Casey, Marcus, Project Managers, Jason <-- daily job recap
+^ need pivot records; need scheduled task;
+
+Remove Service for Removed Finishing materials (24x20) #1222L
+
+Guillotine missing in Finishing Service Selector <-- Add to cut category (AFTER MEETING!!!)
+
+Add two icons (edit & tracking; also Job ticket view for production workers) to the Job number;
+go to time tracker from job ticket
+
+Outsource Items <-- UI change for outsourced documents (match item)
+
+
+Update pressspeeds table on LIVE (color front/back)
+
+
+not letting me input 0 as a new inventory amount 
+
+
+Select Press -> hide modal -> prompt to replace existing services with default, add default or do nothing w/ respect to services
+
+
+
+Artwork Provided -becomes> design needed <-- if checked, provide design time input box. 
+
+7-730am for daily recap email

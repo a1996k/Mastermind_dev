@@ -1,0 +1,114 @@
+﻿@page {
+    size: 8.5in 11in;
+    margin-top: .5in;
+    margin-bottom: .5in;
+    margin-top: 0in;
+    margin-left: 0in;
+    margin-right: 0in;
+    margin-bottom: 0in;
+}
+
+.body-content {
+    padding-top: 100px !important;
+}
+
+.quote-wrapper-3 {
+    background: white !important;
+    border-radius: 20px;
+    font-size: 2rem;
+    padding: 20px;
+}
+
+.border-right-target {
+    position: relative;
+}
+
+    .border-right-target:after {
+        -webkit-print-color-adjust: exact;
+        background: black;
+        width: 1px;
+        height: calc(100% - 15px);
+        content: '';
+        position: absolute;
+        right: 0;
+    }
+
+.cq-item-thead, .cq-item-design-thead {
+    font-size: 8pt;
+}
+
+.qt-print-footer {
+    padding-top: 25px;
+}
+
+    .qt-print-footer p {
+        margin-bottom: 10px;
+        line-height: 1.1em;
+    }
+
+.cq-item-row {
+    border-top: 1px solid black;
+    padding-top: 25px;
+    margin-bottom: 10px;
+}
+
+.cq-item-title .item-print-count {
+    background-color: #eee;
+    -webkit-print-color-adjust: exact;
+}
+
+.col-custom-qt {
+    flex: 0 0 11%;
+    width: 11%;
+}
+
+.qt-table-value {
+    text-align: right;
+    font-size: 9pt;
+}
+
+.quote-logo {
+    width: 120px;
+    max-width: 80%;
+    margin-bottom: 10px
+}
+
+.qt-total-section .total {
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    padding-right: 65px;
+}
+
+.print-footer-head-border {
+    border-top: 1px solid black;
+}
+
+@media print {
+    .body-content {
+        padding-top: 0 !important;
+    }
+
+    .quote-wrapper-3 {
+        font-size: 11pt;
+    }
+
+    .fs-2 {
+        font-size: 11pt !important;
+    }
+
+    .fs-4 {
+        font-size: 8pt !important;
+    }
+
+    .qt-print-footer {
+        page-break-inside: avoid;
+    }
+
+    .qt-total-section .total {
+        padding-right: 10px;
+    }
+
+    .cq-item-row {
+        page-break-inside: avoid;
+    }
+}

@@ -1,0 +1,63 @@
+﻿@using FifthPress.Models.ViewModels2;
+@model VM_Billing_FreightCost
+
+
+
+<div class="container">
+    <h1>Freight Report</h1>
+    <div class="row bg-white">
+        <div class="col-8">
+            <table id="freightTable" class="display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Total Freight Cost</th>
+                        <th>Total Freight Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Billing_FreightCost_Result r in Model.FreightCosts.ToList())
+                    {
+                        <tr data-record-id="@Html.DisplayFor(model => r.ClientId)">
+                            <td>@Html.DisplayFor(model => r.Client)</td>
+                            <td>@Html.DisplayFor(model => r.TotalFreightCost)</td>
+                            <td>@Html.DisplayFor(model => r.TotalFreightPrice)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-4 d-flex flex-column justify-content-center">
+            @Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.Clients)
+            <button type="button" class="btn r-navy-action-btn update-freight-report mt-5">Update Results</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // build YYYY-MM-DD string
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const filename = `${yyyy}-${mm}-${dd}_freight_report`;
+
+        $('#freightTable').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                {
+                    extend: 'csvHtml5',
+                    text: '<i class="fas fa-file-csv"></i> Export CSV',
+                    className: 'btn btn-primary btn-sm',
+                    filename: filename,
+                    title: null,
+                    exportOptions: { columns: ':visible' }
+                }
+            ],
+            scrollX: true, // for responsiveness if wide
+            paging: true,
+            searching: true
+        });
+    });
+</script>

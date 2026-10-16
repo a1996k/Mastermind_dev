@@ -1,0 +1,12 @@
+﻿@model int?
+
+@{
+    int shippedCt = Model ?? 0;
+}
+
+@if (shippedCt > 0)
+{
+    <div class="field-binder-row-flex w-100 justify-content-end">
+        <button type="button" class="btn btn-lg btn-info mark-job-as-shipped">Mark as Shipped</button>
+    </div>
+}

@@ -1,0 +1,72 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_JobItemService
+
+<form method="post" action="job-service-item/save" enctype="multipart/form-data" data-item-type="Service" id="jis_configure_form">
+    @Html.HiddenFor(model => model.JobItemService.Id)
+    @Html.LabelFor(model => model.JobItemService.Service.Title)
+    @Html.HiddenFor(model => model.JobItemService.JobItemId)
+    @Html.HiddenFor(model => model.JobItemService.ServiceId)
+    @Html.HiddenFor(model => model.JobItemService.Ordinal)
+    @Html.HiddenFor(model => model.JobItemService.Operator)
+    @Html.HiddenFor(model => model.JobItemService.Deleted)
+    @Html.HiddenFor(model => model.JobItemService.JobStatus)
+    @Html.HiddenFor(model => model.JobItemService.ApexOrdinal)
+    @Html.HiddenFor(model => model.JobItemService.IsCuttingService)
+    @Html.HiddenFor(model => model.JobItemService.UserTimeOverride)
+    <script type="text/javascript">
+        var timingParamsJson = @Html.Raw(string.IsNullOrEmpty(Model.TimingParametersJson) ? "null" : Model.TimingParametersJson);
+    </script>
+
+    <div class="d-flex flex-row flex-wrap justify-content-between">
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.JobItemService.Notes)
+            @Html.TextAreaFor(model => model.JobItemService.Notes)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.JobItemService.Caliper)
+            @Html.EditorFor(model => model.JobItemService.Caliper, new { htmlAttribues = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.JobItemService.MakeReady)
+            @Html.EditorFor(model => model.JobItemService.MakeReady, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.JobItemService.WashUp)
+            @Html.EditorFor(model => model.JobItemService.WashUp, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.JobItemService.HourlyRate)
+            @Html.EditorFor(model => model.JobItemService.HourlyRate, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.JobItemService.MaterialCost)
+            @Html.EditorFor(model => model.JobItemService.MaterialCost)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.EditorFor(model => model.ServiceTimeEditor)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.JobItemService.ScrapAmount)
+            @Html.EditorFor(model => model.JobItemService.ScrapAmount)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.JobItemService.ScrapPercent)
+            @Html.EditorFor(model => model.JobItemService.ScrapPercent)
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.TimingParametersJson))
+    {
+        <div class="timing-parameters-section mt-3">
+            <div class="fs-5 mb-2">
+                <i class="fa-light fa-bomb view-parameters" id="vp"></i>
+                <label>Timing Parameters</label>
+            </div>
+            <div class="d-flex flex-row flex-wrap justify-content-between" id="inline_timing_params">
+            </div>
+        </div>
+    }
+
+    <input type="submit" value="Save" data-modal-to-close="#edit_service_modal" />
+    <button type="button" data-modal-to-close="#edit_service_modal">Cancel</button>
+</form>

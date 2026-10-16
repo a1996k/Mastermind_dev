@@ -1,0 +1,93 @@
+@using FifthPress.Models.ViewModels2.PO25;
+@model VM_POReceivingHistory25
+
+@{
+    ViewBag.Title = "Receiving History";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Receiving History for PO #@Model.PONumber</h3>
+        <a href="@Url.Action("Details", "PO25", new { id = Model.POId })" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to PO
+        </a>
+    </div>
+
+    @if (Model.LineItemHistories != null && Model.LineItemHistories.Any())
+    {
+        foreach (var lineItem in Model.LineItemHistories)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5 class="mb-0">@lineItem.ItemDescription</h5>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <span class="badge badge-info">Ordered: @lineItem.QuantityOrdered</span>
+                            <span class="badge @(lineItem.TotalReceived >= lineItem.QuantityOrdered ? "badge-success" : "badge-warning")">
+                                Received: @lineItem.TotalReceived
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    @if (lineItem.Receipts != null && lineItem.Receipts.Any())
+                    {
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date Received</th>
+                                    <th>Quantity</th>
+                                    <th>Received By</th>
+                                    <th>Storage Location</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var receipt in lineItem.Receipts)
+                                {
+                                    <tr>
+                                        <td>@receipt.DateReceived.ToString("MMM dd, yyyy HH:mm")</td>
+                                        <td>@receipt.QuantityReceived</td>
+                                        <td>@receipt.ReceivedByName</td>
+                                        <td>@(string.IsNullOrEmpty(receipt.StorageLocation) ? "-" : receipt.StorageLocation)</td>
+                                        <td>@(string.IsNullOrEmpty(receipt.Notes) ? "-" : receipt.Notes)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="font-weight-bold">
+                                    <td>Total</td>
+                                    <td>@lineItem.TotalReceived</td>
+                                    <td colspan="3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No receipts recorded for this item yet.</p>
+                    }
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> No receiving history found for this purchase order. This PO may not have any inventory-tracked items or no receipts have been recorded yet.
+        </div>
+    }
+</div>
+
+<style>
+    .card-header h5 {
+        margin-bottom: 0;
+    }
+
+    .badge {
+        font-size: 0.875rem;
+        padding: 0.4rem 0.6rem;
+    }
+</style>

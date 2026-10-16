@@ -1,0 +1,23 @@
+﻿@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_Margin
+
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "m01")
+
+<canvas class="margin-chart metric-chart" id="pm01"></canvas>
+
+<div class="container">
+    <div class="row justify-content-between fs-1 w-100">
+        <div class="total-cost-display">
+            <h3>Cost</h3>
+            @Html.DisplayFor(model => model.Aggregates.Total_Cost, "Currency")
+        </div>
+        <div class="total-margin-display">
+            <h3>Margin</h3>
+            @Html.DisplayFor(model => model.Aggregates.Margin, "Currency")
+        </div>
+        <div class="total-price-display">
+            <h3>Price</h3>
+            @Html.DisplayFor(model => model.Aggregates.Total_Price, "Currency")
+        </div>
+    </div>
+</div>

@@ -1,0 +1,97 @@
+﻿@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_TimeTrackingForUser
+
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "tt01")
+
+@*
+
+    Canvas element currently not needed for this card
+
+    <canvas class="margin-chart metric-chart" id="pm01"></canvas>
+*@
+
+<div class="field-binder-row-flex chart-icon-wrapper">
+    <!--<i class="fa-solid fa-users"></i>-->
+    <i class="fa-solid fa-circle-info"></i>
+</div>
+
+<div class="field-binder-col-flex card-user-list-wrapper">
+    <h3>(Debug) User List</h3>
+    <ul class="tc01-user-list"></ul>
+</div>
+
+<div class="informational-block">
+
+</div>
+
+<div class="container">
+    <div class="field-binder-row-flex justify-content-evenly">
+        <div class="field-binder-col-flex">
+            <span>Monday</span>
+            <span>@Html.DisplayFor(model => model.Aggregates.MondayDisplay)</span>
+        </div>
+        <div class="field-binder-col-flex">
+            <span>Tuesday</span>
+            <span>@Html.DisplayFor(model => model.Aggregates.TuesdayDisplay)</span>
+        </div>
+        <div class="field-binder-col-flex">
+            <span>Wednesday</span>
+            <span>@Html.DisplayFor(model => model.Aggregates.WednesdayDisplay)</span>
+        </div>
+        <div class="field-binder-col-flex">
+            <span>Thursday</span>
+            <span>@Html.DisplayFor(model => model.Aggregates.ThursdayDisplay)</span>
+        </div>
+        <div class="field-binder-col-flex">
+            <span>Friday</span>
+            <span>@Html.DisplayFor(model => model.Aggregates.FridayDisplay)</span>
+        </div>
+        <div class="field-binder-col-flex">
+            <span>Weekend</span>
+            <span>@Html.DisplayFor(model => model.Aggregates.WeekendDisplay)</span>
+        </div>
+        <div class="field-binder-col-flex">
+            <span>Full Week</span>
+            <span>@Html.DisplayFor(model => model.Aggregates.TotalWeekDisplay)</span>
+        </div>
+    </div>
+
+    <table class="table table-striped card-tt-table" id="card_tt_table">
+        <thead>
+            <tr>
+                <th>Reference #</th>
+                <th>Client</th>
+                <th>Description</th>
+                <th>Service Title</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Tracked Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (fn_GetUserTimeTrackingForCurrentWeek_Result r in Model.Records.OrderBy(x => x.StartTimeUTC))
+            {
+                string startDateString = r.StartTimeUTC.Value.ToShortDateString();
+                string startTimeString = r.StartTimeUTC.Value.ToLongTimeString();
+                <tr>
+                    <td>@Html.DisplayFor(model => r.ItemNumber)</td>
+                    <td>@Html.DisplayFor(model => r.ClientName)</td>
+                    <td>@Html.DisplayFor(model => r.Description)</td>
+                    <td>@Html.DisplayFor(model => r.ServiceTitle)</td>
+                    <td>@Html.DisplayFor(model => startDateString) @Html.DisplayFor(model => startTimeString)</td>
+                    @if (r.EndTimeUTC.HasValue)
+                    {
+                        string endDateString = r.EndTimeUTC.Value.ToShortDateString();
+                        string endTimeString = r.EndTimeUTC.Value.ToLongTimeString();
+                        <td>@Html.DisplayFor(model => endDateString) @Html.DisplayFor(model => endTimeString)</td>
+                    }
+                    else
+                    {
+                        <td>ACTIVE</td>
+                    }
+                    <td>@Html.DisplayFor(model => r.TrackedTime)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

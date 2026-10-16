@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="7b63818f2ff74193980f444963321daf" Name="Diagram1">
+        <EntityTypeShape EntityType="FifthPressModel.ActiveUser" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.AddedMaterialInventoryPricingHistory" Width="1.5" PointX="17.25" PointY="137.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Adjustment" Width="1.5" PointX="2.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ApiEmployeePivot" Width="1.5" PointX="14.25" PointY="127.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ApiKey" Width="1.5" PointX="0.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Application" Width="1.5" PointX="7.5" PointY="122.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Audit" Width="1.5" PointX="2.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.aux_LastJobUpdate" Width="1.5" PointX="4.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Batch" Width="1.5" PointX="24" PointY="115.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.BatchStatus" Width="1.5" PointX="21.75" PointY="115.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.BillingClassCategory" Width="1.5" PointX="0.75" PointY="129.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.BillingClass" Width="1.5" PointX="3" PointY="133" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.BlindShippingPivotTable" Width="1.5" PointX="24" PointY="110.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Bug" Width="1.5" PointX="20.25" PointY="132.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.CardPermission" Width="1.5" PointX="20.25" PointY="128.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ClientLogin" Width="1.5" PointX="6.75" PointY="167.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ClientLoginEmail" Width="1.5" PointX="9" PointY="167.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ClientLoginPivot" Width="1.5" PointX="9" PointY="146.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ClockActivity" Width="1.5" PointX="14.25" PointY="138.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Constraint" Width="1.5" PointX="34.5" PointY="102" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ConstraintType" Width="1.5" PointX="32.25" PointY="95.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ConstraintValueType" Width="1.5" PointX="32.25" PointY="114.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Contact" Width="1.5" PointX="24" PointY="150.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ContractDateCheckpoint" Width="1.5" PointX="8.25" PointY="162" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ContractForecast" Width="1.5" PointX="6" PointY="160.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ContractForecastDetail" Width="1.5" PointX="8.25" PointY="139.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Cost" Width="1.5" PointX="4.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.CuttingConfigurationPivot" Width="1.5" PointX="23.25" PointY="173.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.CuttingConfiguration" Width="1.5" PointX="32.25" PointY="110.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.DashboardCard" Width="1.5" PointX="18" PointY="104" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.DashboardTabPermission" Width="1.5" PointX="20.25" PointY="137.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.DashboardTab" Width="1.5" PointX="15.75" PointY="104.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.DefaultFinishingServicesForPress" Width="1.5" PointX="39.5" PointY="143" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.DefaultFinishingServicesForService" Width="1.5" PointX="23.25" PointY="175.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.DefaultPrepressServicesForPress" Width="1.5" PointX="42.5" PointY="145" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.DefaultPrepressServicesForService" Width="1.5" PointX="23.25" PointY="178.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.DefaultPressService" Width="1.5" PointX="39.5" PointY="147" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.DepartmentLeader" Width="1.5" PointX="6" PointY="133.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Department" Width="1.5" PointX="0.75" PointY="132.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Email" Width="1.5" PointX="18" PointY="164.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.EmailUserPivot" Width="1.5" PointX="20.25" PointY="140.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.EmployeeBreak" Width="1.5" PointX="6.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ExternalClient" Width="1.5" PointX="6.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ExternalTimeEntry" Width="1.5" PointX="4.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.FeatureRequest" Width="1.5" PointX="20.25" PointY="161.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.FinishingMaterialApplication" Width="1.5" PointX="40.5" PointY="124.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.FinishingMaterialFormulaPivot" Width="1.5" PointX="42.75" PointY="116.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.FinishingMaterialFormula" Width="1.5" PointX="40.5" PointY="116.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ForecastAuditLog" Width="1.5" PointX="6.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ForecastImportBatch" Width="1.5" PointX="6" PointY="171.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ForecastImportStaging" Width="1.5" PointX="0.75" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ForecastPeriod" Width="1.5" PointX="3.75" PointY="161.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.FormulaConfiguration" Width="1.5" PointX="8.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.FreightShippingAddress" Width="1.5" PointX="24" PointY="156.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Holiday" Width="1.5" PointX="8.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.HolidayTimeOff" Width="1.5" PointX="8.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.HostingEnvironment" Width="1.5" PointX="18" PointY="153.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.InkCostDenominatorUnit" Width="1.5" PointX="30" PointY="98.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.InventoryAdjustmentHistory" Width="1.5" PointX="23.25" PointY="132.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ItemLayoutSetting" Width="1.5" PointX="39.75" PointY="127.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Item" Width="1.5" PointX="6.75" PointY="105.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Job_ClientCostSplits" Width="1.5" PointX="31.5" PointY="133" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.JobDocument" Width="1.5" PointX="23.25" PointY="129" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.JobProof" Width="1.5" PointX="28.5" PointY="131.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.JobQuote" Width="1.5" PointX="28.5" PointY="137.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.JobShipmentPivot" Width="1.5" PointX="36.75" PointY="145.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.JobShipment" Width="1.5" PointX="14.25" PointY="164.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.JobStatus" Width="1.5" PointX="24" PointY="161.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.JobTimingSR" Width="1.5" PointX="39.75" PointY="138.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.LiveJobStat" Width="1.5" PointX="8.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.LoginActivity" Width="1.5" PointX="10.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.MaterialCategory" Width="1.5" PointX="4.5" PointY="108.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.MaterialCostType" Width="1.5" PointX="4.5" PointY="111.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.MaterialInventory" Width="1.5" PointX="4.5" PointY="115.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Material" Width="1.5" PointX="6.75" PointY="109.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.MaterialStockType" Width="1.5" PointX="2.25" PointY="111.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.MaterialType" Width="1.5" PointX="2.25" PointY="108.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.OrdersShipped" Width="1.5" PointX="31.5" PointY="127.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PermissionsManifest" Width="1.5" PointX="18" PointY="161.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Plate" Width="1.5" PointX="35.25" PointY="98.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_AllocationReconciliation25" Width="1.5" PointX="19.5" PointY="118" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Approvals" Width="1.5" PointX="30.75" PointY="124" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Approvals25" Width="1.5" PointX="14.25" PointY="146.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_ApprovalTags25" Width="1.5" PointX="16.5" PointY="150.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_CompanyBudgets25" Width="1.5" PointX="14.25" PointY="183.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_CompanyBudgetUsage25" Width="1.5" PointX="16.5" PointY="157.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Configuration25" Width="1.5" PointX="10.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Denials" Width="1.5" PointX="36.75" PointY="126.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_DepartmentBudgets25" Width="1.5" PointX="3" PointY="139.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_DepartmentBudgetUsage25" Width="1.5" PointX="3" PointY="129" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_EscalationLogs25" Width="1.5" PointX="19.25" PointY="146.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_InventoryReceipts25" Width="1.5" PointX="17.25" PointY="133" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Invoices" Width="1.5" PointX="33.75" PointY="148.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Items" Width="1.5" PointX="31.5" PointY="137.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_LineItemDepartmentSplits25" Width="1.5" PointX="6" PointY="129" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_LineItems25" Width="1.5" PointX="9" PointY="130.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Notes" Width="1.5" PointX="36.75" PointY="122.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_OrderAmendments25" Width="1.5" PointX="22.25" PointY="146.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_OrderDepartmentSplits25" Width="1.5" PointX="6" PointY="136.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Orders" Width="1.5" PointX="28.5" PointY="120.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Orders25" Width="1.5" PointX="6" PointY="139.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Receiving" Width="1.5" PointX="36.75" PointY="140.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_RecurringHistory25" Width="1.5" PointX="14.25" PointY="142.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_RecurringSchedules25" Width="1.5" PointX="17.25" PointY="127.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_RoleEscalation25" Width="1.5" PointX="4.75" PointY="10.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_Roles25" Width="1.5" PointX="6.75" PointY="118.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_SLA_Logs25" Width="1.5" PointX="8.25" PointY="153.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PO_UserRoles25" Width="1.5" PointX="9" PointY="126" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.POPermissionsPivot" Width="1.5" PointX="14.25" PointY="188" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PressCategory" Width="1.5" PointX="30" PointY="100.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Press" Width="1.5" PointX="32.25" PointY="98.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PressHelperService" Width="1.5" PointX="45.5" PointY="144.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PressLinkedService" Width="1.5" PointX="45.5" PointY="147" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PressPlate" Width="1.5" PointX="37.5" PointY="102.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PressSpeed" Width="1.5" PointX="32.25" PointY="118.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.PriceLevel" Width="1.5" PointX="1.5" PointY="145.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ProductionDepartment" Width="1.5" PointX="30" PointY="103.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.QACheck" Width="1.5" PointX="25.5" PointY="143.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Quantity" Width="1.5" PointX="10.75" PointY="7.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Quote_ClientCostSplits" Width="1.5" PointX="42.75" PointY="141" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.QuoteDocument" Width="1.5" PointX="48" PointY="130.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.QuoteRequestFile" Width="1.5" PointX="25.5" PointY="122.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.QuoteRequestItem" Width="1.5" PointX="25.5" PointY="118.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.QuoteRequest" Width="1.5" PointX="23.25" PointY="123.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Report" Width="1.5" PointX="10.75" PointY="10.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Reprint_Items" Width="1.5" PointX="42.75" PointY="137.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Reprint_Jobs" Width="1.5" PointX="28.5" PointY="140.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Reprint_Reasons" Width="1.5" PointX="26.25" PointY="148.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.RetainerBillingClassAllocation" Width="1.5" PointX="14.25" PointY="133" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.RetainerClient" Width="1.5" PointX="9.75" PointY="117.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.RetainerMonthlyBillingClassOverride" Width="1.5" PointX="14.25" PointY="124.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.RetainerMonthlyOverride" Width="1.5" PointX="12" PointY="118" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Role" Width="1.5" PointX="9.75" PointY="122.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.RunTable" Width="1.5" PointX="12.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.SalesDepartment" Width="1.5" PointX="12.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ScheduleTemplate" Width="1.5" PointX="19.5" PointY="112.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ServiceCategory" Width="1.5" PointX="18.75" PointY="169" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ServiceLinkedService" Width="1.5" PointX="23.25" PointY="181.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Service" Width="1.5" PointX="21" PointY="167.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ServiceTimeAdjustment" Width="1.5" PointX="14.25" PointY="196.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ServiceType" Width="1.5" PointX="16.5" PointY="169.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Setup" Width="1.5" PointX="12.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ShipmentsShipped" Width="1.5" PointX="16.5" PointY="145.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ShippingAddress" Width="1.5" PointX="24" PointY="164.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ShippingOption" Width="1.5" PointX="24" PointY="169.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.SpeedColorProfile" Width="1.5" PointX="34.5" PointY="119.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.SpeedDenominator" Width="1.5" PointX="30" PointY="106.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.StaffScheduleEntry" Width="1.5" PointX="20.25" PointY="122.125" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.TimeFormula" Width="1.5" PointX="18.75" PointY="171.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.TimeRecordEdit" Width="1.5" PointX="48" PointY="134.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Time" Width="1.5" PointX="12.75" PointY="9.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Tournament" Width="1.5" PointX="17.25" PointY="119" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.TournamentBudgetCategory" Width="1.5" PointX="8.75" PointY="156.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.TournamentBudgetLineItem" Width="1.5" PointX="11" PointY="150.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.TournamentBudgetSetting" Width="1.5" PointX="6" PointY="153.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.TournamentRole" Width="1.5" PointX="18" PointY="108.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.TournamentUserRolePivot" Width="1.5" PointX="19.25" PointY="143.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.TournamentUserRole" Width="1.5" PointX="17" PointY="142.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.UserAssignment" Width="1.5" PointX="34.5" PointY="145.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.User" Width="1.5" PointX="12" PointY="126.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.USState" Width="1.5" PointX="1.5" PointY="148" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Vacation" Width="1.5" PointX="14.25" PointY="216.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.VendorContact" Width="1.5" PointX="6" PointY="149.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.Vendor" Width="1.5" PointX="3.75" PointY="153.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.WasteTable" Width="1.5" PointX="12.75" PointY="12.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.ZundConfiguration" Width="1.5" PointX="32.25" PointY="92.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.v_JobNumbersAsInts" Width="1.5" PointX="0.75" PointY="13.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.v_ProductionDepartmentAggregates" Width="1.5" PointX="2.75" PointY="13.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.v_QuotesCreatedInLast7Days" Width="1.5" PointX="4.75" PointY="13.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="FifthPressModel.v_TodaysQuotes" Width="1.5" PointX="14.75" PointY="0.75" IsExpanded="true" />
+        <AssociationConnector Association="FifthPressModel.FK_AddedMaterialInventoryPricingHistory_MaterialCostType" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_AddedMaterialInventoryPricingHistory_Materials" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_AddedMaterialInventoryPricingHistory_MaterialStockTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_AddedMaterialInventoryPricingHistory_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ApiEmployeePivot_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PermissionsManifest_Applications" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Roles_Applications" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_BatchStatusesBatch" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_BillingClasses_BillingClassCategories" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_BillingClasses_Departments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ContractForecastDetail_BillingClass" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_RetainerBillingClass_BillingClass" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_RetainerMonthlyBillingOverride_BillingClass" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Bugs_Environments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Bugs_PermissionsManifest" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Bugs_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_CardPermissions_DashboardCards" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_CardPermissions_RequestedUsers" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_CardPermissions_RequestingUsers" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ClientLoginEmail_ClientLogin" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ClientLoginPivot_ClientLogin" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ClockActivity_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Constraints_ConstraintTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Constraints_ConstraintValueTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Constraints_Presses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ContractDateCheckpoint_ContractForecast" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ContractForecast_ForecastPeriod" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ContractForecast_LinkedContract" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ContractForecastDetail_ContractForecast" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_CuttingConfigurationPivots_Services" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DashboardCards_DashboardTabs" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DashboardTabPermissions_DashboardTabs" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DashboardTabPermissions_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultFinishingServicesForPress_MaterialStockTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultFinishingServicesForPress_Presses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultFinishingServicesForPress_Services" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultFinishingServicesForService_Services" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultFinishingServicesForService_Services1" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultPrepressServicesForPress_MaterialStockTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultPrepressServicesForPress_Presses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultPrepressServicesForPress_Services" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultPrepressServicesForService_Services" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultPrepressServicesForService_Services1" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultPressServices_MaterialStockTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultPressServices_Presses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DefaultPressServices_Services" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DepartmentLeaders_Departments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_DepartmentLeaders_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_DepartmentBudgets25_Departments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_DepartmentBudgetUsage25_Department" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_LineItemDepartmentSplits25_Department" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_LineItems25_Department" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_OrderDepartmentSplits25_Department" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders25_Departments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_RecurringSchedules25_Department" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_UserRoles25_Department" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Users_AgencyDepartments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_EmailUserPivot_Emails" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_EmailUserPivot_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_FeatureRequests_PermissionsManifest" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_FinishingMaterialFormulaPivot_FinishingMaterialApplications" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_FinishingMaterialFormulaPivot_Materials" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_MaterialFinishingFormulaPivot_FinishingMaterialFormulas" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ForecastImportBatch_ForecastPeriod" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_FreightShippingAddresses_USStates" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_InkCostDenominatorUnitPress" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_InventoryAdjustmentHistory_Materials" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_InventoryAdjustmentHistory_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Items_MaterialCostType" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_JobDocuments_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_JobProofs_JobDocuments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_JobProofs_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_JobShipmentPivots_JobShipments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_JobShipments_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_JobShipments_Users1" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ShipmentsShipped_JobShipments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_JobTimingSR_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_TimeRecordEdits_JobTimingSR" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_MaterialCategories_MaterialTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Materials_MaterialCategories" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_MaterialCostType_MaterialStockTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_MaterialInventory_MaterialCostType" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Materials_MaterialCostType" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Items_MaterialCostType" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Materials_MaterialInventory" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Materials_MaterialStockTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_LineItems25_Materials" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteRequests_Materials" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Presses_MaterialStockTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PressLinkedService_MaterialStockTypes" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_OrdersShipped_ShippingAddresses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_OrdersShipped_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PressPlates_Plates" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_AllocationReconciliation25_PO_RecurringSchedules25" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Approvals_PO_Orders" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Approvals_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Approvals25_PO_Orders25" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Approvals25_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_ApprovalTags25_PO_ApprovalId" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_CompanyBudgets25_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_CompanyBudgetUsage25_Budget" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders25_CompanyBudget" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_CompanyBudgetUsage25_LineItem" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Denials_PO_Orders" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Denials_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_BudgetUsage25_LineItemId" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_DepartmentBudgetUsage25_Split" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_EscLog_PO" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_EscLog_User" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_InventoryReceipts25_LineItem" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_InventoryReceipts25_User" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Invoices_PO_Items" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Items_PO_Items" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Items_PO_Orders" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Receiving_PO_Items" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_LineItemDepartmentSplits25_LineItem" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_LineItems25_PO_Orders25" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_RecurringHistory25_LineItem" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_RecurringSchedules25_LineItem" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Notes_PO_Orders" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Notes_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_OrderAmendments25_Order" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_OrderAmendments25_User" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_OrderDepartmentSplits25_Order" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders_CancelUser" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders_SpecialApprovalBy" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders_Users1" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders_Vendors" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders25_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders25_Vendors" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_RecurringHistory25_Order" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_SLA_Logs25_PO_Orders25" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Receiving_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_UserRoles25_Roles" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_UserRoles25_AssignedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_UserRoles25_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_POPermissionsPivot_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Presses_PressCategories" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Presses_Presses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Presses_ProductionDepartments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Presses_SpeedDenominators" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PressHelperServices_Presses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PressLinkedService_Presses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PressPlates_Presses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PressHelperServices_Services" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PressLinkedService_Services" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_PressSpeeds_SpeedDenominators" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_SpeedColorProfiles_PressSpeeds" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Services_ProductionDepartments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_QAChecks_FirstApprover" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_QAChecks_SecondApprover" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteDocuments_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteRequestFiles_QuoteRequests" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteRequestItem_QuoteRequests" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteRequests_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ReprintItems_ReprintJob" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ReprintJobs_Reason" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ReprintJobs_User" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_RetainerBillingClass_RetainerClient" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_RetainerMonthlyOverride_RetainerClient" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_RetainerMonthlyBillingOverride_MonthlyOverride" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Users_Roles" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK__ScheduleT__Tourn__5A9A4855" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ServiceCategories_ServiceType" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Services_ServiceCategories" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ServiceLinkedService_Services" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ServiceLinkedService_Services1" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Services_TimeFormulas" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ServiceTimeAdjustments_ApprovedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ServiceTimeAdjustments_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ShipmentsShipped_ShippingAddresses" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ShipmentsShipped_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ShippingAddresses_USStates" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_ZundConfigurations_SpeedDenominators" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_StaffScheduleEntries_TournamentRoles" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_StaffScheduleEntries_Tournaments" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_StaffScheduleEntries_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_TimeRecordEdits_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Tournament_CreatedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Tournament_ModifiedBy" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_TournamentBudgetLineItems_Category" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_TournamentUserRolePivot_TournamentUserRoles" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_TournamentUserRolePivot_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_UserAssignments_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Vacations_Users" ManuallyRouted="false" />
+        <AssociationConnector Association="FifthPressModel.FK_Vendors_USStates" ManuallyRouted="false" />
+        <EntityTypeShape EntityType="FifthPressModel.ExternalProjectBillingClass" Width="1.5" PointX="17.625" PointY="70.5" />
+        <EntityTypeShape EntityType="FifthPressModel.ExternalProject" Width="1.5" PointX="15.375" PointY="8" />
+        <AssociationConnector Association="FifthPressModel.FK_ExternalProjectBillingClasses_BillingClass" />
+        <AssociationConnector Association="FifthPressModel.FK_ContractForecast_ExternalProject" />
+        <AssociationConnector Association="FifthPressModel.FK_ExternalProjectBillingClasses_ExternalProject" />
+        <EntityTypeShape EntityType="FifthPressModel.Client" Width="1.5" PointX="3.75" PointY="166.625" />
+        <EntityTypeShape EntityType="FifthPressModel.JobItemFinishingMaterial" Width="1.5" PointX="42.75" PointY="124.5" />
+        <EntityTypeShape EntityType="FifthPressModel.JobItem" Width="1.5" PointX="34.5" PointY="123.5" />
+        <EntityTypeShape EntityType="FifthPressModel.JobItemService" Width="1.5" PointX="29.25" PointY="149.875" />
+        <EntityTypeShape EntityType="FifthPressModel.JobOutsourcedItem" Width="1.5" PointX="39.75" PointY="133.125" />
+        <EntityTypeShape EntityType="FifthPressModel.JobPrice" Width="1.5" PointX="36.75" PointY="134.875" />
+        <EntityTypeShape EntityType="FifthPressModel.Job" Width="1.5" PointX="26.25" PointY="127.5" />
+        <EntityTypeShape EntityType="FifthPressModel.Markup" Width="1.5" PointX="11.375" PointY="15.75" />
+        <EntityTypeShape EntityType="FifthPressModel.QuoteItemFinishingMaterial" Width="1.5" PointX="48" PointY="118.5" />
+        <EntityTypeShape EntityType="FifthPressModel.QuoteItem" Width="1.5" PointX="45.75" PointY="113.375" />
+        <EntityTypeShape EntityType="FifthPressModel.QuoteItemService" Width="1.5" PointX="31.5" PointY="159.125" />
+        <EntityTypeShape EntityType="FifthPressModel.QuoteOutsourcedItem" Width="1.5" PointX="51" PointY="133.125" />
+        <EntityTypeShape EntityType="FifthPressModel.QuotePrice" Width="1.5" PointX="48" PointY="137.875" />
+        <EntityTypeShape EntityType="FifthPressModel.Quote" Width="1.5" PointX="31.5" PointY="146.75" />
+        <AssociationConnector Association="FifthPressModel.FK_BatchJob" />
+        <AssociationConnector Association="FifthPressModel.FK_BlindShippingPivotTable_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_Jobs_BlindShippingPivotTable" />
+        <AssociationConnector Association="FifthPressModel.FK_ClientLoginPivot_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_Clients_BillingState" />
+        <AssociationConnector Association="FifthPressModel.FK_Clients_USStates" />
+        <AssociationConnector Association="FifthPressModel.FK_Contacts_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_FreightShippingAddresses_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_JobClientSplits_Client" />
+        <AssociationConnector Association="FifthPressModel.FK_Jobs_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders25_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_PriceLevelClient" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteClientSplits_Client" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteRequests_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_Quotes_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_ShippingAddresses_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_Tournament_Client" />
+        <AssociationConnector Association="FifthPressModel.FK_TournamentBudgetLineItems_Client" />
+        <AssociationConnector Association="FifthPressModel.FK_TournamentBudgetSettings_Client" />
+        <AssociationConnector Association="FifthPressModel.FK_USStateClient" />
+        <AssociationConnector Association="FifthPressModel.FK_VendorContacts_Clients" />
+        <AssociationConnector Association="FifthPressModel.FK_Jobs_Contacts" />
+        <AssociationConnector Association="FifthPressModel.FK_Quotes_Contacts" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItems_CuttingConfigurations" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItems_CuttingConfigurations" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItemFinishingMaterials_FinishingMaterialApplications" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItemFinishingMaterials_FinishingMaterialApplications" />
+        <AssociationConnector Association="FifthPressModel.FK_Jobs_FreightShippingAddresses" />
+        <AssociationConnector Association="FifthPressModel.FK_Quotes_FreightShippingAddresses" />
+        <AssociationConnector Association="FifthPressModel.FK_ItemLayoutSettings_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_ItemLayoutSettings_QuoteItems" />
+        <AssociationConnector Association="FifthPressModel.FK_JobClientSplits_Job" />
+        <AssociationConnector Association="FifthPressModel.FK_JobDocuments_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItemFinishingMaterials_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItemFinishingMaterials_Materials" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItemServices_JobItemFinishingMaterials" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItems_JobItems1" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItems_Jobs" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItems_JobStatuses" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItems_Materials" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItems_Presses" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItems_PressSpeeds" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItems_SpeedDenominators" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItemServices_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_JobOutsourcedItems_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_JobPrice_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_JobProofs_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_JobShipmentPivots_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_JobTimingSR_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItems_JobItems" />
+        <AssociationConnector Association="FifthPressModel.FK_ReprintItems_JobItem" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItemServices_JobStatuses" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItemServices_Services" />
+        <AssociationConnector Association="FifthPressModel.FK_JobItemServices_Users" />
+        <AssociationConnector Association="FifthPressModel.FK_JobPrice_JobItemServices" />
+        <AssociationConnector Association="FifthPressModel.FK_JobTimingSR_JobItemServices" />
+        <AssociationConnector Association="FifthPressModel.FK_QAChecks_JobItemServices" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItemServices_JobItemServices" />
+        <AssociationConnector Association="FifthPressModel.FK_UserAssignments_JobItemServices" />
+        <AssociationConnector Association="FifthPressModel.FK_JobOutsourcedItems_Jobs" />
+        <AssociationConnector Association="FifthPressModel.FK_JobOutsourcedItems_MaterialCostType" />
+        <AssociationConnector Association="FifthPressModel.FK_JobOutsourcedItems_Vendors" />
+        <AssociationConnector Association="FifthPressModel.FK_JobPrice_Jobs" />
+        <AssociationConnector Association="FifthPressModel.FK_JobQuote_Jobs" />
+        <AssociationConnector Association="FifthPressModel.FK_JobJobStatu" />
+        <AssociationConnector Association="FifthPressModel.FK_Jobs_OriginalJob" />
+        <AssociationConnector Association="FifthPressModel.FK_Jobs_ShippingAddresses" />
+        <AssociationConnector Association="FifthPressModel.FK_Jobs_ShippingOptions" />
+        <AssociationConnector Association="FifthPressModel.FK_Jobs_Users" />
+        <AssociationConnector Association="FifthPressModel.FK_Jobs_Users1" />
+        <AssociationConnector Association="FifthPressModel.FK_JobTimingSR_Jobs" />
+        <AssociationConnector Association="FifthPressModel.FK_OrdersShipped_Jobs" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Items_Jobs" />
+        <AssociationConnector Association="FifthPressModel.FK_PO_Orders_Jobs" />
+        <AssociationConnector Association="FifthPressModel.FK_PriceLevelJob" />
+        <AssociationConnector Association="FifthPressModel.FK_Quotes_Jobs" />
+        <AssociationConnector Association="FifthPressModel.FK_ReprintJobs_OriginalJob" />
+        <AssociationConnector Association="FifthPressModel.FK_ReprintJobs_ReprintJob" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteOutsourcedItems_MaterialCostType" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItemFinishingMaterials_Materials" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItems_Materials" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItems_Presses" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItems_PressSpeeds" />
+        <AssociationConnector Association="FifthPressModel.FK_Quotes_PriceLevels" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteClientSplits_Quote" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteDocuments_QuoteItems" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItemFinishingMaterials_QuoteItems" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItemServices_QuoteItemFinishingMaterials" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItems_QuoteItems" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItems_Quotes" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItems_SpeedDenominators" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItemServices_QuoteItems" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteOutsourcedItems_QuoteItems" />
+        <AssociationConnector Association="FifthPressModel.FK_QuotePrice_QuoteItems" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteItemServices_Services" />
+        <AssociationConnector Association="FifthPressModel.FK_QuotePrice_QuoteItemServices" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteOutsourcedItems_Quotes" />
+        <AssociationConnector Association="FifthPressModel.FK_QuoteOutsourcedItems_Vendors" />
+        <AssociationConnector Association="FifthPressModel.FK_QuotePrice_Quotes" />
+        <AssociationConnector Association="FifthPressModel.FK_Quotes_ShippingAddresses" />
+        <AssociationConnector Association="FifthPressModel.FK_Quotes_ShippingOptions" />
+        <AssociationConnector Association="FifthPressModel.FK_Quotes_Users" />
+        <AssociationConnector Association="FifthPressModel.FK_Clients_TaxUSState" />
+        <AssociationConnector Association="FifthPressModel.FK_EPBC_BillingClass" />
+        <EntityTypeShape EntityType="FifthPressModel.ClientOnboardingToken" Width="1.5" PointX="6" PointY="177.125" />
+        <AssociationConnector Association="FifthPressModel.FK_ClientOnboardingToken_Client" />
+        <AssociationConnector Association="FifthPressModel.FK_JobShipmentPivots_Jobs" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

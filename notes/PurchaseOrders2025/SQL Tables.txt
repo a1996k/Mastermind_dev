@@ -1,0 +1,76 @@
+PO_Orders
+=
+PO_OrderId INT IDENTITY PRIMARY KEY,
+ClientId INT,                      -- FK to Clients
+SubmittedByUserId INT,            -- FK to Users
+DepartmentId INT,                 -- FK to Departments
+JobTicketNumber NVARCHAR(50),
+Status NVARCHAR(50),              -- e.g., Pending, SentBack, Approved, Denied, Ordered, Received
+DateSubmitted DATETIME,
+DateOrdered DATETIME NULL,
+DateReceived DATETIME NULL,
+OrderedVendorReference NVARCHAR(100) NULL, -- Vendor order number if provided
+IsDraft BIT DEFAULT 0
+
+PO_LineItems
+=
+PO_LineItemId INT IDENTITY PRIMARY KEY,
+PO_OrderId INT,                   -- FK to PO_Orders
+ItemDescription NVARCHAR(255),
+VendorLink NVARCHAR(500),
+Cost MONEY,
+Quantity INT,
+Taxable BIT,
+Billable BIT,
+DateNeeded DATE,
+DateExpected DATE,
+InternalComments NVARCHAR(MAX),
+FileAttachmentPath NVARCHAR(500),
+InventoryTracked BIT DEFAULT 0
+
+
+PO_Approvals
+=
+PO_ApprovalId INT IDENTITY PRIMARY KEY,
+PO_OrderId INT,                   -- FK to PO_Orders
+ApproverUserId INT,
+ActionTaken NVARCHAR(20),         -- Approved / Denied / SentBack
+ActionDate DATETIME,
+Comments NVARCHAR(MAX),
+SlaBreached BIT,
+Tags NVARCHAR(255)                -- comma-separated or normalized if needed
+
+
+PO_ApprovalTags
+=
+PO_ApprovalTagId INT IDENTITY PRIMARY KEY,
+PO_ApprovalId INT,                -- FK to PO_Approvals
+Tag NVARCHAR(100)                 -- e.g., 'Missing File', 'Wrong Code'
+
+
+PO_DepartmentBudgets
+=
+BudgetId INT IDENTITY PRIMARY KEY,
+DepartmentId INT,
+FiscalYear INT,
+Allocated MONEY,
+AllowOverages BIT DEFAULT 1
+
+
+PO_DepartmentBudgetUsage
+=
+UsageId INT IDENTITY PRIMARY KEY,
+PO_LineItemId INT,
+Amount MONEY,
+IsBillable BIT
+
+
+PO_SLA_Logs
+=
+SLA_LogId INT IDENTITY PRIMARY KEY,
+PO_OrderId INT,
+SubmittedAt DATETIME,
+FirstActionAt DATETIME,
+ResolvedAt DATETIME,
+TurnaroundTimeMinutes INT,
+ApprovalCycles INT

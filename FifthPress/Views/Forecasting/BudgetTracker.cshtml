@@ -1,0 +1,63 @@
+@using FifthPress.Models.ViewModels
+@model List<VM_BudgetClient>
+
+@{
+    ViewBag.Title = "Budget Tracker";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Budget Tracker</h2>
+            <p class="text-muted">Client budget overview for active actual contracts.</p>
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-info">
+                    <strong>No data found.</strong> No clients have active actual contracts with a linked ExternalClientId.
+                    Link clients on the <a href="/Forecasting">contract edit page</a> to see data here.
+                </div>
+            }
+            else
+            {
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table table-bordered table-hover table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Client Name</th>
+                                    <th class="text-center">Active Contracts</th>
+                                    <th class="text-right">Total Approved Hours</th>
+                                    <th class="text-right">Total Approved Budget</th>
+                                    <th class="text-right">Hours Used</th>
+                                    <th class="text-right">Hours Remaining</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var client in Model)
+                                {
+                                    decimal remaining = client.TotalApprovedHours - client.TotalHoursUsed;
+                                    double pct = client.TotalApprovedHours > 0
+                                        ? (double)(client.TotalHoursUsed / client.TotalApprovedHours * 100)
+                                        : 0;
+                                    string rowClass = pct > 100 ? "danger" : pct > 80 ? "warning" : "";
+
+                                    <tr class="@rowClass">
+                                        <td>
+                                            <a href="/Forecasting/BudgetTrackerClient/@client.ClientId">@client.ClientName</a>
+                                        </td>
+                                        <td class="text-center">@client.ActiveContractCount</td>
+                                        <td class="text-right">@client.TotalApprovedHours.ToString("N1")</td>
+                                        <td class="text-right">@client.TotalApprovedBudget.ToString("C")</td>
+                                        <td class="text-right">@client.TotalHoursUsed.ToString("N1")</td>
+                                        <td class="text-right">@remaining.ToString("N1")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

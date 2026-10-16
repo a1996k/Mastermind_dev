@@ -1,0 +1,70 @@
+﻿@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_CompletedJobSummary
+
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "cjs01")
+
+<div class="field-binder-row-flex chart-icon-wrapper">
+    <!--<i class="fa-solid fa-users"></i>-->
+    <i class="fa-solid fa-circle-info"></i>
+</div>
+
+<div class="field-binder-col-flex card-user-list-wrapper">
+    <h3>(Debug) User List</h3>
+    <ul class="cjs01-user-list"></ul>
+</div>
+
+
+<div class="informational-block">
+    <p></p>
+</div>
+
+<canvas class="completed-job-summary-chart metric-chart d-none" id="pcjs01"></canvas>
+
+@Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.MultiselectModel)
+
+<table class="table table-striped table-bordered fs-4" id="completed_job_summary_table">
+    <thead>
+        <tr>
+            <th>Job Number</th>
+            <th>Client</th>
+            <th>Internal Cost</th>
+            <th>Billable Amount</th>
+            <th>Margin</th>
+            <th>Worked Time</th>
+            <th>Decimal Hours</th>
+            <th>Time in Seconds</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (fn_CompletedJobSummary2_Result c in Model.Records)
+        {
+            <tr data-job-id="@Html.DisplayFor(model => c.Record_Id)">
+                <td>@Html.DisplayFor(model => c.Job_Number)</td>
+                <td>@Html.DisplayFor(model => c.Client)</td>
+                <td>@Html.DisplayFor(model => c.Internal_Cost, "Currency")</td>
+                <td>@Html.DisplayFor(model => c.Billable, "Currency")</td>
+                <td>@Html.DisplayFor(model => c.Margin, "Currency")</td>
+                <td>@Html.DisplayFor(model => c.FormattedTime)</td>
+                <td>@Html.DisplayFor(model => c.Decimal_Hours)</td>
+                <td>@Html.DisplayFor(model => c.TimeInSeconds)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    $('.cjs01-user-list').append(
+        `<li class="user-list-entry pt-2" data-user-id="-1">
+            <div class="field-binder-row-flex justify-content-between">
+                <label for="ulcb_-1" class="ff-poppins fs-16 fw-bold fst-italic">Select All</label>
+                <input type="checkbox" id="ulcb_-1" checked />
+            </div>
+         </li>`);
+        @foreach(FifthPress.Models.ViewModels.VMMUserChartPermissions v in Model.UserPermissions)
+    {
+        <text>$('.cjs01-user-list').append('<li data-user-id="@Html.DisplayFor(model => v.UserId )">@Html.DisplayFor(model => v.FirstName) @Html.DisplayFor(model => v.LastName)</li>')</text>
+    }
+
+    $('.range-selector[data-card-ajax-id="cjs01"] select[name="Range"]').val('@Model.RangeOverride');
+    $('.range-selector[data-card-ajax-id="cjs01"] input[name="Locked"]').prop('checked', '@Model.IsLocked' === 'True');
+</script>

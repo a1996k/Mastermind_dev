@@ -1,0 +1,378 @@
+﻿@model FifthPress.Models.ViewModels2.PO25.RecurringHistoryViewModel
+
+@{
+    ViewBag.Title = "Recurring Order History";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fa fa-history"></i> Recurring Order History</h2>
+            <h4 class="text-muted">@(Model.Schedule?.Description ?? "Unknown Schedule")</h4>
+            <hr />
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    @TempData["Error"]
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Schedule Information -->
+    @if (Model.Schedule != null)
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-info-circle"></i> Schedule Information</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <strong>Department:</strong><br>
+                                <span class="text-muted">@(Model.Schedule.Department?.Title ?? "Unknown")</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Amount:</strong><br>
+                                <span class="text-muted">@Model.Schedule.MonthlyAmount.ToString("C") / @(Model.Schedule.RecurrenceType ?? "N/A")</span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Type:</strong><br>
+                                @if (Model.Schedule.PO_LineItems25?.IsAllocation == true)
+                                {
+                                    <span class="label label-warning">Allocation</span>
+                                }
+                                else
+                                {
+                                    <span class="label label-info">Fixed Cost</span>
+                                }
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Status:</strong><br>
+                                @if (Model.Schedule.IsActive)
+                                {
+                                    <span class="label label-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="label label-default">Inactive</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="row" style="margin-top: 15px;">
+                            <div class="col-md-3">
+                                <strong>Start Date:</strong><br>
+                                <span class="text-muted">
+                                    @if (Model.Schedule?.StartDate != null)
+                                    {
+                                        @Model.Schedule.StartDate.ToString("MM/dd/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <em>Not set</em>
+                                    }
+                                </span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>End Date:</strong><br>
+                                <span class="text-muted">
+                                    @if (Model.Schedule.EndDate.HasValue)
+                                    {
+                                        @Model.Schedule.EndDate.Value.ToString("MM/dd/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <em>Ongoing</em>
+                                    }
+                                </span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Next Process:</strong><br>
+                                <span class="text-muted">
+                                    @if (Model.Schedule.NextProcessDate.HasValue)
+                                    {
+                                        @Model.Schedule.NextProcessDate.Value.ToString("MM/dd/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <em>Not scheduled</em>
+                                    }
+                                </span>
+                            </div>
+                            <div class="col-md-3">
+                                <strong>Last Processed:</strong><br>
+                                <span class="text-muted">
+                                    @if (Model.Schedule.LastProcessedDate.HasValue)
+                                    {
+                                        @Model.Schedule.LastProcessedDate.Value.ToString("MM/dd/yyyy")
+                                    }
+                                    else
+                                    {
+                                        <em>Never</em>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Summary Stats -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-bar-chart"></i> Total Processed</h3>
+                </div>
+                <div class="panel-body text-center">
+                    <h3>@Model.TotalProcessed.ToString("C")</h3>
+                    <p class="text-muted">@Model.TotalOrdersGenerated orders generated</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-calculator"></i> Average Monthly</h3>
+                </div>
+                <div class="panel-body text-center">
+                    <h3>@Model.AverageMonthlySpend.ToString("C")</h3>
+                    <p class="text-muted">Average actual spend</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="panel panel-warning">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-calendar"></i> Performance</h3>
+                </div>
+                <div class="panel-body text-center">
+                    <h3>@(Model.ReconciliationHistory?.Count(r => r.IsReconciled) ?? 0)</h3>
+                    <p class="text-muted">of @(Model.ReconciliationHistory?.Count ?? 0) reconciled</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="btn-group" role="group">
+                <a href="/PO25/RecurringIndex" class="btn btn-default">Back to Recurring Orders</a>
+                @if (Model.Schedule != null)
+                {
+                    <a href="/PO25/EditRecurring/@Model.Schedule.RecurringId" class="btn btn-primary">Edit Schedule</a>
+                    <a href="/PO25/ExportHistory/@Model.Schedule.RecurringId" class="btn btn-info">Export History</a>
+                }
+            </div>
+        </div>
+    </div>
+    <br />
+
+    <!-- Processed Orders History -->
+    @if (Model.ProcessedOrders != null && Model.ProcessedOrders.Any())
+    {
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-list"></i> Generated Purchase Orders</h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>PO Number</th>
+                                <th>Amount</th>
+                                <th>Processed Date</th>
+                                <th>Order Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.ProcessedOrders)
+                            {
+                                <tr>
+                                    <td>@order.MonthName</td>
+                                    <td>
+                                        <a href="/PO25/Details/@order.PO_OrderId">#@order.PO_OrderId</a>
+                                    </td>
+                                    <td>@order.FormattedAmount</td>
+                                    <td>@order.ProcessedDate.ToString("MM/dd/yyyy")</td>
+                                    <td>
+                                        <span class="label @order.StatusBadgeClass">@order.OrderStatus</span>
+                                    </td>
+                                    <td>
+                                        <a href="/PO25/Details/@order.PO_OrderId" class="btn btn-xs btn-primary">View PO</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Reconciliation History (for allocations) -->
+    @if (Model.Schedule.PO_LineItems25?.IsAllocation == true && Model.ReconciliationHistory != null && Model.ReconciliationHistory.Any())
+    {
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-calculator"></i> Reconciliation History</h3>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Month</th>
+                                <th>Allocated Amount</th>
+                                <th>Actual Spent</th>
+                                <th>Variance</th>
+                                <th>Variance %</th>
+                                <th>Status</th>
+                                <th>Reconciled Date</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var reconciliation in Model.ReconciliationHistory)
+                            {
+                                <tr class="@(!reconciliation.IsReconciled ? "warning" : "")">
+                                    <td>@reconciliation.MonthName</td>
+                                    <td>@reconciliation.FormattedAllocated</td>
+                                    <td>@reconciliation.FormattedActual</td>
+                                    <td>
+                                        <span class="@reconciliation.VarianceClass">@reconciliation.FormattedVariance</span>
+                                    </td>
+                                    <td>
+                                        <span class="@reconciliation.VarianceClass">@reconciliation.VariancePercentage.ToString("F1")%</span>
+                                    </td>
+                                    <td>
+                                        @if (reconciliation.IsReconciled)
+                                        {
+                                            <span class="label label-success">Reconciled</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="label label-warning">Pending</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (reconciliation.ReconciliationDate.HasValue)
+                                        {
+                                            @reconciliation.ReconciliationDate.Value.ToString("MM/dd/yyyy")
+                                        }
+                                        else
+                                        {
+                                            <em>Not reconciled</em>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(reconciliation.ReconciliationNotes))
+                                        {
+                                            <button type="button" class="btn btn-xs btn-info"
+                                                    data-toggle="tooltip"
+                                                    title="@reconciliation.ReconciliationNotes">
+                                                <i class="fa fa-comment"></i> Notes
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No notes</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="panel-footer">
+                <div class="row">
+                    <div class="col-md-6">
+                        <small class="text-muted">
+                            Average Variance:
+                            @{
+                                var avgVariance = Model.ReconciliationHistory?.Where(r => r.ActualSpent.HasValue).Any() == true
+                                    ? Model.ReconciliationHistory.Where(r => r.ActualSpent.HasValue).Average(r => (decimal?)r.VariancePercentage) ?? 0
+                                    : 0;
+                            }
+                            <span class="@(avgVariance > 0 ? "text-danger" : avgVariance < 0 ? "text-success" : "text-muted")">
+                                @avgVariance.ToString("F1")%
+                            </span>
+                        </small>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <small class="text-muted">
+                            Total Saved:
+                            @{
+                                var totalSaved = Model.ReconciliationHistory?.Where(r => r.ActualSpent.HasValue).Any() == true
+                                    ? Model.ReconciliationHistory.Where(r => r.ActualSpent.HasValue).Sum(r => r.AllocatedAmount - r.ActualSpent.Value)
+                                    : 0;
+                            }
+                            <span class="@(totalSaved > 0 ? "text-success" : "text-danger")">
+                                @totalSaved.ToString("C")
+                            </span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- No Data Messages -->
+    @if (Model.ProcessedOrders == null || !Model.ProcessedOrders.Any())
+    {
+        <div class="panel panel-default">
+            <div class="panel-body text-center">
+                <i class="fa fa-clock-o fa-3x text-muted"></i>
+                <h4>No Orders Generated Yet</h4>
+                <p class="text-muted">This recurring schedule hasn't generated any purchase orders yet.</p>
+                @if (Model.Schedule.NextProcessDate.HasValue && Model.Schedule.NextProcessDate.Value > DateTime.Now.Date)
+                {
+                    <p>Next order will be generated on <strong>@Model.Schedule.NextProcessDate.Value.ToString("MM/dd/yyyy")</strong></p>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+$(document).ready(function() {
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+
+    // Auto-dismiss alerts after 5 seconds
+    setTimeout(function() {
+        $('.alert').fadeOut('slow');
+    }, 5000);
+});
+</script>
+
+<style>
+.panel-body .btn-xs {
+    margin-right: 3px;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.warning {
+    background-color: #fcf8e3 !important;
+}
+
+.btn-group {
+    margin-bottom: 15px;
+}
+</style>

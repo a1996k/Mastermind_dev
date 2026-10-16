@@ -1,0 +1,254 @@
+﻿@model FifthPress.Models.ViewModels2.VM_POReview
+
+<h2>Review Purchase Order #@Model.Order.PO_OrderId</h2>
+
+<p><strong>Status:</strong> @Model.Order.Status</p>
+<p><strong>Submitted:</strong> @Model.Order.DateSubmitted</p>
+<p><strong>Vendor:</strong> @Model.Order.VendorId</p>
+@{
+    var jobTickets = Model.Order.PO_LineItems25?
+        .Where(li => !string.IsNullOrEmpty(li.JobTicketNumber))
+        .Select(li => li.JobTicketNumber)
+        .Distinct()
+        .ToList() ?? new List<string>();
+}
+@if (jobTickets.Any())
+{
+    <p><strong>Job Tickets:</strong> @string.Join(", ", jobTickets)</p>
+}
+<p><strong>Department:</strong> @Model.Order.DepartmentId</p>
+
+<h4>Line Items</h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>Vendor Link</th>
+            <th>Cost</th>
+            <th>Qty</th>
+            <th>Taxable</th>
+            <th>Billable</th>
+            <th>Expected</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.LineItems)
+        {
+            <tr>
+                <td>
+                    @item.ItemDescription
+                    @if (item.IsBulkItem && item.BulkUnitQuantity.HasValue && item.BulkUnitQuantity.Value > 0)
+                    {
+                        // Legacy container-based bulk item
+                        <br />
+                        <small class="text-info">
+                            <i class="fas fa-box"></i>
+                            @item.Quantity @(item.BulkContainerType)(s) × @item.BulkUnitQuantity @item.BulkUnitType = @((item.Quantity * item.BulkUnitQuantity.Value).ToString("N2")) @item.BulkUnitType total
+                            @if (item.CalculatedUnitCost.HasValue)
+                            {
+                                @{ var unitCostReview = item.CalculatedUnitCost.Value < 0.01m ? item.CalculatedUnitCost.Value.ToString("C5").TrimEnd('0') : item.CalculatedUnitCost.Value.ToString("C"); }
+                                <span>@ @unitCostReview/@item.BulkUnitType</span>
+                            }
+                        </small>
+                    }
+                    else if (item.IsBulkItem && (item.UnitType == "Per Hundred" || item.UnitType == "Per Thousand"))
+                    {
+                        // New simplified bulk/special pricing
+                        <br />
+                        <small class="text-info">
+                            <i class="fas fa-calculator"></i>
+                            @item.Quantity.ToString("N0") units @ @item.Cost.ToString("C") @item.UnitType = @item.LineTotal.ToString("C")
+                        </small>
+                    }
+                </td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.VendorLink))
+                    {
+                        <a href="@item.VendorLink" target="_blank">Link</a>
+                    }
+                </td>
+                <td>
+                    @item.Cost.ToString("C")
+                    @if (item.IsBulkItem && item.BulkUnitQuantity.HasValue && item.BulkUnitQuantity.Value > 0)
+                    {
+                        <small class="text-muted">/@(item.BulkContainerType)</small>
+                    }
+                    else
+                    {
+                        <small class="text-muted">/@item.UnitDisplayText</small>
+                    }
+                </td>
+                <td>
+                    @item.Quantity
+                    @if (item.IsBulkItem && item.BulkUnitQuantity.HasValue && item.BulkUnitQuantity.Value > 0)
+                    {
+                        <small class="text-muted">@(item.BulkContainerType)(s)</small>
+                    }
+                    else
+                    {
+                        <small class="text-muted">@item.UnitDisplayText</small>
+                    }
+                </td>
+                <td>@(item.Taxable ? "Yes" : "No")</td>
+                <td>@(item.Billable ? "Yes" : "No")</td>
+                <td>@item.DateExpected?.ToShortDateString()</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4>Approval Actions</h4>
+<div class="card">
+    <div class="card-body">
+        @using (Html.BeginForm("ProcessApproval", "PO25Approval", FormMethod.Post, new { id = "approvalForm" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("id", Model.Order.PO_OrderId)
+            <input type="hidden" name="decision" id="decisionInput" value="" required />
+
+            <div class="form-group">
+                <label class="d-block mb-2">Decision:</label>
+                <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
+                    <label class="btn btn-outline-success flex-fill decision-btn" data-decision="Approved">
+                        <input type="radio" name="decisionRadio" autocomplete="off">
+                        <i class="fas fa-check mr-1"></i> Approve
+                    </label>
+                    <label class="btn btn-outline-danger flex-fill decision-btn" data-decision="Denied">
+                        <input type="radio" name="decisionRadio" autocomplete="off">
+                        <i class="fas fa-times mr-1"></i> Deny
+                    </label>
+                    <label class="btn btn-outline-warning flex-fill decision-btn" data-decision="SentBack">
+                        <input type="radio" name="decisionRadio" autocomplete="off">
+                        <i class="fas fa-undo mr-1"></i> Send Back
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="comments">Comments:</label>
+                <textarea name="comments" id="comments" class="form-control" rows="3" placeholder="Optional comments..."></textarea>
+                <small class="form-text text-muted" id="commentsHint"></small>
+            </div>
+
+            <div class="form-group" id="tagsSection" style="display: none;">
+                <label>Tags (comma-separated):</label>
+                <input name="selectedTags" class="form-control" placeholder="e.g. budget, vendor-issue" />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="submitBtn" disabled>
+                <i class="fas fa-paper-plane mr-1"></i> Submit Decision
+            </button>
+        }
+    </div>
+</div>
+
+<style>
+    .decision-btn {
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border-width: 2px;
+    }
+
+    .decision-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .decision-btn.active {
+        transform: translateY(0);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .decision-btn input[type="radio"] {
+        display: none;
+    }
+
+    .btn-group-toggle .btn-outline-success:hover {
+        background-color: rgba(40, 167, 69, 0.1);
+    }
+
+    .btn-group-toggle .btn-outline-danger:hover {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+
+    .btn-group-toggle .btn-outline-warning:hover {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+
+    #commentsHint {
+        min-height: 1.2em;
+    }
+</style>
+
+<script>
+    $(document).ready(function () {
+        $('.decision-btn').on('click', function () {
+            var decision = $(this).data('decision');
+            $('#decisionInput').val(decision);
+
+            // Remove active state from all buttons
+            $('.decision-btn').removeClass('active btn-success btn-danger btn-warning')
+                .addClass(function () {
+                    var d = $(this).data('decision');
+                    if (d === 'Approved') return 'btn-outline-success';
+                    if (d === 'Denied') return 'btn-outline-danger';
+                    return 'btn-outline-warning';
+                });
+
+            $(this).removeClass('btn-outline-success btn-outline-danger btn-outline-warning');
+            if (decision === 'Approved') {
+                $(this).addClass('active btn-success');
+                $('#commentsHint').text('Add any notes for the requestor (optional)');
+                $('#tagsSection').hide();
+                $('#comments').attr('placeholder', 'Optional comments...');
+            } else if (decision === 'Denied') {
+                $(this).addClass('active btn-danger');
+                $('#commentsHint').text('Please provide a reason for denial');
+                $('#tagsSection').show();
+                $('#comments').attr('placeholder', 'Reason for denial...');
+            } else if (decision === 'SentBack') {
+                $(this).addClass('active btn-warning');
+                $('#commentsHint').text('Let the requestor know what changes are needed');
+                $('#tagsSection').hide();
+                $('#comments').attr('placeholder', 'What changes are needed...');
+            }
+
+            // Enable submit button
+            $('#submitBtn').prop('disabled', false);
+        });
+
+        // Form validation
+        $('#approvalForm').on('submit', function (e) {
+            var decision = $('#decisionInput').val();
+            if (!decision) {
+                e.preventDefault();
+                alert('Please select a decision');
+                return false;
+            }
+        });
+    });
+</script>
+
+<h4>Approval History</h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Approver</th>
+            <th>Action</th>
+            <th>Comment</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var a in Model.Approvals)
+        {
+            <tr>
+                <td>@a.ApproverUserId</td>
+                <td>@a.ActionTaken</td>
+                <td>@a.Comments</td>
+                <td>@a.ActionDate.ToShortDateString()</td>
+            </tr>
+        }
+    </tbody>
+</table>

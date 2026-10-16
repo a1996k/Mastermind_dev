@@ -1,0 +1,104 @@
+﻿@model User
+
+<style>
+    form[data-item-type="User"] .single-line {
+        width: 100% !important;
+    }
+</style>
+
+<form method="post" action="user/save" enctype="multipart/form-data" data-item-type="User">
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.Deleted)
+    @Html.HiddenFor(model => model.Disabled)
+    @Html.HiddenFor(model => model.Hash)
+    @Html.HiddenFor(model => model.Salt)
+    @Html.HiddenFor(model => model.TargetUtilization)
+    @Html.HiddenFor(model => model.AgencyDepartment)
+    @Html.HiddenFor(model => model.IsQAChecker)
+    <div class="d-flex flex-row flex-wrap justify-content-between">
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.FirstName)
+            @Html.EditorFor(model => model.FirstName, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.LastName)
+            @Html.EditorFor(model => model.LastName, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Role)
+            @Html.DropDownListFor(model => model.Role, ViewBag.Role as SelectList, "")
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Login)
+            @Html.EditorFor(model => model.Login, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Username)
+            @Html.EditorFor(model => model.Username, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Passcode)
+            @Html.EditorFor(model => model.Passcode, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Email)
+            @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.DashboardPermissions)
+            @Html.EditorFor(model => model.DashboardPermissions, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.HireDate)
+            @Html.TextBoxFor(model => model.HireDate, "{0:yyyy-MM-dd}", new { @data_changed = false, @class = "single-line styled-input", @type = "date" })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.TerminationDate)
+            @Html.TextBoxFor(model => model.TerminationDate, "{0:yyyy-MM-dd}", new { @data_changed = false, @class = "single-line styled-input", @type = "date" })
+        </div>
+        <div class="row">
+            <h3 class="ff-poppins fs-14 fw-bold">User Flags</h3>
+            <div class="field-binder-row-flex flex-wrap justify-content-between">
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.IsSpecialApprover)
+                    @Html.CheckBox("IsSpecialApprover", Model.IsSpecialApprover ?? false)
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.IsProductionEmployee)
+                    @Html.CheckBox("IsProductionEmployee", Model.IsProductionEmployee ?? false)
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.IsProjectManager)
+                    @Html.CheckBox("IsProjectManager", Model.IsProjectManager ?? false)
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.IsExecutive)
+                    @Html.CheckBox("IsExecutive", Model.IsExecutive ?? false)
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.AgencyUtilizationApplicable)
+                    @Html.CheckBox("AgencyUtilizationApplicable", Model.AgencyUtilizationApplicable ?? false)
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.IsEventStaff)
+                    @Html.CheckBox("IsEventStaff", Model.IsEventStaff ?? false)
+                </div>
+            </div>
+        </div>
+        <div class="field-binder-flexxy">
+            <button type="button" class="btn btn-sm" data-modal-to-open="#set_password_modal">Set Password</button>
+            <button type="button" class="btn btn-sm configure-dash-perm-btn" data-user-id="@Html.DisplayFor(model => model.Id)">Configure Dashboard Permissions</button>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-12">
+            <button type="button" class="btn btn-lg btn-fc-info edit-clock-activity" data-modal-to-open="#clock_activity_edit_modal" data-record-id="@Html.DisplayFor(model => model.Id)">Edit Clock Activity</button>
+        </div>
+    </div>
+
+    <div class="field-binder-row-flex mt-5">
+        <input type="submit" value="Save" data-modal-to-close="#" />
+        <input type="button" value="Cancel" data-modal-to-close="#" />
+    </div>
+</form>

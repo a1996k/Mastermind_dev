@@ -1,0 +1,80 @@
+﻿@model List<Report_TimeEntries_Result>
+
+<table class="table table-striped" id="result_table">
+    <thead class="fs-4">
+        <tr>
+            <th>Employee</th>
+            <th>Job Description</th>
+            <th>Client</th>
+            <th>Job Number</th>
+            <th>Item Number</th>
+            <th>Service</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Dec. Hours</th>
+            <th>Minutes</th>
+            <th>Edit</th>
+        </tr>
+    </thead>
+    <tbody class="fs-4">
+        @foreach (Report_TimeEntries_Result r in Model)
+        {
+            <tr data-record-id="@Html.DisplayFor(model => r.Id)">
+                <td>@Html.DisplayFor(model => r.Employee)</td>
+                <td>@Html.DisplayFor(model => r.Description)</td>
+                <td>@Html.DisplayFor(model => r.Client)</td>
+                <td>@Html.DisplayFor(model => r.JobNumber)</td>
+                <td>@Html.DisplayFor(model => r.Ordinal)</td>
+                <td>@Html.DisplayFor(model => r.Title)</td>
+                <td>@Html.DisplayFor(model => r.StartTime)</td>
+                <td>@Html.DisplayFor(model => r.EndTime)</td>
+                <td>@Html.DisplayFor(model => r.Hours)</td>
+                <td>@Html.DisplayFor(model => r.Minutes)</td>
+                <td><button type="button" class="btn btn-sm btn-fc-danger edit-time-btn">Edit</button></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    function GetEditTimeModal() {
+        let recordId = $(this).closest('tr').attr('data-record-id');
+
+        $.ajax({
+            type: 'GET',
+            url: ProcessUrl('TimeTracking/EditTimeEntry') + '/' + recordId,
+            beforeSend: function () {
+                //remove an existing edit time modal if it exists (we'll be loading a new one)
+                if ($('#edit_time_modal').length) {
+                    $('#edit_time_modal').remove();
+                }
+            },
+            success: function (data) {
+                try {
+
+                    // Append the modal HTML to the body
+                    $('body').append(data.Html);
+
+                    // Initialize and show the modal
+                    $('#edit_time_modal').modal('show');
+                } catch (e) {
+                    console.error("Error parsing data:", e);
+                    alert('Error parsing data. Check the console for details.');
+                }
+            },
+            error: function (err) {
+                alert('error during request');
+            }
+        });
+    };
+
+    function SubmitTimeEdit() {
+        $('#editTimeEntryForm').trigger('submit');
+    };
+
+    $(function () {
+        let resultsTable = $('#result_table').DataTable();
+    })
+        .on('click', '.edit-time-btn', GetEditTimeModal)
+        .on('click', '.submit-time-edit-btn', SubmitTimeEdit);
+</script>

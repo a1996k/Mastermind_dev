@@ -1,0 +1,294 @@
+﻿Name: Komori
+Operator Count: 1
+Lift Height: 36
+Side Allowance: 0.5
+Color Bar: 0.25
+Gripper: 1
+Tail: 0.5
+Front Colors: 5
+Back Colors: 0
+Coater: 1
+Min Sheet Height: 22
+Max Sheet Height: 40.5
+Min Sheet Width: 16
+Max Sheet Width: 28.375
+Max Image Height: 39
+Max Image Width: 26
+Min Caliper: 0.0035
+Max Caliper: 0.03
+Make Ready (Sheets): 200
+Dry Time: 0
+Min Run Time: 30
+Lift Change: 30
+Lift Change Scrap: 25
+Scrap: 0.02
+Burn Plates: 10
+Plate Life: 100000
+Name: Roland
+Operator Count: 2
+Lift Height: 48
+Side Allowance: 0.25
+Color Bar: 0.5
+Gripper: 0.375
+Tail: 0.5
+Front Colors: 6
+Back Colors: 0
+Coater: 1
+Min Sheet Height: 18
+Max Sheet Height: 40
+Min Sheet Width: 13
+Max Sheet Width: 28
+Max Image Height: 37.75
+Max Image Width: 27.5
+Min Caliper: 0.002
+Max Caliper: 0.039
+Gripper change: 0
+Make Ready (Sheets): 100
+Dry Time: 1.5 hours
+Min Run Time: 30
+Lift Change: 0
+Lift Change Scrap: 0
+Scrap: 0.0175
+Burn Plates: 10
+Plate Life: 100000
+Name: QM
+Operator Count: 1
+Lift Height: 18
+Side Allowance: 0.25
+Color Bar: 0.25
+Gripper: 0.28
+Tail: 0
+Front Colors: 2
+Back Colors: 0
+Coater: 0
+Min Sheet Height: 5.52
+Max Sheet Height: 18.11
+Min Sheet Width: 3.5
+Max Sheet Width: 13.39
+Max Image Height: 17.83
+Max Image Width: 12.98
+Min Caliper: 0.002
+Max Caliper: 0.015
+Make Ready (Sheets): 0
+Dry Time: 1 Hour
+Min Run Time: 15
+Lift Change: 5
+Lift Change Scrap: 25
+Scrap: 0.02
+Burn Plates: 4
+Plate Life: 20000
+Name: Envelope
+Operator Count: 1
+Lift Height: 4
+Side Allowance: 0
+Color Bar: 0.25
+Gripper: 0.31
+Tail: 0
+Front Colors: 1
+Back Colors: 0
+Coater: 0
+Min Sheet Height: 5
+Max Sheet Height: 17
+Min Sheet Width: 3
+Max Sheet Width: 13
+Max Image Height: 16.5
+Max Image Width: 12.5
+Min Caliper: 0.0024
+Max Caliper: 0.016
+Make Ready (Sheets): 0
+Dry Time: 60
+Min Run Time: 0
+Lift Change: 5
+Lift Change Scrap: 25
+Scrap: 0.02
+Burn Plates: 5
+Plate Life: 25000
+Name: Acuity - 1 Layer
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 4
+Back Colors: 0
+Coater: 0
+Min Sheet Height: 5
+Max Sheet Height: 49.6
+Min Sheet Width: 5
+Max Sheet Width: 99.2
+Max Image Height: 49.6
+Max Image Width: 99.2
+Min Caliper: 0.0001
+Max Caliper: 2
+Make Ready: 15
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Scrap: 0.05
+Burn Plates: 0
+Plate Life: 0
+Name: Acuity - 2 Layers
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 8
+Back Colors: 0
+Coater: 0
+Min Sheet Height: 5
+Max Sheet Height: 49.6
+Min Sheet Width: 5
+Max Sheet Width: 99.2
+Max Image Height: 49.6
+Max Image Width: 99.2
+Min Caliper: 0.0001
+Max Caliper: 2
+Make Ready: 15
+Make Ready (Sheets): 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Scrap: 0.05
+Burn Plates: 0
+Plate Life: 0
+Name: Vutek HS - 1 Layer
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 4
+Back Colors: 0
+Coater: 0
+Min Sheet Height: 12
+Max Sheet Height: 126
+Min Sheet Width: 12
+Max Sheet Width: inf
+Max Image Height: 126
+Max Image Width: inf
+Min Caliper: 0.0001
+Max Caliper: 2
+Make Ready: 15
+Make Ready (Sheets): 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Scrap: 3%-5%*
+Burn Plates: 0
+Plate Life: 0
+Name: Vutek HS - 2 Layers
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 8
+Back Colors: 0
+Coater: 0
+Min Sheet Height: 12
+Max Sheet Height: 126
+Min Sheet Width: 12
+Max Sheet Width: inf
+Max Image Height: 126
+Max Image Width: inf
+Min Caliper: 0.0001
+Max Caliper: 2
+Make Ready: 15
+Make Ready (Sheets): 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Scrap: 0.05
+Burn Plates: 0
+Plate Life: 0
+Name: Vutek HS - 3 Layers
+Type: Digital
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 12
+Back Colors: 0
+Coater: 0
+Min Sheet Height: 12
+Max Sheet Height: 126
+Min Sheet Width: 12
+Max Sheet Width: inf
+Max Image Height: 126
+Max Image Width: inf
+Min Caliper: 0.0001
+Max Caliper: 2
+Make Ready: 15
+Make Ready (Sheets): 0
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Scrap: 0.05
+Burn Plates: 0
+Plate Life: 0
+Name: Ricoh B/W
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 1
+Back Colors: 1
+Coater: 0
+Min Sheet Height: 5.5
+Max Sheet Height: 12
+Min Sheet Width: 8.5
+Max Sheet Width: 18
+Max Image Height: 12
+Max Image Width: 18
+Min Caliper: 0.0024
+Max Caliper: 0.012
+Make Ready: 0
+Make Ready (Sheets): 5
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Scrap: 0.05
+Burn Plates: 0
+Plate Life: 0
+Name: Savin Pro C651EX
+Operator Count: 1
+Lift Height: 0
+Side Allowance: 0
+Color Bar: 0
+Gripper: 0
+Tail: 0
+Front Colors: 5
+Back Colors: 5
+Coater: 0
+Min Sheet Height: 5.5
+Max Sheet Height: 13
+Min Sheet Width: 8.5
+Max Sheet Width: 48
+Max Image Height: 13
+Max Image Width: 47.25
+Min Caliper: 0.0024
+Max Caliper: 0.015
+Make Ready: 0
+Make Ready (Sheets): 5
+Dry Time: 0
+Min Run Time: 0
+Lift Change: 0
+Lift Change Scrap: 0
+Scrap: 0.05
+Burn Plates: 0
+Plate Life: 0

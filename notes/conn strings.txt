@@ -1,0 +1,11 @@
+<add name="FifthPressEntities" connectionString="metadata=res://*/FifthPress.csdl|res://*/FifthPress.ssdl|res://*/FifthPress.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=EC2AMAZ-08LETF2\SQLEXPRESS;initial catalog=Mastermind;persist security info=True;Integrated Security=SSPI;encrypt=False;trustservercertificate=True;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />
+
+<add name="FifthPressEntities" connectionString="metadata=res://*/FifthPress.csdl|res://*/FifthPress.ssdl|res://*/FifthPress.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=FC-INTRANET\MSSQLSERVER01;initial catalog=FifthPress;persist security info=True;user id=root;password=~11s~065FC;trustservercertificate=True;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />
+
+<add name="FifthPressEntities" connectionString="metadata=res://*/FifthPress.csdl|res://*/FifthPress.ssdl|res://*/FifthPress.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=DESKTOP-LHIEL1H;initial catalog=FifthPress;persist security info=True;Integrated Security=SSPI;encrypt=False;trustservercertificate=True;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />
+
+
+*** DEV CONFIGURED MASTERMIND_LIVEMIRROR CONN STRING ****
+
+<add name="FifthPressEntities" connectionString="metadata=res://*/FifthPress.csdl|res://*/FifthPress.ssdl|res://*/FifthPress.msl;provider=System.Data.SqlClient;provider connection string=&quot;data source=FC-INTRANET\MSSQLSERVER01;initial catalog=Mastermind_LiveMirror;persist security info=True;user id=root;password=~11s~065FC;trustservercertificate=True;MultipleActiveResultSets=True;App=EntityFramework&quot;" providerName="System.Data.EntityClient" />
+

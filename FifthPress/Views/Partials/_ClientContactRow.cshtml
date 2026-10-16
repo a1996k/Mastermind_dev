@@ -1,0 +1,64 @@
+﻿@model Contact
+
+<style>
+    .contact-row .single-line{
+        width: 100% !important;
+    }
+</style>
+
+<li class="field-binder-row-flex contact-row" data-record-id="@Html.DisplayFor(model => model.Id)">
+    @Html.HiddenFor(model => model.CusNo)
+    @Html.HiddenFor(model => model.Options)
+    @Html.HiddenFor(model => model.Phone2)
+    @Html.HiddenFor(model => model.SendEmail)
+    @Html.HiddenFor(model => model.SendSurvey)
+    @Html.HiddenFor(model => model.KeyContact)
+    @Html.HiddenFor(model => model.ContactNote)
+    @Html.HiddenFor(model => model.ShipTo)
+    @Html.HiddenFor(model => model.ConTag)
+    @Html.HiddenFor(model => model.Fax)
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="field-binder-row-flex">
+                    <button type="button" class="btn btn-sm btn-danger remove-contact-btn me-5">Remove</button>
+
+                    <div class="field-binder-col-flex me-3">
+                        @Html.LabelFor(model => model.Position)
+                        @Html.DropDownListFor(model => model.Position,
+                            new SelectList(new[]
+                            {
+                                new { Value = "",                   Text = "-- Select --" },
+                                new { Value = "Accounts Payable",   Text = "Accounts Payable" },
+                                new { Value = "Purchasing",         Text = "Purchasing" },
+                                new { Value = "General",            Text = "General" },
+                                new { Value = "Sales",              Text = "Sales" },
+                                new { Value = "Other",              Text = "Other" }
+                            }, "Value", "Text", Model.Position))
+                    </div>
+
+                    <div class="field-binder-col-flex">
+                        @Html.LabelFor(model => model.First)
+                        @Html.EditorFor(model => model.First, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                    </div>
+                    <div class="field-binder-col-flex">
+                        @Html.LabelFor(model => model.Last)
+                        @Html.EditorFor(model => model.Last, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                    </div>
+                    <div class="field-binder-col-flex">
+                        @Html.LabelFor(model => model.Email)
+                        @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                    </div>
+                    <div class="field-binder-col-flex">
+                        @Html.LabelFor(model => model.Phone)
+                        @Html.EditorFor(model => model.Phone, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                    </div>
+                    <div class="field-binder-col-flex">
+                        @Html.LabelFor(model => model.Cell)
+                        @Html.EditorFor(model => model.Cell, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</li>

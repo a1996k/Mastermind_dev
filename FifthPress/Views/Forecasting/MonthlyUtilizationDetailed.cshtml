@@ -1,0 +1,284 @@
+@model List<sp_GetMonthlyUtilizationByBillingClass_Result>
+
+@{
+    ViewBag.Title = "Monthly Utilization Breakdown by Billing Class";
+    var period = ViewBag.Period as ForecastPeriod;
+    var departments = ViewBag.Departments as List<Department>;
+    var selectedDeptId = ViewBag.SelectedDepartmentId;
+}
+
+@if (period == null)
+{
+    <div class="alert alert-danger">
+        <h4>Error: Period Not Found</h4>
+        <p>The forecast period could not be loaded.</p>
+        @Html.ActionLink("Back to Periods", "Index", null, new { @class = "btn btn-default" })
+    </div>
+    return;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12" style="position: relative;">
+            <h2>Monthly Utilization Breakdown vs. 80% Goal (with Overage in Red)</h2>
+            <p class="text-muted">
+                Period: @period.PeriodName (@period.StartDate.ToString("MM/dd/yyyy") - @period.EndDate.ToString("MM/dd/yyyy"))
+            </p>
+
+            <!-- Department Selector (Top Right) -->
+            <div style="position: absolute; top: 0; right: 15px;">
+                <select id="departmentSelector" class="form-control" style="width: 200px;">
+                    @foreach (var dept in departments)
+                    {
+                        <option value="@dept.Id" @(dept.Id == selectedDeptId ? "selected" : "")>
+                            @dept.Title
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="row" style="margin-bottom: 20px; margin-top: 10px;">
+                <div class="col-md-12">
+                    @Html.ActionLink("← Back to Contracts", "Contracts", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-default" })
+                    <a href="/Forecasting/MonthlyUtilization?periodId=@period.ForecastPeriodID&departmentId=@selectedDeptId" class="btn btn-info">View Simple Chart</a>
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <!-- Chart Container -->
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <canvas id="utilizationChart" height="80"></canvas>
+                    </div>
+                </div>
+
+                <!-- Summary Stats -->
+                var monthlyTotals = Model.GroupBy(m => new { m.MonthNumber, m.MonthName }).Select(g => new {
+                    Month = g.Key.MonthName,
+                    TotalBooked = g.FirstOrDefault()?.TotalBookedPercentage ?? 0
+                }).ToList();
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="panel panel-info">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Average Utilization</h4>
+                                <h2 style="color: #337ab7; margin: 10px 0;">
+                                    @monthlyTotals.Average(x => x.TotalBooked).ToString("N1")%
+                                </h2>
+                                <p class="text-muted">across all months</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="panel panel-success">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Billing Classes Used</h4>
+                                <h2 style="color: #5cb85c; margin: 10px 0;">
+                                    @Model.Where(m => m.ForecastedHours > 0 && m.BillingClassName != "Unbooked").Select(m => m.BillingClassName).Distinct().Count()
+                                </h2>
+                                <p class="text-muted">active classes</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="panel panel-danger">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Over-booked Months</h4>
+                                <h2 style="color: #d9534f; margin: 10px 0;">
+                                    @monthlyTotals.Count(x => x.TotalBooked > 85)
+                                </h2>
+                                <p class="text-muted">above 85%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <h4>No Data Available</h4>
+                    <p>There is no utilization data for this period and department combination.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+        $(document).ready(function () {
+            // Department selector change handler
+            $('#departmentSelector').change(function () {
+                var periodId = @period.ForecastPeriodID;
+                var departmentId = $(this).val();
+                window.location.href = '@Url.Action("MonthlyUtilizationDetailed", "Forecasting")?periodId=' + periodId + '&departmentId=' + departmentId;
+            });
+
+            @if (Model != null && Model.Any())
+            {
+                <text>
+                // Prepare chart data - group by month and billing class
+                var rawData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(m => new {
+                    month = m.MonthStart.HasValue ? m.MonthStart.Value.ToString("MMM yyyy") : m.MonthName,
+                    monthNum = m.MonthNumber,
+                    billingClass = m.BillingClassName ?? "Unbooked",
+                    percentage = Math.Round(m.ForecastedPercentage ?? 0, 1),
+                    unbookedPercentage = Math.Round(m.UnbookedPercentage ?? 0, 1),
+                    overbookedPercentage = Math.Round(m.OverbookedPercentage ?? 0, 1)
+                })));
+
+                // Get unique months (sorted by month number)
+                var months = [...new Set(rawData.map(d => d.month))];
+
+                // Get unique billing classes (excluding Unbooked and Overbooked which we handle separately)
+                var billingClasses = [...new Set(rawData.map(d => d.billingClass))].filter(bc => bc !== 'Unbooked');
+
+                // Color palette for billing classes
+                var colorPalette = [
+                    '#8b4513',  // Dark red/brown for 3D
+                    '#337ab7',  // Blue for Photo/Video
+                    '#5cb85c',  // Green for Creative Design
+                    '#f0ad4e',  // Orange
+                    '#5bc0de',  // Light blue
+                    '#9467bd',  // Purple
+                    '#e377c2',  // Pink
+                    '#7f7f7f',  // Gray
+                    '#bcbd22',  // Yellow-green
+                    '#17becf'   // Cyan
+                ];
+
+                // Build datasets for each billing class
+                var datasets = [];
+
+                billingClasses.forEach(function(billingClass, index) {
+                    var data = months.map(function(month) {
+                        var item = rawData.find(d => d.month === month && d.billingClass === billingClass);
+                        return item ? item.percentage : 0;
+                    });
+
+                    datasets.push({
+                        label: billingClass,
+                        data: data,
+                        backgroundColor: colorPalette[index % colorPalette.length],
+                        stack: 'stack0'
+                    });
+                });
+
+                // Add Unbooked (gray)
+                var unbookedData = months.map(function(month) {
+                    var item = rawData.find(d => d.month === month);
+                    return item ? item.unbookedPercentage : 0;
+                });
+                datasets.push({
+                    label: 'Unbooked',
+                    data: unbookedData,
+                    backgroundColor: '#d3d3d3',
+                    stack: 'stack0'
+                });
+
+                // Add Overbooked (red)
+                var overbookedData = months.map(function(month) {
+                    var item = rawData.find(d => d.month === month);
+                    return item ? item.overbookedPercentage : 0;
+                });
+                datasets.push({
+                    label: 'Overbooked',
+                    data: overbookedData,
+                    backgroundColor: '#d9534f',
+                    stack: 'stack0'
+                });
+
+                // Create chart
+                var ctx = document.getElementById('utilizationChart').getContext('2d');
+                var chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            x: {
+                                stacked: true,
+                                grid: {
+                                    display: false
+                                }
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Utilization %'
+                                },
+                                grace: '10%'
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom',
+                                labels: {
+                                    boxWidth: 15,
+                                    padding: 10,
+                                    font: {
+                                        size: 10
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + '%';
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                color: '#fff',
+                                font: {
+                                    weight: 'bold',
+                                    size: 9
+                                },
+                                formatter: function(value, context) {
+                                    return value > 5 ? value.toFixed(1) + '%' : '';
+                                }
+                            },
+                            annotation: {
+                                annotations: {
+                                    goalLine: {
+                                        type: 'line',
+                                        yMin: 80,
+                                        yMax: 80,
+                                        borderColor: '#d9534f',
+                                        borderWidth: 2,
+                                        borderDash: [5, 5],
+                                        label: {
+                                            content: 'Goal (80%)',
+                                            enabled: true,
+                                            position: 'end',
+                                            backgroundColor: '#d9534f',
+                                            color: '#fff',
+                                            font: {
+                                                size: 10,
+                                                weight: 'bold'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+                </text>
+            }
+        });
+</script>

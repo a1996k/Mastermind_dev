@@ -1,0 +1,68 @@
+@model FifthPress.Models.ViewModels2.PO25.VM_RoleManagement25
+@{
+    ViewBag.Title = "PO Role Management";
+}
+
+<h2>PO Role Management</h2>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Department</th>
+            <th>Roles</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model.Users)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>
+                    @{
+                        var dept = Model.Departments.FirstOrDefault(d => d.Value == (user.DepartmentId?.ToString() ?? ""));
+                        string deptName = dept != null ? dept.Text : "N/A";
+                    }
+                    @deptName
+                </td>
+                <td>
+                    @if (user.Roles.Any())
+                    {
+                        <ul class="mb-0">
+                            @foreach (var role in user.Roles)
+                            {
+                                <li>
+                                    @role.RoleName
+                                    @if (!string.IsNullOrWhiteSpace(role.DepartmentName))
+                                    {
+                                        <span class="text-muted">(@role.DepartmentName)</span>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <span class="text-muted">None</span>
+                    }
+                </td>
+                <td>
+                    @Html.ActionLink("Manage", "UserRoles", new { id = user.UserId }, new { @class = "btn btn-sm btn-primary" })
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="mt-4">
+    @Html.ActionLink("Create New Role", "CreateRole", null, new { @class = "btn btn-success" })
+    @Html.ActionLink("Bulk Assign Roles", "BulkAssign", null, new { @class = "btn btn-secondary ml-2" })
+</div>

@@ -1,0 +1,102 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_StaleJobTable
+
+@Styles.Render("~/Content/joblistcss")
+
+<div class="slide-o-left auto-slide-me toast-overlay btn-group d-flex justify-content-center">
+    <button type="button" class="btn btn-fc-info toast-view-button">View Job</button>
+    <button type="button" class="btn btn-fc-info toast-job-ticket-button">View Job Ticket</button>
+    <button type="button" class="btn btn-fc-info toast-edit-job-button">Edit Job</button>
+    <!--<button type="button" class="btn btn-fc-caution toast-view-timing-entries-button">View Timing Entries</button>-->
+    <button type="button" class="btn btn-fc-info toast-delivery-ticket-button">Get Delivery Ticket</button>
+</div>
+
+<button type="button" class="btn btn-lg new-job-list">New Job List</button>
+
+<!-- Table Layout -->
+<div class="print-table">
+    <table class="table-borderless" id="print_table">
+        <thead>
+            <tr>
+                <th>
+                    State
+                </th>
+                <th>
+                    Job Number
+                </th>
+                <th>
+                    Job Title
+                </th>
+                <th>
+                    Client
+                </th>
+                <th>
+                    Min Start Date
+                </th>
+                <th>
+                    Due Date
+                </th>
+                <th>
+                    Due In
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (Job j in Model.Jobs)
+            {
+                string dueDate = j.DueDate.HasValue ? j.DueDate.Value.ToString("M/d/yyyy") : "";
+                string minDate = j.MinStartDate.HasValue ? j.MinStartDate.Value.ToString("M/d/yyyy") : "";
+
+                <tr class="job-item" data-record-id="@Html.DisplayFor(model => j.Id)">
+                    <td class="job-state upd-job-state" data-state="Ready"><div class="Ready"></div></td>
+                    <td class="upd-job-number">@Html.DisplayFor(model => j.JobNumber)</td>
+                    <td class="upd-job-description" title="@Html.DisplayFor(model => j.Description)">@Html.DisplayFor(model => j.TruncatedTitle)</td>
+                    <td class="upd-job-client">@Html.DisplayFor(model => j.Client1.Title)</td>
+                    <td class="upd-min-start-date">@Html.DisplayFor(model => minDate)</td>
+                    <td class="upd-due-date">@Html.DisplayFor(model => dueDate)</td>
+                    <td class="upd-days-remaining">@j.DaysRemaining Days</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <button type="button" class="btn btn-fc-info editable-notes-view-button">Editable Notes View</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        //disabled for now
+        //startAutoRefresh();
+    })
+        .on('click', '.new-job-list', function () {
+            window.location = ProcessUrl('Home/Index_New');
+        })
+        .on('click', '.editable-notes-view-button', function () {
+            window.location = ProcessUrl('Home/Index_Notes');
+        });
+</script>
+
+<style>
+    .toast-overlay {
+        z-index: 990;
+        top: 10px;
+        position: fixed;
+        left: 0;
+        right: 0;
+        margin: 0 auto;
+        padding: 5px 20px;
+        width: 600px;
+    }
+
+        .toast-overlay button {
+            max-width: 200px;
+        }
+</style>
+
+@Scripts.Render("~/bundles/autorefresh")

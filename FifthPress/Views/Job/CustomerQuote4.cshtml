@@ -1,0 +1,241 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_CustomerQuote4
+
+@Styles.Render("~/Content/quoteticket")
+
+<div class="quote-wrapper-3 container-fluid ff-dm-sans">
+
+    <div class="row border-bottom-target inv-header-row">
+        <div class="col-3 fs-4">
+            <div class="field-binder-col-flex border-right-target pb-3">
+                <span class="pb-2 fst-italic">
+                    <img class="quote-logo" src="~/Content/images/nb-logo.png" />
+                </span><!-- FifthColor Logo here-->
+                <span>@Html.DisplayFor(model => model.SourceInformation.Address)</span>
+                <span>@Html.DisplayFor(model => model.SourceInformation.City), @Html.DisplayFor(model => model.SourceInformation.State) @Html.DisplayFor(model => model.SourceInformation.ZipCode)</span>
+                <span>@Html.DisplayFor(model => model.SourceInformation.Phone)</span>
+
+                <span class="py-2 fw-bold">@Html.DisplayFor(model => model.CurrentDateStringFull)</span>
+
+                <span class="pt-2 fw-bold">Project Manager: </span>
+                <span>@Html.DisplayFor(model => model.ProjectManagerName)</span>
+            </div>
+        </div>
+        <div class="col-9 ps-5 pb-3">
+            <div class="field-binder-row-flex justify-content-between fs-2">
+                <span class="fw-bold">Quote: @Html.DisplayFor(model => model.QuoteNumber)</span>
+            </div>
+            <div class="row fs-4">
+                <div class="col-4">
+                    <div class="field-binder-col-flex">
+                        <span class="fw-bold">Bill To:</span>
+                        <span>@Html.DisplayFor(model => model.ClientInformation.ClientName)</span>
+                        <span>@Html.DisplayFor(model => model.ClientInformation.Address)</span>
+                        @if (!String.IsNullOrEmpty(Model.ClientInformation.Address2))
+                        {
+                            <span>@Html.DisplayFor(model => model.ClientInformation.Address2)</span>
+                        }
+                        <span>@Html.DisplayFor(model => model.ClientInformation.City), @Html.DisplayFor(model => model.ClientInformation.State) @Html.DisplayFor(model => model.ClientInformation.ZipCode)</span>
+                        @if (!String.IsNullOrEmpty(Model.ClientInformation.AREmail))
+                        {
+                            <span>@Html.DisplayFor(model => model.ClientInformation.AREmail)</span>
+                        }
+                    </div>
+                    <div class="field-binder-col-flex">
+                        <span class="fw-bold">P.O.:</span>
+                        <span>@Html.DisplayFor(model => model.ClientPONumber)</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="field-binder-col-flex">
+                        <span class="fw-bold">Ordered By:</span>
+                        <span>@Html.DisplayFor(model => model.ClientInformation.ContactName)</span>
+                        <span>@Html.DisplayFor(model => model.ClientInformation.Email)</span>
+                        <span>@Html.DisplayFor(model => model.ClientInformation.Phone)</span>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="field-binder-col-flex">
+                        @if (Model.IsShipped)
+                        {
+
+                            <span class="fw-bold">Ship To:</span>
+                            if (!String.IsNullOrEmpty(Model.ShippingInformation.CompanyName))
+                            {
+                                <span class="mb-0">@Html.DisplayFor(model => model.ShippingInformation.CompanyName)</span>
+                            }
+                            if (!String.IsNullOrEmpty(Model.ShippingInformation.Attention))
+                            {
+                                <span class="mb-0">Attn: @Html.DisplayFor(model => model.ShippingInformation.Attention)</span>
+                            }
+                            <span class="mb-0">@Html.DisplayFor(model => model.ShippingInformation.Address)</span>
+                            if (!String.IsNullOrEmpty(Model.ShippingInformation.Address2))
+                            {
+                                <span class="mb-0">@Html.DisplayFor(model => model.ShippingInformation.Address2)</span>
+                            }
+                            <span class="mb-0">@Html.DisplayFor(model => model.ShippingInformation.City), @Html.DisplayFor(model => model.ShippingInformation.State) @Html.DisplayFor(model => model.ShippingInformation.ZipCode)</span>
+
+                        }
+                        else
+                        {
+                            <span class="fw-bold">Pickup At:</span>
+                            <span class="mb-0">@Html.DisplayFor(model => model.SourceInformation.Address)</span>
+                            <span class="mb-0">@Html.DisplayFor(model => model.SourceInformation.City), @Html.DisplayFor(model => model.SourceInformation.State) @Html.DisplayFor(model => model.SourceInformation.ZipCode)</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 pt-5">
+            <span class="ff-dm-sans fs-16 preserve-formatting">@Html.DisplayFor(model => model.QuoteDescription)</span>
+        </div>
+    </div>
+    @foreach (FifthPress.Models.QuoteTicket_QuoteItem item in Model.QuoteItems)
+    {
+        string priceEachFourDecimals = (Math.Ceiling(item.PriceEach * 100m) / 100m).ToString("N2");
+
+        <div class="cq-item-row">
+            <div class="cq-item-title row mb-2">
+                <div class="col-12">
+                    <div class="field-binder-row-flex justify-content-start lh-1">
+                        <span class="item-print-count ff-lato fw-800 fs-9pt ms-0 me-3">Item @Html.DisplayFor(model => item.Ordinal) of @Html.DisplayFor(model => model.QuoteItems.Count)</span>
+                        <span class="fw-bold fs-10pt">@Html.DisplayFor(model => item.Description)</span>
+                    </div>
+                    <p class="fst-italic fs-4 mb-0 preserve-formatting" style="margin-left:100px">@Html.DisplayFor(model => item.Notes)</p>
+                </div>
+                <div class="col-12">
+                    @if (item.ArtworkProvided)
+                    {
+                        <span class="fs-8pt">Note: Artwork Provided by Client</span>
+                    }
+                </div>
+            </div>
+
+            @if (!item.ArtworkProvided && !item.IsOutsourced)
+            {
+                <div class="cq-item-design">
+                    <!-- Design time row -->
+                    <div class="cq-item-design-thead row">
+                        <div class="col p-1">
+                            <div class="fc-table-bg pe-2">
+                                <div class="fst-italic fw-semibold ff-georgia p-2 ps-3">Design</div>
+                            </div>
+                        </div>
+                        <div class="col-custom-qt p-1 text-center">
+                            <div class="fc-table-bg">
+                                <div class="fw-800 p-2 ff-lato">Price</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cq-item-design-tbody row">
+                        <div class="col p-1">
+                            <div class="pe-2 ps-3">
+                                <div class="fs-8pt">@Html.DisplayFor(model => item.DesignHours) Hours of Graphic Design</div> <!-- Need to include in model as string with actual estimated design time-->
+                            </div>
+                        </div>
+                        <div class="col-custom-qt p-1">
+                            <div class="pe-2">
+                                <div class="pe-2 fw-800 ff-lato qt-table-value"></div> <!-- Need to include price -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- End Design Time Row-->
+            }
+            <div class="cq-item-thead row">
+
+                <div class="col p-1">
+                    <div class="fc-table-bg pe-2">
+                        <div class="fst-italic fw-semibold p-2 ps-3 ff-georgia">Print &amp; Finishing</div>
+                    </div>
+                </div>
+                <div class="col-custom-qt p-1 text-center">
+                    <div class="fc-table-bg">
+                        <div class="fw-800 p-2 ff-dm-sans">Quantity</div>
+                    </div>
+                </div>
+                <div class="col-custom-qt p-1 text-center">
+                    <div class="fc-table-bg">
+                        <div class="fw-800 p-2 ff-dm-sans">Unit Price</div>
+                    </div>
+                </div>
+                <div class="col-custom-qt p-1 text-center">
+                    <div class="fc-table-bg">
+                        <div class="fw-800 p-2 ff-dm-sans">Price</div>
+                    </div>
+                </div>
+            </div>
+            <div class="cq-item-details row">
+                <div class="col p-1 fs-5">
+                    <div class="field-binder-col-flex fs-8pt ps-3">
+                        @if (item.HasDefinedDimensions)
+                        {
+                            <div class="field-binder-row-flex align-items-start"><span class="pe-2 ws-nowrap">Finish Size:</span><span class="fw-bold">@Html.DisplayFor(model => item.Size)</span></div>
+                            <div class="field-binder-row-flex align-items-start"><span class="pe-2 ws-nowrap">Sides:</span><span class="fw-bold">@Html.DisplayFor(model => item.SidesPrinting)</span></div>
+                            <div class="field-binder-row-flex align-items-start"><span class="pe-2 ws-nowrap">Ink:</span><span class="fw-bold">@Html.DisplayFor(model => item.Colors)</span></div>
+                            if (item.DoubleHit)
+                            {
+                                <div class="field-binder-row-flex align-items-start"><span class="pe-2 ws-nowrap"></span><span class="fw-bold">Double Ink</span></div>
+                            }
+                            <div class="field-binder-row-flex align-items-start"><span class="pe-2 ws-nowrap">Stock:</span><span class="fw-bold">@Html.DisplayFor(model => item.StockName)</span></div>
+                            <div class="field-binder-row-flex align-items-start"><span class="pe-2 ws-nowrap">Finishing/Other Services:</span><span class="fw-bold">@Html.DisplayFor(model => item.FinishingServiceString)</span></div>
+                        }
+                    </div>
+                </div>
+                <div class="col-custom-qt">
+                    <div class="qt-table-value text-center">
+                        <span class="fw-semibold ff-lato">@Html.DisplayFor(model => item.Quantity)</span>
+                    </div>
+                </div>
+                <div class="col-custom-qt">
+                    <div class="qt-table-value text-center">
+                        <span class="fw-semibold ff-lato">$@Html.DisplayFor(model => priceEachFourDecimals)/ea.</span>
+                    </div>
+                </div>
+                <div class="col-custom-qt">
+                    <div class="qt-table-value text-center">
+                        <span class="fw-800 ff-lato">$@Html.DisplayFor(model => item.Price)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.ShowTotalPrice)
+    {
+        <div class="qt-total-section">
+            <div class="row fs-5">
+                <div class="col-12 fs-11pt">
+                    <div class="field-binder-row-flex justify-content-end py-3 ps-3 fc-table-bg total">
+                        <span class="ff-poppins fw-bold">Total: </span>
+                        <span class="ff-lato ps-3">@Html.DisplayFor(model => model.TotalPriceString)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- border for the print footer -->
+        <div class="print-footer-head-border"></div>
+    }
+    <div class="qt-print-footer">
+        <div class="row fs-5">
+            <div class="col fs-8pt">
+                <p class="fst-italic ff-georgia fw-800 fs-9pt">Thank you for the opportunity.</p>
+                <p>Graphic Design and Shipping are NOT included in this quote.</p>
+                <p>
+                    Customer provided art files: If there is an issue with the file or additional time is needed for prepress/form layout, we will notify you.<br />
+                    If additional time is needed, you will be charged at our regular rate and may incur a delay in production.
+                </p>
+                <p>If specifications are changed, or were not fully provided during this process, your final price may vary from the original estimate.</p>
+                <p>Reference quote number on all purchase orders and correspondence.</p>
+                <p class="fw-800">Prices subject to change based on material availability and upon review of artwork. Taxes not included.</p>
+                <p>Due to material delays from our suppliers, our standard lead time may need to be extended.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('title').html('Quote @Model.QuoteNumber');
+</script>

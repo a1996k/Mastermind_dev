@@ -1,0 +1,22 @@
+USE [FifthPress]
+GO
+
+/****** Object:  Table [dbo].[JobShipments]    Script Date: 3/1/2025 11:50:14 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[JobShipments](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[Title] [nvarchar](250) NULL,
+	[Notes] [nvarchar](max) NULL,
+ CONSTRAINT [PK_JobShipments] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+

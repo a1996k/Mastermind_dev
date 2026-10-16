@@ -1,0 +1,49 @@
+﻿
+
+<div class="container">
+    <!-- Report selection tabs -->
+    <ul class="nav nav-tabs mt-3" id="reportTabs" role="tablist">
+        <li class="nav-item">
+            <button type="button" class="btn btn-fc-info btn-sm" id="time_material_report_tab" data-toggle="tab" href="#timeMaterialReport" role="tab" aria-controls="timeMaterialReportDisplay" aria-selected="true" data-destination="#timeMaterialReportDisplay">Event Costs Report</button>
+        </li>
+        <li class="nav-item">
+            <button type="button" class="btn btn-fc-info btn-sm" id="allclients_time_material_report_tab" data-toggle="tab" href="#allClientsTimeMaterialReport" role="tab" aria-controls="allClientsTimeMaterialReportDisplay" aria-selected="false" data-destination="#allClientsTimeMaterialReportDisplay">All Clients Costs Report</button>
+        </li>
+        <li class="nav-item">
+            <button type="button" class="btn btn-fc-info btn-sm" id="tournament_accuracy_report_tab" data-toggle="tab" href="#tournamentAccuracyReport" role="tab" aria-controls="tournamentAccuracyReportDisplay" aria-selected="false" data-destination="#tournamentAccuracyReportDisplay">Service Accuracy Report</button>
+        </li>
+        <li class="nav-item">
+            <button type="button" class="btn btn-fc-info btn-sm" id="costsheet_rollup_tab" data-toggle="tab" href="#costSheetRollup" role="tab" aria-controls="costSheetRollupDisplay" aria-selected="false" data-destination="#costSheetRollupDisplay">Event Cost Sheet Detail</button>
+        </li>
+        @* Hidden for now - All Clients version of Cost Sheet Detail (not the Time & Material report)
+        <li class="nav-item">
+            <button type="button" class="btn btn-fc-info btn-sm" id="all_clients_costsheet_rollup_tab" data-toggle="tab" href="#allClientsCostSheetRollup" role="tab" aria-controls="allClientsCostSheetRollupDisplay" aria-selected="false" data-destination="#allClientsCostSheetRollupDisplay">All Clients Cost Sheet Detail</button>
+        </li>
+        *@
+    </ul>
+    <!-- Report content area -->
+    <div class="tab-content mt-3" id="reportTabsContent">
+        <div class="tab-pane fade show active" id="timeMaterialReportDisplay" role="tabpanel" aria-labelledby="timeMaterialReport-tab">
+            <!-- Render Event Costs Report results here -->
+        </div>
+        <div class="tab-pane fade" id="allClientsTimeMaterialReportDisplay" role="tabpanel" aria-labelledby="allClientsTimeMaterialReport-tab">
+            <!-- Render All Clients Costs Report results here -->
+        </div>
+        <div class="tab-pane fade" id="tournamentAccuracyReportDisplay" role="tabpanel" aria-labelledby="tournamentAccuracyReport-tab">
+            <!-- Render Tournament Service Accuracy Report results here -->
+        </div>
+        <div class="tab-pane fade" id="costSheetRollupDisplay" role="tabpanel" aria-labelledby="costSheetRollup-tab">
+            <!-- Render Event Cost Sheet Detail results here -->
+        </div>
+        @* Hidden for now - All Clients version of Cost Sheet Detail
+        <div class="tab-pane fade" id="allClientsCostSheetRollupDisplay" role="tabpanel" aria-labelledby="allClientsCostSheetRollup-tab">
+            <!-- Render All Clients Cost Sheet Detail results here -->
+        </div>
+        *@
+    </div>
+</div>
+
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+
+@Scripts.Render("~/bundles/billingreports")

@@ -1,0 +1,411 @@
+﻿@model FifthPress.Models.ViewModels2.PO25.VM_AdminDashboard25
+
+@{
+    ViewBag.Title = "Purchase Order Admin Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2><i class="fa fa-dashboard"></i> PO Admin Dashboard</h2>
+            <hr />
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    <!-- Quick Stats Row -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-money"></i> Budget Overview</h3>
+                </div>
+                <div class="panel-body">
+                    @if (Model.BudgetSummary != null)
+                    {
+                        <h4>$@Model.BudgetSummary.TotalBudget.ToString("N0")</h4>
+                        <p class="text-muted">Total Budget</p>
+                        <div class="progress">
+                            <div class="progress-bar @(Model.BudgetSummary.AveragePercentUsed > 90 ? "progress-bar-danger" : Model.BudgetSummary.AveragePercentUsed > 75 ? "progress-bar-warning" : "progress-bar-success")"
+                                 style="width: @(Model.BudgetSummary.AveragePercentUsed)%">
+                                @Model.BudgetSummary.AveragePercentUsed.ToString("F1")%
+                            </div>
+                        </div>
+                        <small class="text-muted">$@Model.BudgetSummary.TotalSpent.ToString("N0") spent</small>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No budget data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="panel panel-info">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-clock-o"></i> SLA Status</h3>
+                </div>
+                <div class="panel-body">
+                    @if (Model.SLAAlerts != null && Model.SLAAlerts.Any())
+                    {
+                        <h4 class="text-danger">@Model.SLAAlerts.Count()</h4>
+                        <p class="text-muted">Overdue Items</p>
+                        <a href="@Url.Action("AllPOs", new { status = "Pending" })" class="btn btn-sm btn-warning">
+                            View Overdue
+                        </a>
+                    }
+                    else
+                    {
+                        <h4 class="text-success">0</h4>
+                        <p class="text-muted">All POs On Track</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="panel panel-success">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-exclamation-triangle"></i> Budget Alerts</h3>
+                </div>
+                <div class="panel-body">
+                    @if (Model.BudgetAlerts != null && Model.BudgetAlerts.Any())
+                    {
+                        <h4 class="text-warning">@Model.BudgetAlerts.Count()</h4>
+                        <p class="text-muted">Departments Over Budget</p>
+                        <a href="@Url.Action("BudgetManagement")" class="btn btn-sm btn-warning">
+                            View Details
+                        </a>
+                    }
+                    else
+                    {
+                        <h4 class="text-success">0</h4>
+                        <p class="text-muted">All Budgets OK</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title"><i class="fa fa-tasks"></i> Quick Actions</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="btn-group-vertical btn-block">
+                        <a href="@Url.Action("AllPOs", new { status = "Pending" })" class="btn btn-primary btn-sm">
+                            <i class="fa fa-list"></i> Pending POs
+                        </a>
+                        <a href="@Url.Action("BudgetManagement")" class="btn btn-info btn-sm">
+                            <i class="fa fa-money"></i> Manage Budgets
+                        </a>
+                        <a href="@Url.Action("Reports")" class="btn btn-success btn-sm">
+                            <i class="fa fa-bar-chart"></i> View Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Budget Alerts Section -->
+    @if (Model.BudgetAlerts != null && Model.BudgetAlerts.Any())
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-warning">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-exclamation-triangle"></i> Budget Alerts</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Department</th>
+                                        <th>Alert Type</th>
+                                        <th>Message</th>
+                                        <th>Alert Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var alert in Model.BudgetAlerts)
+                                    {
+                                        <tr class="@(alert.AlertLevel == "Critical" ? "danger" : "warning")">
+                                            <td>@alert.DepartmentName</td>
+                                            <td>@alert.AlertType</td>
+                                            <td>@alert.Message</td>
+                                            <td>
+                                                <span class="label @(alert.AlertLevel == "Critical" ? "label-danger" : alert.AlertLevel == "Warning" ? "label-warning" : "label-info")">
+                                                    @alert.AlertLevel
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("BudgetDetails", new { id = alert.DepartmentId })" class="btn btn-xs btn-info">
+                                                    View Details
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- SLA Alerts Section -->
+    @if (Model.SLAAlerts != null && Model.SLAAlerts.Any())
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-danger">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-clock-o"></i> SLA Alerts - Overdue Approvals</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>PO #</th>
+                                        <th>Alert Type</th>
+                                        <th>Message</th>
+                                        <th>Alert Date</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var alert in Model.SLAAlerts)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <a href="@Url.Action("Details", "PO25", new { id = alert.PO_OrderId })">
+                                                    #@alert.PO_OrderId
+                                                </a>
+                                            </td>
+                                            <td>@alert.AlertType</td>
+                                            <td>@alert.Message</td>
+                                            <td>@alert.AlertDate.ToString("MM/dd/yyyy HH:mm")</td>
+                                            <td>
+                                                <a href="@Url.Action("Review", "PO25Approval", new { id = alert.PO_OrderId })" class="btn btn-xs btn-primary">
+                                                    Review
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.EscalationHistory != null && Model.EscalationHistory.Any())
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-danger">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-level-up"></i> Recent PO Escalations</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>PO #</th>
+                                        <th>Escalated To</th>
+                                        <th>Escalated At</th>
+                                        <th>Reason</th>
+                                        <th>Triggered</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var log in Model.EscalationHistory)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <a href="@Url.Action("Details", "PO25", new { id = log.PO_OrderId })">
+                                                    #@log.PO_OrderId
+                                                </a>
+                                            </td>
+                                            <td>@log.EscalatedToUserName</td>
+                                            <td>@log.EscalatedAt.ToString("MM/dd/yyyy HH:mm")</td>
+                                            <td>@log.EscalationReason</td>
+                                            <td>
+                                                @if (log.TriggeredBySystem)
+                                                {
+                                                    <span class="label label-default">System</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="label label-info">Manual</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Recent Activity Section -->
+    @if (Model.RecentActivity != null && Model.RecentActivity.Any())
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-history"></i> Recent Activity</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Activity</th>
+                                        <th>Type</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var activity in Model.RecentActivity)
+                                    {
+                                        <tr>
+                                            <td>@activity.Date.ToString("MM/dd/yyyy HH:mm")</td>
+                                            <td>@activity.Activity</td>
+                                            <td>
+                                                <span class="label @(activity.Type == "Approved" ? "label-success" : activity.Type == "Denied" ? "label-danger" : "label-warning")">
+                                                    @activity.Type
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="@Url.Action("Details", "PO25", new { id = activity.PO_OrderId })" class="btn btn-xs btn-info">
+                                                    View PO
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Navigation Cards -->
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Administrative Functions</h3>
+            <hr />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-body text-center">
+                    <i class="fa fa-list fa-3x text-primary"></i>
+                    <h4>All Purchase Orders</h4>
+                    <p>View and manage all purchase orders in the system</p>
+                    <a href="@Url.Action("AllPOs")" class="btn btn-primary">Manage POs</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-body text-center">
+                    <i class="fa fa-money fa-3x text-success"></i>
+                    <h4>Budget Management</h4>
+                    <p>Set and monitor department budgets</p>
+                    <a href="@Url.Action("BudgetManagement")" class="btn btn-success">Manage Budgets</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-body text-center">
+                    <i class="fa fa-bar-chart fa-3x text-warning"></i>
+                    <h4>Reports & Analytics</h4>
+                    <p>View system performance and usage reports</p>
+                    <a href="@Url.Action("Reports")" class="btn btn-warning">View Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-body text-center">
+                    <i class="fa fa-users fa-3x text-primary"></i>
+                    <h4>Role Management</h4>
+                    <p>Manage user roles and permissions</p>
+                    <a href="@Url.Action("Index", "PO25Role")" class="btn btn-primary">Manage Roles</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-body text-center">
+                    <i class="fa fa-cogs fa-3x text-info"></i>
+                    <h4>System Configuration</h4>
+                    <p>Configure all system settings (SLA, Budget, Approval, Email, General)</p>
+                    <a href="@Url.Action("SystemConfiguration")" class="btn btn-info">System Settings</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="panel panel-default">
+                <div class="panel-body text-center">
+                    <i class="fa fa-list fa-3x text-success"></i>
+                    <h4>Configuration List</h4>
+                    <p>View and edit individual configuration values</p>
+                    <a href="@Url.Action("ConfigurationList")" class="btn btn-success">View All Configs</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(function () {
+            $('.alert').fadeOut('slow');
+        }, 5000);
+    });
+</script>

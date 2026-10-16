@@ -1,0 +1,231 @@
+@using System.Web.Mvc
+@model List<sp_GetUtilizationSummaryByCategory_Result>
+
+@{
+    ViewBag.Title = "Utilization Forecast by Category";
+    var period = ViewBag.Period as ForecastPeriod;
+}
+
+@if (period == null)
+{
+    <div class="alert alert-danger">
+        <h4>Error: Period Not Found</h4>
+        <p>The forecast period could not be loaded.</p>
+        @Html.ActionLink("Back to Periods", "Index", null, new { @class = "btn btn-default" })
+    </div>
+    return;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Utilization Forecast by Category</h2>
+            <p class="text-muted">
+                Period: @period.PeriodName (@period.StartDate.ToString("MM/dd/yyyy") - @period.EndDate.ToString("MM/dd/yyyy"))
+            </p>
+
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="col-md-12">
+                    @Html.ActionLink("← Back to Contracts", "Contracts", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-default" })
+                    @Html.ActionLink("View Detailed Forecast", "ViewUtilization", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-info" })
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                var totalHours = Model.Sum(x => x.TotalHours ?? 0);
+                var availableCapacity = Model.FirstOrDefault()?.AvailableCapacity ?? 0;
+                var totalUtilization = availableCapacity > 0 ? (totalHours / availableCapacity) : 0;
+                var remainingCapacity = availableCapacity - totalHours;
+                var weekdays = Model.FirstOrDefault()?.WeekdaysInRange ?? 0;
+                var employeeCount = Model.FirstOrDefault()?.AgencyEmployeeCount ?? 0;
+                var holidayHours = Model.FirstOrDefault()?.TotalHolidayHours ?? 0;
+
+                <!-- Capacity Overview Cards -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="panel panel-default">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Available Capacity</h4>
+                                <h2 style="color: #333; margin: 10px 0;">@availableCapacity.ToString("N0")</h2>
+                                <p class="text-muted">hours</p>
+                                <small class="text-muted">
+                                    @employeeCount employees × @weekdays weekdays × 8 hrs
+                                    @if (holidayHours > 0)
+                                    {
+                                        <br />@Html.Raw("- ") @holidayHours.ToString("N0") <span>holiday hours</span>
+                                    }
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-success">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Total Forecasted</h4>
+                                <h2 style="color: #5cb85c; margin: 10px 0;">@totalHours.ToString("N1")</h2>
+                                <p class="text-muted">hours</p>
+                                <small class="text-muted">@((totalUtilization * 100).ToString("N1"))% of capacity</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-info">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Remaining Available</h4>
+                                <h2 style="color: #5bc0de; margin: 10px 0;">@remainingCapacity.ToString("N1")</h2>
+                                <p class="text-muted">hours</p>
+                                <small class="text-muted">@(((remainingCapacity / availableCapacity) * 100).ToString("N1"))% available</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-primary">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Utilization Rate</h4>
+                                <h2 style="color: #337ab7; margin: 10px 0;">@((totalUtilization * 100).ToString("N1"))%</h2>
+                                <p class="text-muted">forecasted</p>
+                                <small class="text-muted">Target: 75-85%</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title"><i class="glyphicon glyphicon-stats"></i> Utilization by Category</h4>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th class="text-right">Forecasted Hours</th>
+                                    <th class="text-right">% of Total Forecast</th>
+                                    <th class="text-right">% of Capacity</th>
+                                    <th style="width: 400px;">Distribution</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var category in Model.OrderBy(x => x.Category == "External Billable" ? 1 : x.Category == "Internal Billable" ? 2 : 3))
+                                {
+                                    var hours = category.TotalHours ?? 0;
+                                    var pctOfTotal = category.PercentageOfTotal ?? 0;
+                                    var pctOfCapacity = (category.UtilizationPercentage ?? 0) * 100;
+
+                                    var badgeClass = "default";
+                                    var barClass = "info";
+                                    if (category.Category == "External Billable")
+                                    {
+                                        badgeClass = "success";
+                                        barClass = "success";
+                                    }
+                                    else if (category.Category == "Internal Billable")
+                                    {
+                                        badgeClass = "info";
+                                        barClass = "info";
+                                    }
+                                    else if (category.Category == "Non-Billable")
+                                    {
+                                        badgeClass = "default";
+                                        barClass = "default";
+                                    }
+
+                                    <tr>
+                                        <td>
+                                            <span class="label label-@badgeClass" style="font-size: 12px; padding: 5px 10px;">
+                                                @category.Category
+                                            </span>
+                                        </td>
+                                        <td class="text-right"><strong>@hours.ToString("N1")</strong> hrs</td>
+                                        <td class="text-right">@pctOfTotal.ToString("N1")%</td>
+                                        <td class="text-right">@pctOfCapacity.ToString("N1")%</td>
+                                        <td>
+                                            <div class="progress" style="margin-bottom: 0; height: 30px;">
+                                                <div class="progress-bar progress-bar-@barClass progress-bar-striped" role="progressbar"
+                                                     style="width: @pctOfCapacity.ToString("N2")%; line-height: 30px; font-size: 14px;">
+                                                    @hours.ToString("N0") hrs (@pctOfCapacity.ToString("N1")%)
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="info" style="font-weight: bold; font-size: 14px;">
+                                    <td><strong>TOTAL FORECASTED</strong></td>
+                                    <td class="text-right"><strong>@totalHours.ToString("N1")</strong> hrs</td>
+                                    <td class="text-right"><strong>100.0%</strong></td>
+                                    <td class="text-right"><strong>@((totalUtilization * 100).ToString("N1"))%</strong></td>
+                                    <td>
+                                        <div class="progress" style="margin-bottom: 0; height: 30px;">
+                                            <div class="progress-bar progress-bar-primary" role="progressbar"
+                                                 style="width: @((totalUtilization * 100).ToString("N2"))%; line-height: 30px; font-size: 14px;">
+                                                @totalHours.ToString("N0") hrs (@((totalUtilization * 100).ToString("N1"))%)
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Visual Chart - Stacked Progress Bar -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title"><i class="glyphicon glyphicon-signal"></i> Capacity Utilization Overview</h4>
+                    </div>
+                    <div class="panel-body">
+                        <h5 style="margin-top: 0;">Forecasted vs Available Capacity</h5>
+                        <div class="progress" style="height: 60px; margin-bottom: 20px;">
+                            @foreach (var category in Model.OrderBy(x => x.Category == "External Billable" ? 1 : x.Category == "Internal Billable" ? 2 : 3))
+                            {
+                                var pctOfCapacity = (category.UtilizationPercentage ?? 0) * 100;
+                                var hours = category.TotalHours ?? 0;
+                                var barClass = "info";
+                                if (category.Category == "External Billable") { barClass = "success"; }
+                                else if (category.Category == "Internal Billable") { barClass = "info"; }
+                                else if (category.Category == "Non-Billable") { barClass = "default"; }
+
+                                <div class="progress-bar progress-bar-@barClass" role="progressbar"
+                                     style="width: @pctOfCapacity.ToString("N2")%; line-height: 60px; font-size: 16px;">
+                                    <strong>@category.Category</strong><br />
+                                    @hours.ToString("N0") hrs (@pctOfCapacity.ToString("N1")%)
+                                </div>
+                            }
+                            @if (remainingCapacity > 0)
+                            {
+                                var remainingPct = (remainingCapacity / availableCapacity) * 100;
+                                <div class="progress-bar" role="progressbar"
+                                     style="width: @remainingPct.ToString("N2")%; background-color: #ecf0f1; color: #7f8c8d; line-height: 60px; font-size: 16px;">
+                                    <strong>Available</strong><br />
+                                    @remainingCapacity.ToString("N0") hrs (@remainingPct.ToString("N1")%)
+                                </div>
+                            }
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <p class="text-muted">
+                                    <strong>Legend:</strong>
+                                    <span class="label label-success">External Billable</span> = Client work &nbsp;
+                                    <span class="label label-info">Internal Billable</span> = Internal projects &nbsp;
+                                    <span class="label label-default">Non-Billable</span> = Training, admin, etc. &nbsp;
+                                    <span style="padding: 4px 10px; background-color: #ecf0f1; color: #7f8c8d; border-radius: 3px;">Available</span> = Remaining capacity
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <strong>No forecast data found.</strong> Add contracts with billing class allocations to see utilization forecast.
+                </div>
+            }
+        </div>
+    </div>
+</div>

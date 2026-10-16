@@ -1,0 +1,51 @@
+﻿<!-- modal-body for shipping modal -->
+
+<div class="modal" tabindex="-1" id="shipped_shipments_modal" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+            </div>
+            <div class="modal-body">
+                <div class="dynamic-load-tgt">
+                </div>
+                <div class="field-binder-col-flex p-3 round-tan-bg">
+                    <h3 class="ff-poppins fs-16 fw-bold text-decoration-underline">New Shipment</h3>
+                    <div class="field-binder-row-flex justify-content-evenly">
+                        <div class="field-binder-col-flex ps-2">
+                            <label class="ff-poppins fs-14 fw-bold">Freight Amount</label>
+                            <input type="text" class="order-freight-amt fs-16 ff-lato styled-input" />
+                        </div>
+                        <div class="field-binder-col-flex ps-2">
+                            <label class="ff-poppins fs-14 fw-bold">Markup</label>
+                            <input type="text" class="order-markup-val ff-lato fs-16 styled-input" value="0.40" />
+                        </div>
+                        <div class="field-binder-col-flex ps-2">
+                            <label class="ff-poppins fs-14 fw-bold">Freight Price</label>
+                            <input type="text" class="order-freight-price fs-16 ff-lato styled-input" />
+                        </div>
+                        <div class="field-binder-col-flex align-items-center ps-2">
+                            <label class="ff-poppins fs-14 fw-bold">Internal Charge</label>
+                            <input type="checkbox" class="order-internal-charge mt-3" />
+                        </div>
+                    </div>
+                    <div class="field-binder-row-flex mt-2">
+                        <div class="field-binder-col-flex">
+                            <label class="ff-poppins fs-14 fw-bold">Tracking #</label>
+                            <input type="text" class="order-tracking-num fs-16 ff-dm-sans styled-input" />
+                        </div>
+                    </div>
+                    <div class="field-binder-row-flex mt-2 w-100 justify-content-between">
+                        <div class="field-binder-col-flex">
+                            <label class="ff-poppins fs-14 fw-bold text-decoration-underline">Notes</label>
+                            <textarea class="ff-dm-sans fs-14 order-notes styled-input" style="width:450px"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-lg btn-fc-info add-shipment-btn">Add Finished Shipment</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+
+            </div>
+        </div>
+    </div>
+</div>

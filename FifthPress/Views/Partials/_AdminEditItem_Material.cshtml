@@ -1,0 +1,26 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<VM_AdminTableItem_Material>
+
+@foreach (FifthPress.Models.ViewModels.VM_AdminTableItem_Material m in Model)
+{
+    <tr class="admin-edit-item-@m.EntityName.ToLower()" 
+        data-material-size="@Html.DisplayFor(model => m.Size)" 
+        data-item-title="@Html.DisplayFor(model => m.Title)" 
+        data-record-id="@Html.DisplayFor(model => m.Id)" 
+        data-mat-cost-val="@Html.DisplayFor(model => m.CostPerUnit)" 
+        data-mat-cost-formatted="@Html.DisplayFor(model => m.CostPerUnitFormatted)" 
+        data-mat-cost-unit="@Html.DisplayFor(model => m.CostPerUnitUnit)">
+        <td>
+            <a href="javascript:void(0);" class="material-title">@Html.DisplayFor(model => m.Title)</a>
+        </td>
+        <td>
+            @Html.DisplayFor(model => m.Size)
+        </td>
+        <td>
+            @Html.DisplayFor(model => m.Quantity) ( @Html.DisplayFor(model => m.Allocated) | @Html.DisplayFor(model => m.Unallocated) )
+        </td>
+        <td>
+            @Html.DisplayFor(model => m.Caliper)
+        </td>
+    </tr>
+}

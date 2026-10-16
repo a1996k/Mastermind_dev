@@ -1,0 +1,34 @@
+﻿@model List<GetJobCostSheet_Result>
+
+<h2>Job Service Performance Review</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Estimated Cost</th>
+            <th>Estimated Price</th>
+            <th>Estimated Time (hours)</th>
+            <th>Hourly Rate</th>
+            <th>Duration Hours</th>
+            <th>Actual Price</th>
+            <th>Entry Title</th>
+            <th>Item Description</th>
+            <th>Item ID</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(model => item.EstimatedCost)</td>
+                <td>@Html.DisplayFor(model => item.EstimatedPrice)</td>
+                <td>@Html.DisplayFor(model => item.EstimatedTime)</td>
+                <td>@Html.DisplayFor(model => item.HourlyRate)</td>
+                <td>@Html.DisplayFor(model => item.DurationHours)</td>
+                <td>@Html.DisplayFor(model => item.ActualPrice)</td>
+                <td>@Html.DisplayFor(model => item.EntryTitle)</td>
+                <td>@Html.DisplayFor(model => item.ItemDescription)</td>
+                <td>@Html.DisplayFor(model => item.ItemId)</td>
+            </tr>
+        }
+    </tbody>
+</table>

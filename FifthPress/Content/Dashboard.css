@@ -1,0 +1,182 @@
+﻿.general-filter-row{
+    background:white;
+    padding:20px;
+}
+
+.utilization-totals-row label {
+    font-family: 'DM Sans';
+    font-size: 14px;
+}
+
+.utilization-totals-row span {
+    font-family: 'Lato';
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.total-cost-display,
+.total-price-display,
+.total-margin-display {
+    padding: 15px;
+    width: 100px;
+    height: 25px;
+}
+
+#range_filter {
+    width: 300px;
+    text-align: center;
+}
+
+.card-data-wrapper {
+    height: 500px;
+    overflow-y: scroll;
+    position:relative;
+}
+
+.dashboard-button {
+    border-radius: 5px;
+    padding: 2px 20px;
+    background: var(--fc-tan);
+}
+
+    .dashboard-button.db-selected {
+        background: var(--fc-tan-selected);
+    }
+
+.ajaxable {
+    position: relative;
+    background: #ffffff;
+    border-radius: 20px;
+    /*flex-grow: 1;*/
+    max-width: 100%;
+    width:100%;
+}
+
+    .ajaxable > .loader {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8); /* Semi-transparent background */
+        z-index: 10; /* Ensure it covers the content */
+        text-align: center;
+        padding-top: 0; /* Center loader text */
+    }
+
+.loader::after {
+    content: "Loading..."; /* Loader text */
+    font-size: 1.5em;
+    color: #333;
+}
+
+.metric-menu-wrapper {
+    padding: 20px;
+}
+
+/*
+.refresh-dashboard {
+    position: absolute;
+    top: 80px;
+    right: 30px;
+    padding: 10px;
+    background: var(--fc-tan);
+    border-radius: 5px;
+}*/
+
+.spin {
+    animation: spin 2s linear infinite;
+}
+
+select[name="Range"] {
+    margin-right: 15px;
+}
+
+input[name="Locked"] {
+    width: 30px !important;
+    height: 30px !important;
+}
+
+.range-selector label {
+    font-size: 20px !important;
+}
+
+.metric-chart {
+    max-height: 400px !important;
+    width: auto !important;
+}
+
+.card-user-list-wrapper,
+.informational-block{
+    display: none;
+}
+.informational-block{
+    padding:25px;
+}
+.informational-block p,
+.informational-block ul,
+.card-user-list-wrapper ul{
+    font-family: 'DM Sans';
+}
+
+.ajaxable i{
+    font-size: 20px;
+}
+
+.ajaxable .chart-icon-wrapper{
+    position: absolute;
+    top:0;
+    right: 20px;
+}
+
+.chart-icon-wrapper i.fa-users{
+    margin-right: 5px;
+}
+
+/* Animate rotation for smooth effect */
+.proj-toggle{
+    transition: transform 0.2s ease-in-out;
+}
+
+.proj-toggle.rotated {
+    transform: rotate(180deg);
+}
+
+/* Animate rotation for smooth effect */
+.fa-caret-down {
+    transition: transform 0.2s ease-in-out;
+}
+
+    .fa-caret-down.rotated {
+        transform: rotate(180deg);
+    }
+
+
+#hierarchical-table > tbody tr.odd,
+#hierarchical-table > tbody tr.even {
+    background: #DBE3E9;
+    font-weight: bold;
+}
+
+#heirarchical-table .proj-dep-row{
+    background: white;
+}
+
+#heirarchical-table .child-table thead tr,
+#heirarchical-table .child-table tbody tr {
+    background: white;
+}
+
+ul[class$="user-list"] li:not([data-record-id="-1"]):nth-child(even){
+    background: #ededed;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

@@ -1,0 +1,32 @@
+﻿@using FifthPress.Models.ViewModels2;
+@using System.Web.Helpers;
+@model List<VM_VacationEvent>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+
+<div id="calendar" style="max-width:900px;margin:40px auto;"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // serialize the model into a JS array
+    var vacationEvents = @Html.Raw(Json.Encode(Model));
+
+    var calendar = new FullCalendar.Calendar(
+    document.getElementById('calendar'), {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+        left: 'prev,next today',
+        center: 'title',
+        right: 'dayGridMonth,timeGridWeek'
+        },
+        events: vacationEvents,
+        eventDisplay: 'block',
+        navLinks: true,
+        nowIndicator: true,
+        dayMaxEvents: true
+    });
+
+    calendar.render();
+});
+</script>

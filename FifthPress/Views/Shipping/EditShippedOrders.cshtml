@@ -1,0 +1,44 @@
+﻿@model List<OrdersShipped>
+
+<div class="container">
+    @if (Model.Count == 0)
+    {
+        <h2>No Orders to Ship</h2>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-12">
+                @foreach (OrdersShipped os in Model)
+                {
+                    <div class="os-wrapper" data-record-id="@Html.DisplayFor(model => os.Id)">
+                        <div class="field-binder-col-flex">
+                            @Html.LabelFor(model => os.TrackingNumber)
+                            @Html.EditorFor(model => os.TrackingNumber)
+                        </div>
+                        <div class="field-binder-col-flex">
+                            @Html.LabelFor(model => os.Notes)
+                            @Html.TextAreaFor(model => os.Notes)
+                        </div>
+                        <div class="field-binder-col-flex">
+                            @Html.LabelFor(model => os.FreightCost)
+                            @Html.EditorFor(model => os.FreightCost)
+                        </div>
+                        <div class="field-binder-col-flex">
+                            @Html.LabelFor(model => os.Markup)
+                            @Html.EditorFor(model => os.Markup)
+                        </div>
+                        <div class="field-binder-col-flex">
+                            @Html.LabelFor(model => os.FreightPrice)
+                            @Html.EditorFor(model => os.FreightPrice)
+                        </div>
+                        <div class="field-binder-col-flex">
+                            @Html.LabelFor(model => os.TrackingNumber)
+                            @Html.EditorFor(model => os.TrackingNumber)
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>

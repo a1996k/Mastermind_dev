@@ -1,0 +1,310 @@
+@using FifthPress.Models.ViewModels2.PO25
+@model VM_POReview25
+
+@{
+    ViewBag.Title = "Print Purchase Order";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Order #@Model.Order.PO_OrderId</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12pt;
+            margin: 20px;
+            color: #000;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 24pt;
+        }
+
+        .header h2 {
+            margin: 5px 0;
+            font-size: 16pt;
+            color: #666;
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            width: 150px;
+        }
+
+        .info-value {
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .totals-section {
+            margin-top: 20px;
+            float: right;
+            width: 300px;
+        }
+
+        .totals-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+
+        .totals-row.total {
+            font-weight: bold;
+            font-size: 14pt;
+            border-top: 2px solid #333;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .footer {
+            margin-top: 50px;
+            clear: both;
+            font-size: 10pt;
+            color: #666;
+            text-align: center;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+
+        @@media print {
+            body {
+                margin: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .print-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14pt;
+        }
+
+        .print-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">Print</button>
+
+    <div class="header">
+        <h1>Purchase Order</h1>
+        <h2>PO #@Model.Order.PO_OrderId</h2>
+    </div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <div class="info-label">Vendor:</div>
+            <div class="info-value">@(Model.Order.Vendor != null ? Model.Order.Vendor.Title : "N/A")</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Department:</div>
+            <div class="info-value">@(Model.Order.Department != null ? Model.Order.Department.Title : "N/A")</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Submitted By:</div>
+            <div class="info-value">@(Model.Order.User != null ? Model.Order.User.FirstName + " " + Model.Order.User.LastName : "N/A")</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Date Submitted:</div>
+            <div class="info-value">@(Model.Order.DateSubmitted?.ToString("MMM dd, yyyy") ?? "N/A")</div>
+        </div>
+        <div class="info-row">
+            <div class="info-label">Status:</div>
+            <div class="info-value">@Model.Order.Status</div>
+        </div>
+        @if (Model.Order.DateOrdered.HasValue)
+        {
+            <div class="info-row">
+                <div class="info-label">Date Ordered:</div>
+                <div class="info-value">@Model.Order.DateOrdered.Value.ToString("MMM dd, yyyy")</div>
+            </div>
+        }
+    </div>
+
+    <h3>Line Items</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 5%;">#</th>
+                <th style="width: 40%;">Description</th>
+                <th style="width: 10%;">Quantity</th>
+                <th style="width: 10%;">Unit Type</th>
+                <th style="width: 12%;">Unit Cost</th>
+                <th style="width: 12%;">Total</th>
+                <th style="width: 11%;">Date Needed</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int lineNumber = 1;
+                decimal subtotal = 0;
+            }
+            @foreach (var item in Model.LineItems)
+            {
+                var lineTotal = item.LineTotal;
+                subtotal += lineTotal;
+                <tr>
+                    <td>@lineNumber</td>
+                    <td>
+                        @item.ItemDescription
+                        @if (item.IsBulkItem && item.BulkUnitQuantity.HasValue && item.BulkUnitQuantity.Value > 0)
+                        {
+                            // Legacy container-based bulk item
+                            <br />
+                            <small style="color: #0066cc;">
+                                <strong>Bulk:</strong> @item.Quantity @(item.BulkContainerType)(s) × @item.BulkUnitQuantity @item.BulkUnitType = @((item.Quantity * item.BulkUnitQuantity.Value).ToString("N2")) @item.BulkUnitType total
+                                @if (item.CalculatedUnitCost.HasValue)
+                                {
+                                    @{ var unitCostPrint = item.CalculatedUnitCost.Value < 0.01m ? item.CalculatedUnitCost.Value.ToString("C5").TrimEnd('0') : item.CalculatedUnitCost.Value.ToString("C"); }
+                                    <text> @ @unitCostPrint/@item.BulkUnitType</text>
+                                }
+                            </small>
+                        }
+                        else if (item.IsBulkItem && (item.UnitType == "Per Hundred" || item.UnitType == "Per Thousand"))
+                        {
+                            // New simplified bulk/special pricing
+                            <br />
+                            <small style="color: #0066cc;">
+                                <strong>Special pricing:</strong> @item.Quantity.ToString("N0") units @ @item.Cost.ToString("C") @item.UnitType = @lineTotal.ToString("C")
+                            </small>
+                        }
+                        @if (!string.IsNullOrEmpty(item.InternalComments))
+                        {
+                            <br />
+                            <small style="color: #666;">Note: @item.InternalComments</small>
+                        }
+                        @if (!string.IsNullOrEmpty(item.VendorLink))
+                        {
+                            <br />
+                            <small style="color: #666;">Link: @item.VendorLink</small>
+                        }
+                    </td>
+                    <td class="text-right">
+                        @item.Quantity.ToString("N2")
+                        @if (item.IsBulkItem && item.BulkUnitQuantity.HasValue && item.BulkUnitQuantity.Value > 0)
+                        {
+                            <br /><small style="color: #666;">@(item.BulkContainerType)(s)</small>
+                        }
+                    </td>
+                    <td>
+                        @if (item.IsBulkItem && item.BulkUnitQuantity.HasValue && item.BulkUnitQuantity.Value > 0)
+                        {
+                            @:per @(item.BulkContainerType)
+                        }
+                        else
+                        {
+                            @item.UnitDisplayText
+                        }
+                    </td>
+                    <td class="text-right">@item.Cost.ToString("C")</td>
+                    <td class="text-right">@lineTotal.ToString("C")</td>
+                    <td>@(item.DateNeeded?.ToString("MMM dd, yyyy") ?? "-")</td>
+                </tr>
+                lineNumber++;
+            }
+        </tbody>
+    </table>
+
+    <div class="totals-section">
+        <div class="totals-row">
+            <span>Subtotal:</span>
+            <span>@subtotal.ToString("C")</span>
+        </div>
+        @if (Model.Order.FreightAmount.HasValue && Model.Order.FreightAmount.Value > 0)
+        {
+            <div class="totals-row">
+                <span>Freight:</span>
+                <span>@Model.Order.FreightAmount.Value.ToString("C")</span>
+            </div>
+        }
+        @{
+            decimal taxAmount = 0;
+            if (Model.Order.IsTaxPercentage && Model.Order.TaxRate.HasValue)
+            {
+                taxAmount = subtotal * (Model.Order.TaxRate.Value / 100);
+                <div class="totals-row">
+                    <span>Tax (@Model.Order.TaxRate.Value.ToString("N2")%):</span>
+                    <span>@taxAmount.ToString("C")</span>
+                </div>
+            }
+            else if (Model.Order.TaxAmount.HasValue && Model.Order.TaxAmount.Value > 0)
+            {
+                taxAmount = Model.Order.TaxAmount.Value;
+                <div class="totals-row">
+                    <span>Tax:</span>
+                    <span>@taxAmount.ToString("C")</span>
+                </div>
+            }
+        }
+        <div class="totals-row total">
+            <span>Total:</span>
+            <span>@((subtotal + (Model.Order.FreightAmount ?? 0) + taxAmount).ToString("C"))</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Purchase Order generated on @DateTime.Now.ToString("MMM dd, yyyy HH:mm")</p>
+    </div>
+
+    <script>
+        // Auto-print when page loads (optional - remove if not desired)
+        // window.onload = function() {
+        //     window.print();
+        // };
+    </script>
+</body>
+</html>

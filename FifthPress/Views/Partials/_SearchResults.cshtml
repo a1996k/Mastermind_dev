@@ -1,0 +1,22 @@
+﻿@model List<RecordSearch_Result>
+
+@if (Model.Count == 0)
+{
+
+    <h2>NO RESULTS</h2>
+            }
+            else
+            {
+                int ctr = 1;
+                foreach (RecordSearch_Result r in Model)
+                {
+        <div class="row sr-row field-binder-row-flex justify-content-between @(ctr % 2 == 0 ? "striped" : "")">
+            <div class="fw-bold text-decoration-underline">Client</div>@Html.DisplayFor(model => r.Client)
+            <div class="fw-bold text-decoration-underline">@ViewData["GoToText"] Number</div>@Html.DisplayFor(model => r.JobNumber)
+            <div class="fw-bold text-decoration-underline">Description</div>@Html.DisplayFor(model => r.Description)
+            <div class="fw-bold text-decoration-underline">Notes</div>@Html.DisplayFor(model => r.Notes)
+            <button class="btn btn-sm btn-fc-info go-to-job-btn w-25" data-record-id="@Html.DisplayFor(model => r.Id)">Go To @ViewData["GoToText"]</button>
+        </div>
+        ctr++;
+    }
+}

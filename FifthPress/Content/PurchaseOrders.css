@@ -1,0 +1,101 @@
+﻿.ui-autocomplete {
+    z-index: 1056;
+}
+
+/* nested action menu */
+.action-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.action-label {
+    cursor: pointer;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+    .action-label::after {
+        content: ' ▼';
+        font-size: 12px;
+    }
+
+.action-list {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    border: 1px solid #ccc;
+    z-index: 1;
+    cursor: pointer;
+}
+
+    .action-list span {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+
+        .action-list span:hover {
+            background-color: #f1f1f1;
+        }
+
+.action-menu:hover .action-list {
+    display: block;
+}
+
+.po-item-row {
+    border-bottom: 2px solid black;
+    background: white;
+}
+/* end nested action menu */
+
+/* 10-29-2024 */
+.r-red-action-btn.add-vendor-btn {
+    padding: 7px 15px;
+}
+
+.po-item-row label,
+.pan-wrapper label {
+    font-family: 'DM Sans';
+    font-weight: bold;
+    font-size: 16px;
+}
+
+    .po-item-row label + span,
+    .pan-wrapper span + span,
+    .tax-value {
+        font-family: 'Poppins';
+        font-size: 16px;
+    }
+
+.po-hdr-ctr input,
+.po-hdr-ctr select {
+    font-size: 16px;
+}
+
+.border-end {
+    border-color: black !important;
+    border-width: 2px !important;
+}
+
+.outer-row {
+    border-radius: 20px;
+    background: white;
+}
+
+.vendor-addr-info {
+    font-family: 'DM Sans';
+    font-size: 16px;
+    font-weight: bold;
+}
+
+    .vendor-addr-info .email {
+        cursor: pointer;
+    }
+
+.approve-po-btn {
+    background: green;
+}

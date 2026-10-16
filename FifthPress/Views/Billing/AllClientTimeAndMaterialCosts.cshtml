@@ -1,0 +1,126 @@
+@using FifthPress.Models.ViewModels2;
+@model VM_AllClientTimeAndMaterialCosts
+@{
+    Layout = null;
+}
+
+<div class="container">
+    <h1>All Clients Costs Report by Item</h1>
+
+    <!-- Client selector moved to top -->
+    <div class="row mb-3">
+        <div class="col-6">
+            @Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.Clients)
+        </div>
+        <div class="col-6">
+            <button type="button" class="btn r-navy-action-btn update-allclients-time-material-report">Update Results</button>
+        </div>
+    </div>
+
+    <!-- Loading indicator -->
+    <div id="loadingIndicator" class="row mb-3" style="display: none;">
+        <div class="col-12 text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p class="mt-2">Loading report data...</p>
+        </div>
+    </div>
+
+    <div class="row bg-white">
+        <div class="col-12">
+            <table id="allClientsTimeAndMaterialTable" class="display nowrap" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Job #</th>
+                        <th>Item #</th>
+                        <th>Item Description</th>
+                        <th>Quoted Hours</th>
+                        <th>Quoted Labor</th>
+                        <th>Quoted Material</th>
+                        <th>Actual Hours</th>
+                        <th>Actual Labor</th>
+                        <th>Actual Material</th>
+                        <th>Freight Price <i class="fas fa-info-circle" data-toggle="tooltip" title="Freight costs are not included in Total Print Cost and Total Print Price"></i></th>
+                        <th data-toggle="tooltip" title="Excludes Freight Cost">Total Print Cost</th>
+                        <th data-toggle="tooltip" title="Excludes Freight Price">Total Print Price</th>
+                        <th>Revenue</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model?.TimeAndMaterialCostsByItem != null)
+                    {
+                        foreach (var r in Model.TimeAndMaterialCostsByItem)
+                        {
+                            if (r != null)
+                            {
+                                // Safe freight calculation
+                                decimal freightPrice = 0m;
+                                if (Model.FreightCostsByItem != null && Model.FreightCostsByItem.ContainsKey(r.JobItemId))
+                                {
+                                    var freight = Model.FreightCostsByItem[r.JobItemId];
+                                    if (freight != null)
+                                    {
+                                        freightPrice = freight.TotalFreightPrice;
+                                    }
+                                    else
+                                    {
+                                        freightPrice = 0m;
+                                    }
+                                }
+
+                                // Safe cost and revenue calculation
+                                decimal actualLabor = r.ActualLaborCost.HasValue ? r.ActualLaborCost.Value : 0m;
+                                decimal actualMaterial = r.ActualMaterialCost.HasValue ? r.ActualMaterialCost.Value : 0m;
+                                decimal totalPrintCost = actualLabor + actualMaterial; // Excludes freight cost
+
+                                decimal totalPrintPrice = r.TotalPrice.HasValue ? r.TotalPrice.Value : 0m;
+                                decimal totalPriceWithoutFreight = totalPrintPrice - freightPrice; // Excludes freight price
+                                decimal revenue = totalPriceWithoutFreight - totalPrintCost;
+
+                                <tr>
+                                    <td>@(r.Client ?? "")</td>
+                                    <td>@(r.JobNumber ?? "")</td>
+                                    <td>@(r.ItemNumber.HasValue ? r.ItemNumber.Value.ToString() : "")</td>
+                                    <td>@(r.ItemDescription ?? "")</td>
+                                    <td>@(r.QuotedTimeHours.HasValue ? r.QuotedTimeHours.Value.ToString("F2") : "0.00")</td>
+                                    <td>@(r.QuotedLaborCost.HasValue ? r.QuotedLaborCost.Value.ToString("C") : "$0.00")</td>
+                                    <td>@(r.QuotedMaterialCost.HasValue ? r.QuotedMaterialCost.Value.ToString("C") : "$0.00")</td>
+                                    <td>@(r.ActualTimeHours.HasValue ? r.ActualTimeHours.Value.ToString("F2") : "0.00")</td>
+                                    <td>@(r.ActualLaborCost.HasValue ? r.ActualLaborCost.Value.ToString("C") : "$0.00")</td>
+                                    <td>@(r.ActualMaterialCost.HasValue ? r.ActualMaterialCost.Value.ToString("C") : "$0.00")</td>
+                                    <td>@freightPrice.ToString("C")</td>
+                                    <td><strong>@totalPrintCost.ToString("C")</strong></td>
+                                    <td><strong>@totalPriceWithoutFreight.ToString("C")</strong></td>
+                                    <td class="@(revenue >= 0 ? "text-success" : "text-danger")"><strong>@revenue.ToString("C")</strong></td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th colspan="5" style="text-align:right">Totals:</th>
+                        <th></th> <!-- Quoted Labor -->
+                        <th></th> <!-- Quoted Material -->
+                        <th></th> <!-- Actual Hours -->
+                        <th></th> <!-- Actual Labor -->
+                        <th></th> <!-- Actual Material -->
+                        <th></th> <!-- Freight Price -->
+                        <th></th> <!-- Total Print Cost -->
+                        <th></th> <!-- Total Print Price -->
+                        <th></th> <!-- Revenue -->
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        // Initialize Bootstrap tooltips
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+</script>

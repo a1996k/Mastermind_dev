@@ -1,0 +1,253 @@
+﻿@model List<SelectListItem>
+
+<div class="modal" tabindex="-1" data-bs-keyboard="false" data-bs-backdrop="static" id="qa_check_modal">
+    <input type="hidden" id="current_jis_id" />
+    <input type="hidden" id="qa_prompt_time" />
+
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title ff-poppins fs-14 fw-bold">
+                    QA Check for <i class="qa-job-number ff-lato"></i>.<i class="qa-item-ordinal ff-lato"></i>
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div class="owl-carousel" id="qa_oc">
+                    <!-- Slide 1: Operator's Questions -->
+                    <div class="slide slide-1 field-binder-col-flex q-slide-1">
+                        <!-- Print QA Questions -->
+                        <div class="print-qa-questions">
+                            <!-- Question 1 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Is the stock to be printed on <i class="stock-name"></i>?</p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="q1" id="q1_yes" value="yes" />
+                                    <label for="q1_yes">Yes</label>
+                                    <input type="radio" name="q1" id="q1_no" value="no" />
+                                    <label for="q1_no">No</label>
+
+                                    <textarea name="q1_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                            <br />
+                            <!-- Question 2 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Is the Stock Size <i class="material-run-size"></i>?</p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="q2" id="q2_yes" value="yes" />
+                                    <label for="q2_yes">Yes</label>
+                                    <input type="radio" name="q2" id="q2_no" value="no" />
+                                    <label for="q2_no">No</label>
+
+                                    <textarea name="q2_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                            <br />
+                            <!-- Question 3 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Do the colors/content match the proof?</p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="q3" id="q3_yes" value="yes" />
+                                    <label for="q3_yes">Yes</label>
+                                    <input type="radio" name="q3" id="q3_no" value="no" />
+                                    <label for="q3_no">No</label>
+
+                                    <textarea name="q3_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                            <br />
+                            <!-- Question 4 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Have you read and do you understand the print notes?</p>
+                                <p><span class="link-underline">Notes: </span> <span class="qa-print-notes fw-normal"></span></p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="q4" id="q4_yes" value="yes" />
+                                    <label for="q4_yes">Yes</label>
+                                    <input type="radio" name="q4" id="q4_no" value="no" />
+                                    <label for="q4_no">No</label>
+
+                                    <textarea name="q4_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- General QA Questions (non-print services) -->
+                        <div class="general-qa-questions" style="display:none;">
+                            <p class="fw-bold mb-3">QA Check for <i class="qa-service-title"></i></p>
+                            <!-- General Question 1 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Does the item match the proof?</p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="gq1" id="gq1_yes" value="yes" />
+                                    <label for="gq1_yes">Yes</label>
+                                    <input type="radio" name="gq1" id="gq1_no" value="no" />
+                                    <label for="gq1_no">No</label>
+
+                                    <textarea name="gq1_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                            <br />
+                            <!-- General Question 2 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Does the item match the item description?</p>
+                                <p><span class="link-underline">Description: </span> <span class="qa-item-description fw-normal"></span></p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="gq2" id="gq2_yes" value="yes" />
+                                    <label for="gq2_yes">Yes</label>
+                                    <input type="radio" name="gq2" id="gq2_no" value="no" />
+                                    <label for="gq2_no">No</label>
+
+                                    <textarea name="gq2_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <br />
+                        <!-- QA Result -->
+                        <div class="field-binder-col-flex">
+                            <p class="q-text">&bull; Indicate the result of the QA check:</p>
+                            <div class="field-binder-row-flex ms-3">
+                                <input type="radio" name="operator_result" id="operator_pass" value="pass" />
+                                <label for="operator_pass">Pass</label>
+                                <input type="radio" name="operator_result" id="operator_fail" value="fail" />
+                                <label for="operator_fail">Fail</label>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                        <div class="prev-next-wrapper">
+                            <button type="button" class="next-slide btn btn-fc-info update-first-check-endtime">Next</button>
+                        </div>
+
+                        <input type="hidden" name="firstCheckEndtime" />
+                    </div>
+
+                    <!-- Slide 2: Secondary Checker Selection -->
+                    <div class="slide slide-2 field-binder-col-flex">
+                        <p>Please select a secondary checker and verify password:</p>
+                        <div class="field-binder-col-flex">
+                            <div class="field-binder-row-flex">
+                                @Html.DropDownList("QAChecker", Model, htmlAttributes: new { })
+                                <input type="password" class="w-75" name="checker_password" id="checker_password" placeholder="Enter password" />
+                            </div>
+                            <div class="field-binder-row-flex secondary-check-row">
+                                <input type="checkbox" id="second_not_available" />
+                                <label for="second_not_available">No Secondary Checker Available</label>
+                            </div>
+                        </div>
+                        <div class="prev-next-wrapper">
+                            <button type="button" class="prev-slide btn btn-fc-danger">Back</button>
+                            <button type="button" class="next-slide btn btn-fc-info check-pw">Next</button>
+                        </div>
+                    </div>
+
+                    <!-- Slide 3: Secondary Checker's Questions -->
+                    <div class="slide slide-3 field-binder-col-flex q-slide-3">
+                        <!-- Print QA Questions (Secondary) -->
+                        <div class="print-qa-questions">
+                            <!-- Question 1 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Is the stock to be printed on <i class="stock-name"></i>?</p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="q5" id="q5_yes" value="yes" />
+                                    <label for="q5_yes">Yes</label>
+                                    <input type="radio" name="q5" id="q5_no" value="no" />
+                                    <label for="q5_no">No</label>
+
+                                    <textarea name="q5_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                            <!-- Question 2 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Is the Stock Size <i class="material-run-size"></i>?</p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="q6" id="q6_yes" value="yes" />
+                                    <label for="q6_yes">Yes</label>
+                                    <input type="radio" name="q6" id="q6_no" value="no" />
+                                    <label for="q6_no">No</label>
+
+                                    <textarea name="q6_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                            <!-- Question 3 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Do the colors/content match the proof?</p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="q7" id="q7_yes" value="yes" />
+                                    <label for="q7_yes">Yes</label>
+                                    <input type="radio" name="q7" id="q7_no" value="no" />
+                                    <label for="q7_no">No</label>
+
+                                    <textarea name="q7_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                            <!-- Question 4 -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Have you read and do you understand the print notes?</p>
+                                <p><span class="link-underline">Notes: </span> <span class="qa-print-notes fw-normal"></span></p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="q8" id="q8_yes" value="yes" />
+                                    <label for="q8_yes">Yes</label>
+                                    <input type="radio" name="q8" id="q8_no" value="no" />
+                                    <label for="q8_no">No</label>
+
+                                    <textarea name="q8_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- General QA Questions (Secondary, non-print services) -->
+                        <div class="general-qa-questions" style="display:none;">
+                            <p class="fw-bold mb-3">Secondary QA Check for <i class="qa-service-title"></i></p>
+                            <!-- General Question 1 (Secondary) -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Does the item match the proof?</p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="gq3" id="gq3_yes" value="yes" />
+                                    <label for="gq3_yes">Yes</label>
+                                    <input type="radio" name="gq3" id="gq3_no" value="no" />
+                                    <label for="gq3_no">No</label>
+
+                                    <textarea name="gq3_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                            <br />
+                            <!-- General Question 2 (Secondary) -->
+                            <div class="field-binder-col-flex q-block">
+                                <p class="q-text">&bull; Does the item match the item description?</p>
+                                <p><span class="link-underline">Description: </span> <span class="qa-item-description fw-normal"></span></p>
+                                <div class="field-binder-row-flex ms-3">
+                                    <input type="radio" name="gq4" id="gq4_yes" value="yes" />
+                                    <label for="gq4_yes">Yes</label>
+                                    <input type="radio" name="gq4" id="gq4_no" value="no" />
+                                    <label for="gq4_no">No</label>
+
+                                    <textarea name="gq4_notes" placeholder="Enter notes here..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Secondary QA Result -->
+                        <div class="field-binder-col-flex">
+                            <p class="q-text">&bull; Indicate the result of the secondary QA check:</p>
+                            <div class="field-binder-row-flex ms-3">
+                                <input type="radio" name="checker_result" id="checker_pass" value="pass" />
+                                <label for="checker_pass">Pass</label>
+                            </div>
+                            <div class="field-binder-row-flex ms-3">
+                                <input type="radio" name="checker_result" id="checker_fail" value="fail" />
+                                <label for="checker_fail">Fail</label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="prev-next-wrapper">
+                            <button type="button" class="prev-slide btn btn-fc-danger">Back</button>
+                            <button type="submit" class="submit-form btn btn-fc-info" data-radio-id="checker_result">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

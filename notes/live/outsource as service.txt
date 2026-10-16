@@ -1,0 +1,3 @@
+Add outsource service to prepress and finishing (and printing?)
+--should be able to select on ticket--
+^ test using general cost, notes and lock time for this service

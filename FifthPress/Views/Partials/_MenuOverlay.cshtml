@@ -1,0 +1,146 @@
+﻿<div class="container-fluid menu-overlay">
+    <div class="wrapper-of-obscurity">
+        <div class="woo-close">X</div>
+        <div class="trapezoid">
+            <button type="button" class="btn btn-fc-caution login-btn" data-modal-to-open="#login">Login</button>
+            <div class="logged-in-wrapper" style="display: none">
+                <span class="u-welcome-msg fs-3" style="color:black"></span>
+                <button type="button" class="btn btn-fc-danger logout-btn m-4">Logout</button>
+                <button type="button" class="btn btn-fc-info dashboard-nav-button m-4">My Dashboard</button>
+                <div class="logged-in-functions d-flex flex-row">
+                    <div class="for-marcus">
+                        <button type="button" class="btn btn-fc-danger btn-lg">For Marcus</button>
+                    </div>
+                    <div class="record-inspector">
+                        <button type="button" class="btn btn-fc-danger btn-lg">Record Inspector</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="quick-buttons-flex">
+            <div class="quick-buttons-menu" data-menu-number="1">
+                <button type="button" class="quick-button menu-move-btn new-work-btn" data-operation="new" data-permissions="1a">
+                    <i class="fa-solid d-none d-md-block fa-file-circle-plus"></i>
+                    <p class="d-block">+ New</p>
+                </button>
+                <button type="button" class="quick-button menu-move-btn edit-work-btn" data-operation="edit" data-permissions="2a">
+                    <i class="fa-solid d-none d-md-block fa-file-circle-plus"></i>
+                    <p class="d-block">Edit</p>
+                </button>
+                <!--<a href="view-imported-jobs" class="quick-button btn" data-permissions="2a">
+                    <i class="fa-solid d-none d-md-block fa-file-circle-plus"></i>
+                    <p class="d-block">Imported Jobs</p>
+                </a>-->
+            </div>
+            <div class="quick-buttons-menu d-none" data-menu-number="2">
+                <a href="Job/Create" class="btn quick-button">
+                    <i class="fa-solid fa-file-circle-plus d-none d-md-block"></i>
+                    <p class="d-block pt-3">Job</p>
+                </a>
+                <a href="Quote/Create" class="btn quick-button">
+                    <i class="fa-solid fa-file-circle-plus d-none d-md-block"></i>
+                    <p class="d-block pt-3">Quote</p>
+                </a>
+            </div>
+        </div>
+        <div class="nav flex-column nav-pills h-100 gy-5" id="fc-pills-tab" role="tablist" aria-orientation="vertical">
+            <a class="nav-link" data-permissions="3a" id="fc-pills-administration-tab" data-toggle="pill" href="Admin" role="tab" aria-controls="fc-pills-Administration" aria-selected="false">Administration</a>
+            <!--<a class="nav-link" data-permissions="4a" id="fc-pills-customers-subtab" data-toggle="pill" href="Customers" role="tab" aria-controls="fc-pills-customers" aria-selected="false">Customers</a> -->
+            <a class="nav-link" id="fc-pills-home-tab" data-toggle="pill" href="" role="tab" aria-controls="fc-pills-home" aria-selected="true">Home</a>
+            <a class="nav-link" data-permissions="6a" id="fc-pills-inventory-subtab" data-toggle="pill" href="Inventory" role="tab" aria-controls="fc-pills-inventory" aria-selected="false">Inventory</a>
+            <!--<a class="nav-link" data-permissions="7a" id="fc-pills-settings-tab" data-toggle="pill" href="Settings" role="tab" aria-controls="fc-pills-settings" aria-selected="false">Settings</a> -->
+            <!--<a class="nav-link" data-permissions="8a" id="fc-pills-time-tracking-tab" data-toggle="pill" href="TimeTracking" role="tab" aria-controls="fc-pills-time-tracking" aria-selected="false">Time Tracking</a> -->
+            <a class="nav-link" data-permissions="3b" id="fc-pills-purchase-orders-tab" data-toggle="pill" href="PurchaseOrders" role="tab" aria-controls="fc-pills-purchase-orders" aria-selected="false">Purchase Orders</a>
+            <a class="nav-link" data-permissions="1b" id="fc-pills-reports-tab" data-toggle="pill" href="Reports" role="tab" aria-controls="fc-pills-reports" aria-selected="false">Reports</a>
+            <!--<a class="nav-link" data-permissions="2b" id="fc-pills-ojl-tab" data-toggle="pill" href="home/index" role="tab" aria-controls="fc-pills-ojl" aria-selected="false">Old Job List</a> -->
+            <!--<a class="nav-link" data-permissions="9a" id="fc-pills-vendors-subtab" data-toggle="pill" href="Vendors" role="tab" aria-controls="fc-pills-vendors" aria-selected="false">Vendors</a> -->
+        </div>
+        <!--<button type="button" class="btn btn-sm btn-fc-info test-adp-btn">Test Adp</button>-->
+    </div>
+    <div class="obscurity-sibling"></div>
+</div>
+
+<script>
+    function GoToMarcus() {
+        window.location = ProcessUrl('Administration/MarcusAdminScreen');
+    };
+    function GoToMyDashboard() {
+        window.location = ProcessUrl('Dashboard/Index');
+    };
+    function TestAdp() {
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('test-adp'),
+            beforeSend: function () {
+                $('.test-adp-btn').prop('disabled', true);
+            },
+            success: function () {
+                alert('Finished!');
+            },
+            complete: function (data) {
+                $('.test-adp-btn').prop('disabled', false);
+            }
+        });
+    };
+    function GoToRecordInspector() {
+        window.location = ProcessUrl('record-inspector');
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        //day started?
+        $.ajax({
+            type: 'GET',
+            url: ProcessUrl('user-status'),
+            success: function (data) {
+                var res = JSON.parse(data);
+
+                if (!res.isMarcus) {
+                    UIUpdate_RemoveMarcusScreens();
+                }
+
+                $('.u-welcome-msg').text(res.userName)
+            }
+        });
+        //permissions
+        // Get the data-permissions attribute value from the cookie
+        var permissionsCookie = getCookie("Permissions");
+
+        // Parse the permissionsCookie two characters at a time
+        var permissions = [];
+        for (var i = 0; i < permissionsCookie.length; i += 2) {
+            permissions.push(permissionsCookie.substr(i, 2));
+        }
+
+        // Select all elements with [data-permissions] attribute
+        var elements = document.querySelectorAll("[data-permissions]");
+
+        // Loop through elements and remove those not in the permissions array
+        elements.forEach(function (element) {
+            var elementPermission = element.getAttribute("data-permissions");
+            if (!permissions.includes(elementPermission)) {
+                element.parentNode.removeChild(element);
+            }
+        });
+    });
+
+    // Function to get a specific cookie by name
+    function getCookie(name) {
+        var value = "; " + document.cookie;
+        var parts = value.split("; " + name + "=");
+        if (parts.length === 2) return parts.pop().split(";").shift();
+    };
+
+    function MenuNav(e) {
+        e.preventDefault();
+        var $ele = $(this);
+        var h = $ele.attr('href');
+        var url = ProcessUrl(h);
+
+        window.location = url;
+    }
+    $(function () { })
+        .on('click', '.nav-link', MenuNav)
+        .on('click', '.test-adp-btn', TestAdp)
+        .on('click', '.for-marcus button', GoToMarcus)
+        .on('click', '.dashboard-nav-button', GoToMyDashboard)
+        .on('click', '.record-inspector button', GoToRecordInspector);
+</script>

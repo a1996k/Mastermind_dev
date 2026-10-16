@@ -1,0 +1,177 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Print_PurchaseOrder
+
+@Styles.Render("~/Content/poprint")
+
+<div class="container invoice-wrapper fs-3">
+
+    <div class="row border-bottom-target inv-header-row">
+        <div class="col-3 fs-4">
+            <div class="field-binder-col-flex border-right-target pb-3">
+                <span class="pb-2 fst-italic">
+                    <img class="inv-fc-logo" src="~/Content/images/nb-logo.png" />
+                </span>
+                <span>@Html.DisplayFor(model => model.SourceInformation.Address)</span>
+                <span>@Html.DisplayFor(model => model.SourceInformation.City), @Html.DisplayFor(model => model.SourceInformation.State) @Html.DisplayFor(model => model.SourceInformation.ZipCode)</span>
+                <span>@Html.DisplayFor(model => model.SourceInformation.Phone)</span>
+
+                <span class="py-2 fw-bold">@DateTime.Now.ToLongDateString()</span>
+            </div>
+        </div>
+        <div class="col-9 ps-5 pb-3">
+            <div class="field-binder-row-flex justify-content-between fs-2">
+                <h3 class="fw-bold">P.O. #@Html.DisplayFor(model => model.Order.PONumber)</h3>
+            </div>
+            <div class="row fs-4">
+                <div class="col-6">
+                    <div class="field-binder-col-flex">
+                        <span class="fw-bold">Vendor:</span>
+                        <span>@Html.DisplayFor(model => model.Order.Vendor1.Title)</span>
+                        <span>@Html.DisplayFor(model => model.Order.Vendor1.Address)</span>
+                        @{
+                            string vdrLocationStr = Model.Order.Vendor1.City + ", " + Model.Order.Vendor1.USState.Abbreviation + " " + Model.Order.Vendor1.Zip;
+                        }
+                        <span>@Html.DisplayFor(model => vdrLocationStr)</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="field-binder-col-flex">
+
+                        <span class="fw-bold">Ship To:</span>
+                        <span class="preserve-formatting">@Html.DisplayFor(model => model.Order.ShipTo)</span>
+                        <span class="preserve-formatting">@Model.Order.ShipToAddress</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="price-list-wrapper col-12 mt-5">
+            <div class="row col-header-row">
+                <div class="col fw-bold item-header-row gx-5 p-3">
+                    Item
+                </div>
+                <div class="col fw-bold gx-3 p-3">
+                    Job #
+                </div>
+                <div class="col fw-bold gx-3 p-3">
+                    Due Date
+                </div>
+                <div class="col fw-bold gx-3 p-3">
+                    Unit Price
+                </div>
+                <div class="col fw-bold gx-3 p-3">
+                    Quantity
+                </div>
+                <div class="col fw-bold gx-3 p-3">
+                    Total
+                </div>
+            </div>
+
+            @foreach (PO_Items i in Model.Order.PO_Items.OrderBy(x => x.Id))
+            {
+                <div class="row invoice-row py-2">
+                    <div class="col">
+                        @Html.DisplayFor(model => i.ItemTitle)
+                    </div>
+                    <div class="col">
+                        @Html.DisplayFor(model => i.Job1.JobNumber)
+                    </div>
+                    <div class="col">
+                        @{
+                            string dueDateStr = i.DueDate.HasValue ? i.DueDate.Value.ToString("M/d/yyyy") : "";
+                        }
+                        @Html.DisplayFor(model => dueDateStr)
+                    </div>
+                    <div class="col">
+                        @{
+                            string priceStr = "$" + (i.Price.HasValue ? i.Price.Value.ToString("N2") : "0.00");
+
+                            string perStr = i.MaterialCostType.Title;
+
+                            string finalItemPriceStr = priceStr + "/" + perStr;
+                        }
+                        @Html.DisplayFor(model => finalItemPriceStr)
+                    </div>
+                    <div class="col">
+                        @Html.DisplayFor(model => i.Quantity)
+                    </div>
+                    <div class="col">
+                        @{
+                            string itemPriceStr = "$" + (i.TotalPrice.HasValue ? i.TotalPrice.Value.ToString("N2") : "0.00");
+                        }
+                        @Html.DisplayFor(model => itemPriceStr)
+                    </div>
+
+                    <div class="row pt-3">
+                        <div class="col-8">
+                            <span class="preserve-formatting fst-italic">@Html.DisplayFor(model => i.Notes)</span>
+                        </div>
+                        <div class="col-4"></div>
+                    </div>
+                </div>
+            }
+            <div class="row totals-wrapper mt-5">
+                <div class="col-6"></div>
+                <div class="col-6">
+                    <!-- Shipment totals -->
+                    <div class="field-binder-row-flex justify-content-between subtotal-line border-bottom">
+                        <label>Subtotal</label>
+                        @{
+                            decimal totalItemPrice = Model.Order.PO_Items.Sum(x => (x.TotalPrice ?? 0m));
+                            string totalItemPriceString = "$" + totalItemPrice.ToString("N2");
+                        }
+                        <span>@Html.DisplayFor(model => totalItemPriceString)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="totals-wrapper">
+        <div class="row mt-5">
+            <div class="col-9">
+                <h3>Notes</h3>
+                <span class="preserve-formatting">@Html.DisplayFor(model => model.Order.Notes)</span>
+            </div>
+            @{
+
+                string poFreightStr = "$" + (Model.Order.Freight ?? 0m).ToString("N2");
+                string poSubtotalStr = "$" + (Model.Order.SubTotal ?? 0m).ToString("N2");
+                string taxPctStr = (Model.Order.TaxPercent ?? 0m).ToString("N2") + "%";
+                string taxAmtStr = "$" + (Model.Order.Tax ?? 0m).ToString("N2");
+                string poTotalPriceStr = "$" + (Model.Order.POTotal ?? 0m).ToString("N2");
+                string poAmountPaidStr = "$" + (Model.Order.Paid ?? 0m).ToString("N2");
+                decimal poTotalRemaining = (Model.Order.POTotal ?? 0m) - (Model.Order.Paid ?? 0m);
+                string poTotalRemainingStr = "$" + poTotalRemaining.ToString("N2");
+            }
+            <div class="col-3">
+                <div class="field-binder-row-flex justify-content-between border-bottom">
+                    <label>Freight</label>
+                    <span>@Html.DisplayFor(model => poFreightStr)</span>
+                </div>
+                <div class="field-binder-row-flex justify-content-between border-bottom">
+                    <label>Subtotal</label>
+                    <span>@Html.DisplayFor(model => poSubtotalStr)</span>
+                </div>
+                <div class="field-binder-row-flex justify-content-between border-bottom">
+                    <label>Tax - @Html.DisplayFor(model => taxPctStr)</label>
+                    <span>@Html.DisplayFor(model => taxAmtStr)</span>
+                </div>
+                <div class="field-binder-row-flex justify-content-between border-bottom">
+                    <label>Total</label>
+                    <span>@Html.DisplayFor(model => poTotalPriceStr)</span>
+                </div>
+                <div class="field-binder-row-flex justify-content-between border-bottom">
+                    <label>Amount Paid</label>
+                    <span>@Html.DisplayFor(model => poAmountPaidStr)</span>
+                </div>
+                <div class="field-binder-row-flex justify-content-between border-bottom fw-bold">
+                    <label>P.O. Total</label>
+                    <span>@Html.DisplayFor(model => poTotalRemainingStr)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

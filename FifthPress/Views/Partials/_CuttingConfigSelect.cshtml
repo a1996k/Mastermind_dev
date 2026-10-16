@@ -1,0 +1,22 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<List<VM_CuttingConfiguration>>
+
+@{ 
+    int counter = 0;
+}
+@foreach (List<VM_CuttingConfiguration> ccList in Model)
+{
+<div class="container">
+    <h4>@Html.DisplayFor(model => ccList.First().CuttingServiceName)</h4>
+    <ul class="config-select-list">
+        @foreach (VM_CuttingConfiguration cc in ccList.OrderByDescending(x => x.SpeedValue))
+        {
+            <li data-record-id="@Html.DisplayFor(model => cc.RecordId)" class="d-flex flex-row justify-content-start w-50 py-2 fs-5">
+                <input type="radio" name="ccRadio_@counter" /> <span class="ps-5">@Html.DisplayFor(model => cc.SpeedDisplay)</span>
+            </li>
+        }
+    </ul>
+</div>
+<hr />
+    counter++;
+}

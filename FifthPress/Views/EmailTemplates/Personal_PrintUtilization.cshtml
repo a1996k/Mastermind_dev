@@ -1,0 +1,106 @@
+﻿﻿@model FifthPress.Models.ViewModels.EmailTemplateModels.VM_PersonalPrintUtilization
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Utilization Email</title>
+
+    <style>
+        .met {
+            color: green !important;
+        }
+
+        .not-met {
+            color: red !important;
+        }
+
+        /* Mobile-specific adjustments */
+        @@media screen and (max-width: 600px) {
+            th, td {
+                padding: 5px;
+                font-size: 12px;
+            }
+
+            p, table {
+                font-size: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8;">
+    <!-- Outer Wrapper -->
+    <div style="max-width: 800px; margin: 20px auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+
+        <!-- Header -->
+        <div style="background-color: #4a90e2; color: white; text-align: center; padding: 20px;">
+            <h3 style="margin: 0;">Employee Utilization Report</h3>
+        </div>
+
+        <!-- Content Wrapper -->
+        <div style="padding: 20px;">
+            <!-- Pretext Section -->
+            <div style="margin-bottom: 20px;">
+                <p style="font-size: 16px; color: #333;">
+                    Hi @Html.DisplayFor(model => model.Yesterday.UserName),<br />
+                    <br />
+                    Attached is today’s Print Utilization Report for your review. This report highlights key metrics and insights to help keep our team aligned and focused on achieving our goals.<br />
+                    <br />
+                    Please take a moment to review the details and feel free to reach out with any questions or if you need further clarification.<br />
+                    <br />
+                    Thank you for your continued commitment to efficiency and excellence!
+                </p>
+            </div>
+
+            <!-- Year-to-Date Utilization -->
+            <div style="margin-bottom: 20px; padding: 10px; background-color: #f0f4fa; border-left: 4px solid #4a90e2; font-size:16px;">
+                <span style="font-weight:bold;">Year-to-Date Utilization:</span> <span class="@((Model.YTD.AvgUtilization) >= Model.TargetUtilization ? "met" : "not-met")">@(Math.Round(Model.YTD.AvgUtilization * 100m, 2))%</span>
+            </div>
+
+            <!-- Hourly Employee Report Section -->
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 16px;">
+                    <thead>
+                        <tr style="background-color: #f0f4fa;">
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Metric</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">Time on Clock</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(Model.Yesterday.TotalWorkedHours)
+                            </td>
+                        </tr>
+                        <tr style="background-color: #f8f8f8;">
+                            <td style="padding: 10px; border: 1px solid #ddd;">Time On Jobs</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                @Helpers.DecimalHoursToHumanReadable(Model.Yesterday.TotalJobTime)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd;">Utilization %</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;" class="@((Model.Yesterday.AvgUtilization) >= Model.TargetUtilization ? "met" : "not-met")">
+                                @(Math.Round(Model.Yesterday.AvgUtilization * 100m, 2))%
+                            </td>
+                        </tr>
+                        <tr style="background-color: #f8f8f8;">
+                            <td style="padding: 10px; border: 1px solid #ddd; color: blue;">Target Utilization</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center; color: blue;">
+                                @Html.DisplayFor(model => model.TargetUtilizationString)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #4a90e2; color: white; text-align: center; padding: 10px;">
+            <p style="margin: 0; font-size: 16px;">&copy; 2025 FifthColor. All Rights Reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

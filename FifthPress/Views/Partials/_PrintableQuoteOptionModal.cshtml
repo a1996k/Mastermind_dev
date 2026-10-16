@@ -1,0 +1,32 @@
+﻿<div class="modal" tabindex="-1" id="printable_quote_options">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header text-bg-dark text-center">
+                <h5 class="modal-title">Select Quote Layout</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#printable_quote_options" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row d-flex justify-content-between">
+                        <select name="quoteOptions" id="quote_options">
+                            <option value="1">Totals on Parent Items</option>
+                            <option value="2">Only Final Price</option>
+                            <option value="3">Full Pricing Breakdown</option>
+                        </select>
+                        <div>
+                            <input type="checkbox" id="include_final_total" checked />
+                            <label for="include_final_total" class="fs-4">Show Final Total</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <textarea id="customer_quote_notes"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal-to-close="#printable_quote_options">Cancel</button>
+                <button type="button" class="btn btn-fc-info generate-customer-quote" data-modal-to-close="#printable_quote_options">Generate</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,26 @@
+@model FifthPress.Models.ViewModels2.PO25.VM_CreateRole25
+@{
+    ViewBag.Title = "Create New Role";
+}
+
+<h2>Create New Role</h2>
+
+@using (Html.BeginForm("CreateRole", "PO25Role", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.RoleName)
+        @Html.TextBoxFor(m => m.RoleName, new { @class = "form-control", required = "required" })
+        @Html.ValidationMessageFor(m => m.RoleName)
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(m => m.Description)
+        @Html.TextAreaFor(m => m.Description, new { @class = "form-control", rows = 4 })
+        @Html.ValidationMessageFor(m => m.Description)
+    </div>
+
+    <button type="submit" class="btn btn-primary">Create Role</button>
+    @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-secondary ml-2" })
+}

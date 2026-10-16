@@ -1,0 +1,525 @@
+@using System.Web.Mvc
+@model List<sp_GetActualVsForecastByCategory_Result>
+
+@{
+    ViewBag.Title = "Actual vs Forecast Utilization";
+    var period = ViewBag.Period as ForecastPeriod;
+    var monthlyData = ViewBag.MonthlyData as List<dynamic>;
+}
+
+@if (period == null)
+{
+    <div class="alert alert-danger">
+        <h4>Error: Period Not Found</h4>
+        <p>The forecast period could not be loaded.</p>
+        @Html.ActionLink("Back to Periods", "Index", null, new { @class = "btn btn-default" })
+    </div>
+    return;
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Actual vs Forecast Utilization</h2>
+            <p class="text-muted">
+                Period: @period.PeriodName (@period.StartDate.ToString("MM/dd/yyyy") - @period.EndDate.ToString("MM/dd/yyyy"))
+            </p>
+
+            <div class="row" style="margin-bottom: 20px;">
+                <div class="col-md-12">
+                    @Html.ActionLink("← Back to Contracts", "Contracts", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-default" })
+                    @Html.ActionLink("View Utilization Breakdown", "UtilizationByCategory", new { periodId = period.ForecastPeriodID }, new { @class = "btn btn-primary" })
+                </div>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                var availableCapacity = Model.FirstOrDefault()?.AvailableCapacity ?? 0;
+                var weekdays = Model.FirstOrDefault()?.WeekdaysInRange ?? 0;
+                var employeeCount = Model.FirstOrDefault()?.AgencyEmployeeCount ?? 0;
+                var holidayHours = Model.FirstOrDefault()?.TotalHolidayHours ?? 0;
+
+                var totalActual = Model.Sum(x => x.ActualHours);
+                var totalForecast = Model.Sum(x => x.ForecastedHours);
+                var totalVariance = totalForecast - totalActual;
+                var actualUtilization = availableCapacity > 0 ? (totalActual / availableCapacity) : 0;
+                var forecastUtilization = availableCapacity > 0 ? (totalForecast / availableCapacity) : 0;
+
+                <!-- Summary Cards -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="panel panel-default">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Available Capacity</h4>
+                                <h2 style="color: #333; margin: 10px 0;">@availableCapacity.ToString("N0")</h2>
+                                <p class="text-muted">hours</p>
+                                <small class="text-muted">
+                                    @employeeCount employees × @weekdays weekdays × 8 hrs
+                                    @if (holidayHours > 0)
+                                    {
+                                        <br />@Html.Raw("- ") @holidayHours.ToString("N0") <span>holiday hours</span>
+                                    }
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-warning">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Actual Hours</h4>
+                                <h2 style="color: #f0ad4e; margin: 10px 0;">@totalActual.ToString("N1")</h2>
+                                <p class="text-muted">hours tracked</p>
+                                <small class="text-muted">@((actualUtilization * 100).ToString("N1"))% of capacity</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel panel-success">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Forecasted Hours</h4>
+                                <h2 style="color: #5cb85c; margin: 10px 0;">@totalForecast.ToString("N1")</h2>
+                                <p class="text-muted">hours planned</p>
+                                <small class="text-muted">@((forecastUtilization * 100).ToString("N1"))% of capacity</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="panel @(totalVariance >= 0 ? "panel-info" : "panel-danger")">
+                            <div class="panel-body text-center">
+                                <h4 class="text-muted">Variance</h4>
+                                <h2 style="color: @(totalVariance >= 0 ? "#5bc0de" : "#d9534f"); margin: 10px 0;">
+                                    @(totalVariance >= 0 ? "+" : "")@totalVariance.ToString("N1")
+                                </h2>
+                                <p class="text-muted">hours @(totalVariance >= 0 ? "remaining" : "over")</p>
+                                <small class="text-muted">
+                                    @if (totalForecast > 0)
+                                    {
+                                        @:(@((totalActual / totalForecast * 100).ToString("N1"))% of forecast)
+                                    }
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comparison Table -->
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h4 class="panel-title"><i class="glyphicon glyphicon-stats"></i> Actual vs Forecast by Category</h4>
+                    </div>
+                    <div class="panel-body">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th class="text-right">Actual Hours</th>
+                                    <th class="text-right">Forecasted Hours</th>
+                                    <th class="text-right">Variance</th>
+                                    <th class="text-right">% of Forecast</th>
+                                    <th class="text-right">Actual Utilization</th>
+                                    <th style="width: 300px;">Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var category in Model.OrderBy(x => x.Category == "External Billable" ? 1 : x.Category == "Internal Billable" ? 2 : 3))
+                                {
+                                    var actual = category.ActualHours;
+                                    var forecast = category.ForecastedHours;
+                                    var variance = category.Variance ?? 0;
+                                    var pctOfForecast = category.PercentageOfForecast ?? 0;
+                                    var actualUtil = (category.ActualUtilizationPercentage ?? 0) * 100;
+
+                                    var badgeClass = "default";
+                                    var barClass = "info";
+                                    if (category.Category == "External Billable")
+                                    {
+                                        badgeClass = "success";
+                                        barClass = "success";
+                                    }
+                                    else if (category.Category == "Internal Billable")
+                                    {
+                                        badgeClass = "info";
+                                        barClass = "info";
+                                    }
+                                    else if (category.Category == "Non-Billable")
+                                    {
+                                        badgeClass = "default";
+                                        barClass = "default";
+                                    }
+
+                                    var varianceClass = variance >= 0 ? "text-success" : "text-danger";
+
+                                    <tr>
+                                        <td>
+                                            <span class="label label-@badgeClass" style="font-size: 12px; padding: 5px 10px;">
+                                                @category.Category
+                                            </span>
+                                        </td>
+                                        <td class="text-right"><strong>@actual.ToString("N1")</strong> hrs</td>
+                                        <td class="text-right">@forecast.ToString("N1") hrs</td>
+                                        <td class="text-right @varianceClass">
+                                            <strong>@(variance >= 0 ? "+" : "")@variance.ToString("N1")</strong> hrs
+                                        </td>
+                                        <td class="text-right">@pctOfForecast.ToString("N1")%</td>
+                                        <td class="text-right">@actualUtil.ToString("N1")%</td>
+                                        <td>
+                                            <div class="progress" style="margin-bottom: 0; height: 25px;">
+                                                <div class="progress-bar progress-bar-@barClass" role="progressbar"
+                                                     style="width: @pctOfForecast.ToString("N2")%; line-height: 25px;">
+                                                    @actual.ToString("N0") / @forecast.ToString("N0") hrs
+                                                </div>
+                                            </div>
+                                            @if (pctOfForecast > 100)
+                                            {
+                                                <small class="text-danger">
+                                                    <i class="glyphicon glyphicon-warning-sign"></i> Over forecast by @((pctOfForecast - 100).ToString("N1"))%
+                                                </small>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="info" style="font-weight: bold; font-size: 14px;">
+                                    <td><strong>TOTAL</strong></td>
+                                    <td class="text-right"><strong>@totalActual.ToString("N1")</strong> hrs</td>
+                                    <td class="text-right"><strong>@totalForecast.ToString("N1")</strong> hrs</td>
+                                    <td class="text-right @(totalVariance >= 0 ? "text-success" : "text-danger")">
+                                        <strong>@(totalVariance >= 0 ? "+" : "")@totalVariance.ToString("N1")</strong> hrs
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>
+                                            @if (totalForecast > 0)
+                                            {
+                                                @((totalActual / totalForecast * 100).ToString("N1"))
+                                            }
+                                            else
+                                            {
+                                                @:0.0
+                                            }%
+                                        </strong>
+                                    </td>
+                                    <td class="text-right"><strong>@((actualUtilization * 100).ToString("N1"))%</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Monthly Breakdown Chart (Actual vs Forecast stacked by month) -->
+                @if (monthlyData != null && monthlyData.Any())
+                {
+                    <div class="panel panel-success">
+                        <div class="panel-heading">
+                            <h4 class="panel-title"><i class="glyphicon glyphicon-stats"></i> Monthly Breakdown (Actual vs Forecast)</h4>
+                        </div>
+                        <div class="panel-body">
+                            <canvas id="monthlyBreakdownChart" height="80"></canvas>
+                            <div class="row" style="margin-top: 15px;">
+                                <div class="col-md-12 text-center">
+                                    <p class="text-muted">
+                                        <span style="display: inline-block; width: 20px; height: 12px; background: #5cb85c; margin-right: 5px;"></span> Actual Hours
+                                        <span style="margin: 0 10px;">|</span>
+                                        <span style="display: inline-block; width: 20px; height: 12px; background: #5dade2; margin-right: 5px;"></span> Forecasted Hours
+                                        <span style="margin: 0 10px;">|</span>
+                                        <span style="border-top: 3px solid #000; width: 30px; display: inline-block; margin-right: 5px;"></span> Actual/Forecast Separator
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Category Comparison Chart -->
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title"><i class="glyphicon glyphicon-signal"></i> Comparison by Category</h4>
+                    </div>
+                    <div class="panel-body">
+                        <!-- Chart.js Stacked Bar Chart -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div style="height: 300px;">
+                                    <canvas id="actualVsForecastChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="margin-top: 20px;">
+                            <div class="col-md-12">
+                                <p class="text-muted text-center">
+                                    <strong>Legend:</strong>
+                                    <span class="label label-success">External Billable</span> = Client work &nbsp;
+                                    <span class="label label-info">Internal Billable</span> = Internal projects &nbsp;
+                                    <span class="label label-default">Non-Billable</span> = Training, admin, etc.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Insights Panel -->
+                <div class="panel panel-info">
+                    <div class="panel-heading">
+                        <h4 class="panel-title"><i class="glyphicon glyphicon-info-sign"></i> Insights</h4>
+                    </div>
+                    <div class="panel-body">
+                        @if (totalVariance > 0)
+                        {
+                            <div class="alert alert-success">
+                                <strong><i class="glyphicon glyphicon-ok-circle"></i> On Track</strong>
+                                <p>
+                                    You have <strong>@totalVariance.ToString("N0") hours</strong> remaining in your forecast.
+                                    Current utilization is at @((actualUtilization * 100).ToString("N1"))% of capacity.
+                                </p>
+                            </div>
+                        }
+                        else if (totalVariance < 0)
+                        {
+                            <div class="alert alert-warning">
+                                <strong><i class="glyphicon glyphicon-exclamation-sign"></i> Over Forecast</strong>
+                                <p>
+                                    You have exceeded your forecast by <strong>@Math.Abs(totalVariance).ToString("N0") hours</strong>.
+                                    Consider reviewing your contracts or capacity planning.
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info">
+                                <strong><i class="glyphicon glyphicon-ok"></i> Exactly on Target</strong>
+                                <p>Your actual hours match your forecast perfectly!</p>
+                            </div>
+                        }
+
+                        @if (actualUtilization < 0.75m)
+                        {
+                            <div class="alert alert-info">
+                                <strong><i class="glyphicon glyphicon-info-sign"></i> Capacity Available</strong>
+                                <p>
+                                    Current utilization (@((actualUtilization * 100).ToString("N1"))%) is below the target range of 75-85%.
+                                    You have capacity to take on additional work.
+                                </p>
+                            </div>
+                        }
+                        else if (actualUtilization > 0.85m)
+                        {
+                            <div class="alert alert-warning">
+                                <strong><i class="glyphicon glyphicon-warning-sign"></i> High Utilization</strong>
+                                <p>
+                                    Current utilization (@((actualUtilization * 100).ToString("N1"))%) is above the target range of 75-85%.
+                                    Team may be at risk of burnout or overcommitment.
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-success">
+                                <strong><i class="glyphicon glyphicon-ok-circle"></i> Optimal Utilization</strong>
+                                <p>
+                                    Current utilization (@((actualUtilization * 100).ToString("N1"))%) is within the healthy target range of 75-85%.
+                                </p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <strong>No data found.</strong> Add contracts and ensure time entries are being tracked to see actual vs forecast comparison.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            @if (Model != null && Model.Any())
+            {
+                <text>
+                // Prepare chart data from model
+                var chartData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.Select(m => new {
+                    category = m.Category,
+                    actualHours = m.ActualHours,
+                    forecastedHours = m.ForecastedHours
+                })));
+
+                // Extract data by category
+                var externalBillable = chartData.find(d => d.category === 'External Billable') || { actualHours: 0, forecastedHours: 0 };
+                var internalBillable = chartData.find(d => d.category === 'Internal Billable') || { actualHours: 0, forecastedHours: 0 };
+                var nonBillable = chartData.find(d => d.category === 'Non-Billable') || { actualHours: 0, forecastedHours: 0 };
+
+                var ctx = document.getElementById('actualVsForecastChart').getContext('2d');
+                var chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Actual', 'Forecast'],
+                        datasets: [
+                            {
+                                label: 'External Billable',
+                                data: [externalBillable.actualHours, externalBillable.forecastedHours],
+                                backgroundColor: '#5cb85c',
+                                stack: 'stack0'
+                            },
+                            {
+                                label: 'Internal Billable',
+                                data: [internalBillable.actualHours, internalBillable.forecastedHours],
+                                backgroundColor: '#337ab7',
+                                stack: 'stack0'
+                            },
+                            {
+                                label: 'Non-Billable',
+                                data: [nonBillable.actualHours, nonBillable.forecastedHours],
+                                backgroundColor: '#d3d3d3',
+                                stack: 'stack0'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'top'
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.raw.toFixed(1) + ' hours';
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                display: function(context) {
+                                    return context.dataset.data[context.dataIndex] > 0;
+                                },
+                                color: '#fff',
+                                font: {
+                                    weight: 'bold',
+                                    size: 11
+                                },
+                                formatter: function(value) {
+                                    return value.toFixed(0) + ' hrs';
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                stacked: true
+                            },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Hours'
+                                }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+                </text>
+            }
+
+            @if (monthlyData != null && monthlyData.Any())
+            {
+                <text>
+                // Monthly Breakdown Chart - Actual (bottom) + Forecast (top) with separator line
+                var monthlyBreakdownData = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(monthlyData));
+
+                var mbMonths = monthlyBreakdownData.map(d => d.MonthName);
+                var mbActualData = monthlyBreakdownData.map(d => d.ActualHours);
+                var mbForecastData = monthlyBreakdownData.map(d => d.ForecastedHours);
+
+                // Custom plugin to draw bold separator line between Actual and Forecast
+                const actualForecastSeparatorPlugin = {
+                    id: 'actualForecastSeparator',
+                    afterDatasetsDraw: function(chart) {
+                        var ctx = chart.ctx;
+                        var actualMeta = chart.getDatasetMeta(0); // Actual dataset
+
+                        if (!actualMeta.data || actualMeta.data.length === 0) return;
+
+                        ctx.save();
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+
+                        actualMeta.data.forEach(function(bar, index) {
+                            var x = bar.x;
+                            var y = bar.y;
+                            var halfWidth = bar.width / 2;
+
+                            if (index === 0) {
+                                ctx.moveTo(x - halfWidth, y);
+                            }
+                            ctx.lineTo(x - halfWidth, y);
+                            ctx.lineTo(x + halfWidth, y);
+                        });
+
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                };
+
+                var ctx2 = document.getElementById('monthlyBreakdownChart').getContext('2d');
+                new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: mbMonths,
+                        datasets: [
+                            {
+                                label: 'Actual Hours',
+                                data: mbActualData,
+                                backgroundColor: '#5cb85c',
+                                stack: 'stack0'
+                            },
+                            {
+                                label: 'Forecasted Hours',
+                                data: mbForecastData,
+                                backgroundColor: '#5dade2',
+                                stack: 'stack0'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            x: { stacked: true, grid: { display: false } },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                title: { display: true, text: 'Hours' }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: true, position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return context.dataset.label + ': ' + context.parsed.y.toFixed(1) + ' hrs';
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                color: '#fff',
+                                font: { weight: 'bold', size: 10 },
+                                formatter: function(value) { return value > 0 ? value.toFixed(0) : ''; }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels, actualForecastSeparatorPlugin]
+                });
+                </text>
+            }
+        });
+    </script>
+}

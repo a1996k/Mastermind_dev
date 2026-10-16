@@ -1,0 +1,57 @@
+﻿@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_JobCompletionMetrics
+
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "jcm01")
+
+<div class="field-binder-row-flex chart-icon-wrapper">
+    <!--<i class="fa-solid fa-users"></i>-->
+    <i class="fa-solid fa-circle-info"></i>
+</div>
+
+<div class="field-binder-col-flex card-user-list-wrapper">
+    <h3>(Debug) User List</h3>
+    <ul class="jcm01-user-list"></ul>
+</div>
+
+<div class="informational-block">
+    <p>This function generates a report on job completion status within a specified date range, focusing on three key metrics: <strong>Past Due Jobs</strong>, <strong>On-Time Jobs</strong>, and <strong>Not Started Jobs</strong>. Each metric is calculated using a separate subset of the data, then combined in a final output.</p>
+    <p><strong>Past Due Jobs</strong>: This count includes jobs that were completed after their due date. It considers jobs with a completion date (<code>Complete</code>) later than the due date (<code>DueDate</code>) and only includes those where either the due date or completion date falls within the specified period.</p>
+    <p><strong>On-Time Jobs</strong>: This count includes jobs completed on or before their due date. Similar to past-due jobs, only jobs where the due date or completion date falls within the specified date range are included.</p>
+    <p><strong>Not Started Jobs</strong>: This metric counts jobs that are past their minimum start date (<code>MinStartDate</code>), have no recorded completion date (<code>Complete</code>), and no entries in the job timing table (<code>JobTimingSR</code>), indicating no work has begun on them.</p>
+    <p>In the final result, each metric is displayed with a default value of 0 if there are no qualifying jobs. This report provides insight into job timeliness, helping to track on-time performance and identify any jobs that have yet to start.</p>
+</div>
+
+<canvas class="job-completion-metrics-chart metric-chart" id="jcm01"></canvas>
+
+<div class="container">
+    <div class="row mt-5">
+        <div class="col">
+            <!-- Past Due Count -->
+            <span class="fs-4">Past Due: <span>@Html.DisplayFor(model => model.Aggregates.PastDueJobs)</span></span>
+        </div>
+        <div class="col">
+            <!-- On Time Count -->
+            <span class="fs-4">On Time: <span>@Html.DisplayFor(model => model.Aggregates.OnTimeJobs)</span></span>
+        </div>
+        <div class="col">
+            <!-- Not Started -->
+            <span class="fs-4">Not Started: <span>@Html.DisplayFor(model => model.Aggregates.NotStartedJobs)</span> </span>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('.jcm01-user-list').append(
+        `<li class="user-list-entry pt-2" data-user-id="-1">
+            <div class="field-binder-row-flex justify-content-between">
+                <label for="ulcb_-1" class="ff-poppins fs-16 fw-bold fst-italic">Select All</label>
+                <input type="checkbox" id="ulcb_-1" checked />
+            </div>
+         </li>`);
+    @foreach(FifthPress.Models.ViewModels.VMMUserChartPermissions v in Model.UserPermissions)
+{
+    <text>$('.jcm01-user-list').append('<li data-user-id="@Html.DisplayFor(model => v.UserId )">@Html.DisplayFor(model => v.FirstName) @Html.DisplayFor(model => v.LastName)</li>')</text>
+}
+    $('.range-selector[data-card-ajax-id="jcm01"] select[name="Range"]').val('@Model.RangeOverride');
+    $('.range-selector[data-card-ajax-id="jcm01"] input[name="Locked"]').prop('checked', '@Model.IsLocked' === 'True');
+</script>

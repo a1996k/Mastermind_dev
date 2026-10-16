@@ -1,0 +1,47 @@
+@model FifthPress.Models.ViewModels.ClientViewAuthEmailViewModel
+
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: rgb(230, 35, 30); color: white; padding: 20px; text-align: center; }
+        .content { background-color: #f9f9f9; padding: 30px; border-radius: 5px; margin-top: 20px; }
+        .button { display: inline-block; padding: 15px 30px; background-color: rgb(230, 35, 30); color: white; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 20px 0; }
+        .button:hover { background-color: rgb(190, 25, 20); }
+        .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #777; }
+        .warning { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>FifthColor Client Portal</h1>
+        </div>
+        <div class="content">
+            <h2>Hello!</h2>
+            <p>You've received this email because someone requested access to your client portal for <strong>@Model.ClientList</strong>.</p>
+
+            <p>Click the button below to securely log in to your portal:</p>
+
+            <div style="text-align: center;">
+                <a href="@Model.ClientViewLink" class="button">Access Your Portal</a>
+            </div>
+
+            <div class="warning">
+                <strong>Important:</strong> This link will expire in 4 hours.
+            </div>
+
+            <p>If the button doesn't work, you can copy and paste this link into your browser:</p>
+            <p style="word-break: break-all; background-color: #eee; padding: 10px; border-radius: 3px; font-size: 12px;">@Model.ClientViewLink</p>
+
+            <p style="margin-top: 30px;">If you didn't request this link, you can safely ignore this email.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; @DateTime.Now.Year FifthColor. All rights reserved.</p>
+            <p>This is an automated message, please do not reply to this email.</p>
+        </div>
+    </div>
+</body>
+</html>

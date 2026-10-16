@@ -1,0 +1,311 @@
+﻿@model List<JobShipment>
+@using System.Globalization
+
+@{
+    ViewBag.Title = "Review Job Shipments";
+}
+
+<style>
+    .shipment-card {
+        background: #fff;
+        border: none;
+        border-radius: 16px;
+        padding: 1.75rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.07);
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .shipment-card:hover {
+            transform: translateY(-2px);
+        }
+
+    .shipment-header {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #333;
+    }
+
+    .shipment-meta {
+        font-size: 0.95rem;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+
+    .shipment-notes {
+        font-size: 1.1rem;
+        margin-top: 1rem;
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        border-left: 4px solid #17a2b8;
+        color: #212529;
+    }
+
+    .shipment-actions {
+        margin-top: 1.5rem;
+    }
+
+        .shipment-actions .btn {
+            font-size: 1rem;
+            padding: 0.6rem 1.2rem;
+        }
+
+    .item-list {
+        margin-top: 0.5rem;
+    }
+
+        .item-list .list-group-item {
+            font-size: 0.95rem;
+        }
+
+    .shipping-index-ctr h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        color: #2c2c2c;
+        margin-bottom: 1.5rem;
+    }
+
+    /* Modal tweaks */
+    .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .modal-title {
+        font-weight: 600;
+    }
+
+    .modal-body label {
+        font-weight: 500;
+    }
+
+    .custom-address-fields {
+        display: none;
+        margin-top: 1rem;
+    }
+</style>
+
+<div class="container-fluid mt-4 shipping-index-ctr">
+    <h2>Unshipped Job Shipments</h2>
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var shipment in Model)
+            {
+                <div class="col-md-6 col-xl-4">
+                    <div class="shipment-card">
+                        <div class="shipment-header">@shipment.Title</div>
+                        <div class="shipment-meta">
+                            Created: @(shipment.CreatedAtUTC?.ToLocalTime().ToString("g", CultureInfo.CurrentCulture))<br />
+                            @{
+                                var jobGroups = shipment.JobShipmentPivots
+                                    .Where(p => p.Job1 != null || (p.JobItem1 != null && p.JobItem1.Job1 != null))
+                                    .GroupBy(p => p.Job1?.JobNumber ?? p.JobItem1?.Job1?.JobNumber)
+                                    .Where(g => g.Key != null)
+                                    .ToList();
+                            }
+                            <div>
+                                <a href="#" class="toggle-items" data-id="@shipment.Id">Jobs (@jobGroups.Count)</a>
+                            </div>
+                            <div class="item-list" id="item-list-@shipment.Id" style="display: none; margin-top: 10px;">
+                                <ul class="list-group">
+                                    @foreach (var group in jobGroups)
+                                    {
+                                        <li class="list-group-item">
+                                            <strong>@group.Key</strong> — @group.Count() item@(group.Count() == 1 ? "" : "s")
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(shipment.Notes))
+                        {
+                            <div class="shipment-notes">
+                                <strong>Notes:</strong><br />
+                                @shipment.Notes
+                            </div>
+                        }
+
+                        <div class="shipment-actions">
+                            <a class="btn btn-outline-secondary me-2 ejsb-btn"
+                               href="EditJobShipmentBasic/@shipment.Id">
+                                Edit
+                            </a>
+                            <button class="btn btn-success finalize-btn"
+                                    data-id="@shipment.Id"
+                                    data-title="@shipment.Title"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#finalizeShipmentModal">
+                                Mark as Shipped
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p>No unshipped shipments found.</p>
+    }
+</div>
+
+<!-- Finalize Shipment Modal -->
+<div class="modal fade" id="finalizeShipmentModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <form id="finalizeShipmentForm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTitle">Finalize Shipment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" name="JobShipmentId" id="JobShipmentId" />
+
+                    <div class="mb-3">
+                        <label>Freight Cost</label>
+                        <input type="number" step="0.01" class="form-control" name="FreightCost" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Markup (%)</label>
+                        <input type="number" step="0.01" value=".40" class="form-control" name="Markup" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Freight Price</label>
+                        <input type="number" step="0.01" class="form-control" name="FreightPrice" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Tracking Number</label>
+                        <input type="text" class="form-control" name="TrackingNumber" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Shipment Date</label>
+                        <input type="datetime-local" class="form-control" name="ShipmentDate" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Shipping Address</label>
+                        <select class="form-control" name="ShippingAddress" id="ShippingAddress" required>
+                            <!-- Dynamically populated -->
+                        </select>
+                        <div class="form-check mt-2">
+                            <input type="checkbox" class="form-check-input" id="useCustomAddress" />
+                            <label class="form-check-label" for="useCustomAddress">Enter custom address instead</label> <!-- does not save to client because that is out of scope -->
+                        </div>
+                    </div>
+
+                    <div class="custom-address-fields">
+                        <label>Custom Address</label>
+                        <textarea class="form-control" name="CustomShippingAddress" rows="2"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Notes</label>
+                        <textarea class="form-control" name="Notes" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="InternalCharge" id="InternalCharge" />
+                        <label class="form-check-label" for="InternalCharge">
+                            Internal Charge?
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Confirm Shipment</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('.finalize-btn').on('click', function () {
+            $('.finalize-btn').prop('disabled', true);
+            const shipmentId = $(this).data('id');
+            const title = $(this).data('title');
+            $('#modalTitle').text(`Finalize: ${title}`);
+            $('#JobShipmentId').val(shipmentId);
+
+            // Auto-fill local datetime
+            $('input[name="ShipmentDate"]').val(getLocalDatetimeString());
+
+            // Fetch shipping addresses
+            $.get(`${ProcessUrl('Shipping/GetShippingAddressesForShipment')}?shipmentId=${shipmentId}`, function (addresses) {
+                const select = $('#ShippingAddress');
+                select.empty();
+
+                addresses.forEach(addr => {
+                    select.append(`<option value="${addr.Id}">${addr.Display}</option>`);
+                });
+
+                if (addresses.length > 0) {
+                    select.val(addresses[0].Id);
+                }
+            });
+
+            $('.finalize-btn').prop('disabled', false);
+        });
+
+        function getLocalDatetimeString() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset();
+            const local = new Date(now.getTime() - offset * 60000);
+            return local.toISOString().slice(0, 16);
+        }
+
+        $('#useCustomAddress').on('change', function () {
+            const show = $(this).is(':checked');
+            $('.custom-address-fields').toggle(show);
+            $('#ShippingAddress').prop('disabled', show);
+        });
+
+        $('#finalizeShipmentForm').on('submit', function (e) {
+            e.preventDefault();
+
+            $('.modal-footer button[type="submit"]').prop('disabled', true);
+
+            $.ajax({
+                type: 'POST',
+                url: ProcessUrl('Shipping/FinalizeShipment'),
+                data: $(this).serialize(),
+                success: function () {
+                    alert('Shipment marked as shipped.');
+                    location.reload();
+                },
+                error: function (xhr) {
+                    alert('Error saving shipment: ' + xhr.statusText);
+                },
+                complete: function () {
+                    $('.modal-footer button[type="submit"]').prop('disabled', false);
+                }
+            });
+        });
+
+        function updateFreightPrice() {
+            const cost = parseFloat($('input[name="FreightCost"]').val()) || 0;
+            const markup = parseFloat($('input[name="Markup"]').val()) || 0;
+            const price = cost + (cost * markup);
+            $('input[name="FreightPrice"]').val(price.toFixed(2));
+        }
+
+        $('input[name="FreightCost"], input[name="Markup"]').on('input', updateFreightPrice);
+
+        $('.toggle-items').on('click', function (e) {
+            e.preventDefault();
+            const id = $(this).data('id');
+            $(`#item-list-${id}`).slideToggle(150);
+        });
+    });
+</script>

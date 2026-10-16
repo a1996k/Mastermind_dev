@@ -1,0 +1,141 @@
+﻿@model FifthPress.Models.ViewModels.VM_CustomerQuote2
+<div class="quote-container">
+    <div class="row py-5 icon align-items-center fs-4 px-4">
+        <div class="field-binder-col-flex source-information">
+            <span>@Html.DisplayFor(model => model.SourceInformation.CompanyName)</span>
+            <span>@Html.DisplayFor(model => model.SourceInformation.Address)</span>
+            <span>@Html.DisplayFor(model => model.SourceInformation.City) @Html.DisplayFor(model => model.SourceInformation.State) @Html.DisplayFor(model => model.SourceInformation.ZipCode)</span>
+            <span>@Html.DisplayFor(model => model.SourceInformation.Phone)</span>
+        </div>
+        <img src="~/Content/images/quote_fc_header.png" class="img-fluid" alt="quote header">
+    </div>
+    <div class="row py-5 ps-4 field-binder-row-flex fs-4 quote-info">
+        <div class="field-binder-col-flex client-information">
+            <span>@Html.DisplayFor(model => model.ClientInformation.ContactName)</span>
+            <span>@Html.DisplayFor(model => model.ClientInformation.ClientName)</span>
+            <span>@Html.DisplayFor(model => model.ClientInformation.Attention)</span>
+            <span>@Html.DisplayFor(model => model.ClientInformation.Address)</span>
+            <span>@Html.DisplayFor(model => model.ClientInformation.City) @Html.DisplayFor(model => model.ClientInformation.State) @Html.DisplayFor(model => model.ClientInformation.ZipCode)</span>
+        </div>
+        <div class="field-binder-col-flex shipping-information">
+            <h2>Ship To</h2>
+            <span>@Html.DisplayFor(model => model.ShippingInformation.CompanyName)</span>
+            <span>@Html.DisplayFor(model => model.ShippingInformation.Attention)</span>
+            <span>@Html.DisplayFor(model => model.ShippingInformation.Address)</span>
+            <span>@Html.DisplayFor(model => model.ShippingInformation.City) @Html.DisplayFor(model => model.ShippingInformation.State) @Html.DisplayFor(model => model.ShippingInformation.ZipCode)</span>
+        </div>
+    </div>
+    @foreach (FifthPress.Models.QuoteTicket_QuoteItem qtqi in Model.QuoteItems)
+    {
+        <div class="row py-3 fs-3 entry-row">
+            <div class="col-lg-12">
+                <ul class="quote-info-list">
+                    <li>
+                        <div class="row pb-3">
+                            <div class="col-3 fw-bold">Description: </div>
+                            <div class="col-9">@Html.DisplayFor(model => qtqi.Description)</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="row pb-3">
+                            <div class="col-3 fw-bold">Stock: </div>
+                            <div class="col-9">@Html.DisplayFor(model => qtqi.StockName)</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="row pb-3">
+                            <div class="col-3 fw-bold">Size: </div>
+                            <div class="col-9">@Html.DisplayFor(model => qtqi.Size)</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="row pb-3">
+                            <div class="col-3 fw-bold">Sides Printing: </div>
+                            <div class="col-9">@Html.DisplayFor(model => qtqi.SidesPrinting)</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="row pb-3">
+                            <div class="col-3 fw-bold">Colors: </div>
+                            <div class="col-9">@Html.DisplayFor(model => qtqi.Colors)</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="row pb-3">
+                            <div class="col-3 fw-bold">Quantity: </div>
+                            <div class="col-9">@Html.DisplayFor(model => qtqi.Quantity)</div>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="row pb-3">
+                            <div class="col-3 fw-bold">Lot Price: </div>
+                            <div class="col-9">@Html.DisplayFor(model => qtqi.PriceEach) ( @Html.DisplayFor(model => qtqi.Price) Total)</div>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    }
+
+    <div class="row fst-italic fs-5 msg-row pt-3">
+        <div class="col-lg-12">
+            <p>Thank you for the opportunity.</p>
+            <p>Graphic Design and Shipping are NOT included in this quote.</p>
+            <p>
+                <u>Customer provided art files:</u> If there is an issue with the file or additional time is needed for prepress/form layout, we will notify you.<br />
+                If additional time is needed, you will be charged at our regular rate and may incur a delay in production.
+            </p>
+            <p>If specifications are changed, or were not fully provided during this process, your final price may vary from the original estimate.</p>
+            <p>Reference quote number on all purchase orders and correspondence.</p>
+            <p>Due to material delays from our suppliers, our standard lead time may need to be extended.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .quote-container {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+        background: #fff;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+    }
+
+    .quote-info-list {
+        list-style-type: none;
+    }
+
+    .quote-info {
+        border-top: 2px inset black;
+        border-bottom: 2px inset black;
+    }
+
+    .msg-row {
+        padding-left: 2rem;
+    }
+
+    .source-information,
+    .shipping-information,
+    .client-information {
+        width: 50%;
+    }
+
+        .shipping-information h2 {
+            text-decoration: underline;
+        }
+
+    .entry-row {
+        border-bottom: 2px inset black;
+    }
+
+    .icon img {
+        height: 100px;
+        width: auto;
+    }
+
+    @@media print {
+        .entry-row {
+            page-break-inside: avoid;
+        }
+    }
+</style>

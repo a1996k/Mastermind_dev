@@ -1,0 +1,232 @@
+﻿
+@Scripts.Render("~/bundles/daterangepicker")
+@Styles.Render("~/Content/daterangepicker")
+<!--
+    View for changing Markup and Hourly Rate and viewing how this changes the totals in each department based on the tracked time worked
+
+    Inputs
+    ======
+    Hourly Rate slider
+    Markup Input
+    Date Range Selector
+
+-->
+
+<style>
+    .slider-container {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .slider-label {
+        margin-bottom: 10px;
+        display: block;
+        font-weight: bold;
+    }
+
+    .slider-value {
+        margin-top: 10px;
+        font-size: 18px;
+    }
+
+    .button-group {
+        display: flex;
+        justify-content: center;
+        margin: 20px auto;
+        max-width: 400px;
+    }
+
+    .toggle-button:not(:last-child) {
+        border-right: none;
+    }
+
+    .toggle-button.active {
+        background-color: #0056b3;
+    }
+
+    .toggle-button:hover {
+        background-color: #0056b3;
+    }
+</style>
+
+<div class="container pt-5 mt-5">
+    <div class="row">
+        <div class="field-binder-row-flex justify-content-evenly">
+            <div class="slider-container">
+                <label for="price_slider" class="slider-label">Select Hourly Rate:</label>
+                <input type="range" id="price_slider" name="price-slider" min="1" max="200" value="1" step="1" oninput="updatePrice(this.value)">
+                <div class="slider-value">Selected Rate: $<span id="price_value_display">1</span></div>
+            </div>
+
+            <div class="slider-container">
+                <label for="percent_slider" class="slider-label">Choose a markup:</label>
+                <input type="range" id="percent_slider" name="percent-slider" min="1" max="100" value="1" step="1" oninput="updatePercent(this.value)">
+                <div class="slider-value">Selected Markup: <span id="percent_value_display">1</span>%</div>
+            </div>
+
+            <input type="text" id="range_filter" name="rangeFilter" />
+        </div>
+        <div class="field-binder-col-flex">
+            <div class="button-group">
+                <div id="by-department" class="toggle-button active btn btn-sm btn-fc-info" onclick="toggleSelection('by-department')">By Department</div>
+                <div id="by-service" class="toggle-button btn btn-sm btn-fc-info" onclick="toggleSelection('by-service')">By Service</div>
+                <div id="by-service-category" class="toggle-button btn btn-sm btn-fc-info" onclick="toggleSelection('by-service-category')">By Service Category</div>
+            </div>
+        </div>
+    </div>
+    <div class="row fs-3">
+        <div class="col-lg-6">
+            <div class="field-binder-col-flex">
+                <h3>Current Search Parameters</h3>
+                <div class="field-binder-row-flex">
+                    <span class="fw-bold">Hourly Rate:</span><span class="hourly-rate-d-val ps-2"></span>
+                </div>
+                <div class="field-binder-row-flex">
+                    <span class="fw-bold">Markup: </span><span class="markup-d-val ps-2"></span>%
+                </div>
+                <div class="field-binder-row-flex">
+                    <span class="fw-bold">Range Start: </span><span class="range-start-d-val ps-2"></span>
+                </div>
+                <div class="field-binder-row-flex">
+                    <span class="fw-bold">Range End: </span><span class="range-end-d-val ps-2"></span>
+                </div>
+                <div class="field-binder-row-flex">
+                    <span class="fw-bold">Grouping: </span><span class="grouping-d-val ps-2"></span>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="field-binder-col-flex">
+                <h3>Overall Totals</h3>
+                <div class="field-binder-row-flex">
+                    <span class="fw-bold">Hours: </span><span class="overall-hours-d-val ps-2"></span> Hours
+                </div>
+                <div class="field-binder-row-flex">
+                    <span class="fw-bold">Cost:</span><span class="overall-cost-d-val ps-2"></span>
+                </div>
+                <div class="field-binder-row-flex">
+                    <span class="fw-bold">Price:</span><span class="overall-price-d-val ps-2"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="field-binder-row-flex justify-content-end my-3">
+        <button type="button" class="btn btn-sm btn-fc-info update-btn">Update Results</button>
+    </div>
+    
+    <div class="row">
+        <table id="record_inspect_table" class="fs-3">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Hours</th>
+                    <th>Cost</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    var rangeStart, rangeEnd, rangeStartDisplay, rangeEndDisplay;
+    var recordTable;
+
+    function updatePrice(value) {
+        //document.getElementById('price_value').textContent = value;
+        $('#price_value_display').text(value);
+    };
+
+    function updatePercent(value) {
+        //document.getElementById('percent_value').textContent = value;
+        $('#percent_value_display').text(value);
+    };
+
+    function toggleSelection(selectedId) {
+        const buttons = document.querySelectorAll('.toggle-button');
+        buttons.forEach(button => {
+            if (button.id === selectedId) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+    };
+
+    function updateDataSet() {
+        let hourlyRate = $('#price_slider').val();
+        let markup = $('#percent_slider').val();
+        let start = rangeStartDisplay;
+        let end = rangeEndDisplay;
+        let grouping = $('.toggle-button.active').text();
+
+
+
+        $('.hourly-rate-d-val').html(hourlyRate);
+        $('.markup-d-val').html(markup);
+        $('.range-start-d-val').html(start);
+        $('.range-end-d-val').html(end);
+        $('.grouping-d-val').html(grouping);
+
+        //ajax
+        $.ajax({
+            type: 'GET',
+            url: ProcessUrl('update-record-inspector'),
+            data: {
+                hourlyRate,
+                markup,
+                start,
+                end,
+                grouping
+            },
+            beforeSend: function () {
+                if (typeof recordTable !== 'undefined') {
+                    $(recordTable).DataTable().destroy();
+                }
+
+                $('#record_inspect_table tbody').html('');
+            },
+            success: function (data) {
+                try {
+                    let res = JSON.parse(data);
+
+                    $('.overall-hours-d-val').html(res.totals[0].Hours);
+                    $('.overall-cost-d-val').html(res.totals[0].Cost);
+                    $('.overall-price-d-val').html(res.totals[0].Price);
+
+                    for (let i = 0; i < res.records.length; i++) {
+                        let newRow = `<tr><td>${res.records[i].Title}</td><td>${res.records[i].Hours}</td><td>${res.records[i].Cost}</td><td>${res.records[i].Price}</td></tr>`;
+                        $('#record_inspect_table tbody').append(newRow);
+                    }
+                    recordTable = $('#record_inspect_table').dataTable();
+                } catch (e) {}
+            }
+        })
+    };
+
+    $(function () {
+        $('#range_filter').daterangepicker({
+            opens: 'left',
+            /*ranges: {
+                'Today': [moment(), moment()],
+                'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                'This Month': [moment().startOf('month'), moment().endOf('month')],
+                'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+            },*/
+        }, function (start, end, label) {
+            rangeStart = start.format('YYYY-MM-DD');
+            rangeEnd = end.format('YYYY-MM-DD');
+            rangeStartDisplay = start.format('MM-DD-YYYY');
+            rangeEndDisplay = end.format('MM-DD-YYYY');
+            //let viewName = $('.dashboard-button.db-selected').attr('value');
+            //LoadCardsForNewView(viewName);
+        });
+    })
+        .on('click', '.update-btn', updateDataSet);
+</script>

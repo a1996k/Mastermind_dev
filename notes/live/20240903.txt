@@ -1,0 +1,64 @@
+1. Procedure Updates
+
+	•	Updated Quote/Job Ink Cost Procedure:
+	•	New minimum ink cost: $5/color on QM/Heid/Roland (Updated in STAGING PROCEDURES).
+	•	Added new procedure: QualifiesForMinimumInkCost (returns 1 if minimum cost should be applied, otherwise 0) (Added to STAGING).
+
+2. High-Level To-Do
+	•	Action: Change press after duplicate. (b)
+	•	ADP Time Record Pull: Pending. (c)
+
+3. Troubleshooting
+
+	•	Quote Duplication Issue:
+	•	Duplicating a quote was resulting in multiple print services over time.
+	•	Laminate finishing material price was not being removed when finishing material is removed. (retest)
+	•	Service Time Entry Issue:
+	•	Minor issue: Service time is entered as 0:20 but rounding brings it down to 0:19.
+	•	Solution: Enter the decimal instead (e.g., .34 for 20 minutes).
+
+4. Print Cost Issue Test (Staging)
+
+	•	Quote #1128 (49386):
+	•	Added one item and calculated.
+	•	Duplicated:
+	•	#1129: No issues.
+	•	#1130: No issues.
+	•	All calculations completed without issues.
+
+5. UI and Process Issues
+
+	•	Laminate Needs to Happen Before Zund:
+	•	Is it ok to allow services to move between categories on quote/job?
+	•	UI Issues:
+	•	Cost Type on Finishing Material config reads incorrect text.
+	•	Change price display to an input instead of display.
+	•	Update Scrap Sheets Display.
+	•	Contact Select Issue:
+	•	Select Sartori as Client: Nothing in the field, procurement returned.
+	•	Enter text: Nothing returned.
+
+6. To-Do List
+
+	•	Material Select Data Model:
+	•	Ready for testing (DONE).
+	•	Refine UserSheetOverride Logic:
+	•	Issue: Getting set when not intended.
+	•	Possible Solution: Add Lock Sheets?
+	•	Contact Select Issue:
+	•	Ready for testing (Sartori and BMW work; FifthColor and Frank Mayer do not).
+	•	Search UI Updates:
+	•	Re-test Jason print issue.
+	•	Daily Job/Quote Excel Sheet for CSR: Pending.
+
+7. Quick Items
+
+	•	Jim’s Time Tracking on 24-0204:
+	•	Will provide manual times; need to include prepress-only jobs.
+	•	Ink Cost Not Present on #1166:
+	•	Re-selected press speed, issue resolved.
+	•	Amy’s Job Not Loading:
+	•	Cleared finishing materials; she will re-add.
+	•	Faster (Memory Optimized) Server: Consider for future updates.
+	•	Kit Packing Issue:
+	•	Not parsing parameters on job and will not save changes.

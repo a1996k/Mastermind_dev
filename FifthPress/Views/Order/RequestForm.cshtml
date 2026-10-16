@@ -1,0 +1,129 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_OrderRequest
+
+@{
+    ViewBag.Title = "Golf Request Form";
+}
+
+@Styles.Render("~/Content/orders")
+
+@* slowly transforming to Quote request form instead of just golf request form *@
+
+<div class="g-request-form container">
+    <h3>Quote Request Form</h3>
+
+    <div class="row field-binder-row-flex">
+        <div class="col-12 field-binder-row-flex align-items-end">
+            <div class="field-binder-col-flex">
+                <label for="client_autocomplete">Client</label>
+                <input type="text" id="client_autocomplete" class="styled-input" style="min-width: 250px" />
+            </div>
+            <button type="button" class="btn btn-sm btn-fc-info ms-3" data-modal-to-open="#dynamic_client_modal">Add Client</button>
+            <input type="hidden" id="client_id" />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-6">
+            <div class="field-binder-col-flex">
+                <label>DESCRIPTION</label>
+                <textarea type="text" class="styled-input w-100" id="description"></textarea>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="field-binder-col-flex">
+                <label>NOTES</label>
+                <textarea type="text" class="styled-input w-100" id="notes"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <div class="row field-binder-row-flex">
+        <div class="col-12">
+            <label>PIECES</label>
+        </div>
+        <div class="col-12 d-flex">
+            <ul class="piece-list">
+            </ul>
+        </div>
+        <div class="col-12">
+            <button type="button" class="btn btn-sm btn-fc-info add-piece-btn">Add New Piece</button>
+        </div>
+    </div>
+    <div class="row field-binder-row-flex">
+        <div class="col-6 field-binder-col-flex">
+            <label>MATERIAL</label>
+            @Html.DropDownList("MATERIAL", Model.Materials, htmlAttributes: new { @class = "styled-input", @id = "material" })
+        </div>
+        <div class="col-6">
+            <textarea type="text" class="other-mat-entry mt-3 w-100 styled-input" style="display:none"></textarea>
+        </div>
+    </div>
+
+    <div class="row field-binder-row-flex">
+        <div class="col-3 d-flex align-items-end justify-content-end">
+            <label>PRINTING OPTIONS</label>
+        </div>
+        <div class="col-9 d-flex flex-row justify-content-around">
+            <div class="field-binder-col-flex me-3">
+                <label>1-Sided</label>
+                <input type="radio" name="oneTwoNone" class="styled-input" id="one" value="1" checked />
+            </div>
+            <div class="field-binder-col-flex">
+                <label>2-Sided</label>
+                <input type="radio" name="oneTwoNone" class="styled-input" id="two" value="2" />
+            </div>
+            <div class="field-binder-col-flex">
+                <label>No Print</label>
+                <input type="radio" name="oneTwoNone" class="styled-input" id="none" value="" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row field-binder-row-flex">
+        <div class="col-3 d-flex align-items-end justify-content-end">
+            <label for="finishing_entry">FINISHING</label>
+        </div>
+        <div class="col-9">
+            <textarea class="ff-dm-sans fs-16 w-100 styled-input" id="finishing_entry"></textarea>
+        </div>
+    </div>
+
+    <div class="row field-binder-row-flex">
+        <div class="col-3 d-flex align-items-end justify-content-end">
+            <label for="packing_entry">PACKING</label>
+        </div>
+        <div class="col-9">
+            <textarea class="ff-dm-sans fs-16 w-100 styled-input" id="packing_entry"></textarea>
+        </div>
+    </div>
+
+    <div class="row field-binder-row-flex">
+        <div class="col-3 d-flex align-items-end justify-content-end">
+            <label>REQUESTED DATE</label>
+        </div>
+        <div class="col-9">
+            <input type="date" class="styled-input" id="requested_by_date" />
+        </div>
+    </div>
+
+    <div class="row field-binder-row-flex">
+        <div class="col-3 d-flex align-items-end justify-content-end">
+            <label>FILES</label>
+        </div>
+        <div class="col-9 d-flex align-items-center">
+            <input type="file" class="files" multiple />
+            <textarea class="file-notes ff-poppins fs-14 w-100 styled-input"></textarea>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 text-end">
+            <button type="button" class="btn btn-lg btn-fc-primary submit-request-btn">Submit</button>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_DynamicClientAdditionModal.cshtml", new VM_Customer { Client = new Client { BlindShipping = false, TaxExempt = false, IsGolfClient = false, Markup = .40m } })
+
+@Scripts.Render("~/bundles/ordersjs")

@@ -1,0 +1,836 @@
+﻿@using FifthPress.Models.ViewModels2.PO25;
+@model VM_POReview25
+
+@{
+    ViewBag.Title = "Purchase Order Details";
+}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>Purchase Order #@Model.Order.PO_OrderId</h2>
+                <div>
+                    @switch (Model.Order.Status)
+                    {
+                        case "Draft":
+                            <span class="badge badge-secondary badge-lg">@Model.Order.Status</span>
+                            break;
+                        case "Pending":
+                            <span class="badge badge-warning badge-lg">@Model.Order.Status</span>
+                            break;
+                        case "Approved":
+                            <span class="badge badge-success badge-lg">@Model.Order.Status</span>
+                            break;
+                        case "Denied":
+                            <span class="badge badge-danger badge-lg">@Model.Order.Status</span>
+                            break;
+                        case "SentBack":
+                            <span class="badge badge-info badge-lg">Sent Back</span>
+                            break;
+                        case "Cancelled":
+                            <span class="badge badge-dark badge-lg">@Model.Order.Status</span>
+                            break;
+                        default:
+                            <span class="badge badge-light badge-lg">@Model.Order.Status</span>
+                            break;
+                    }
+                </div>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Order Information -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4>Order Information</h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Vendor:</strong><br>
+                                    @(Model.Order.Vendor?.Title ?? "N/A")
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Department:</strong><br>
+                                    @(Model.Order.Department?.Title ?? "N/A")
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <strong>Submitted By:</strong><br>
+                                    @(Model.Order.User?.FirstName + " " + Model.Order.User?.LastName ?? "N/A")
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Submission Date:</strong><br>
+                                    @(Model.Order.DateSubmitted?.ToString("MMM dd, yyyy") ?? "N/A")
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Line Items -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h4>Line Items</h4>
+                                @if (Model.ShowReceivingActions)
+                                {
+                                    <div>
+                                        <button type="button" class="btn btn-success btn-sm" onclick="showBulkReceiveModal()">
+                                            <i class="fas fa-check-circle"></i> Mark All Received
+                                        </button>
+                                        <button type="button" class="btn btn-info btn-sm" onclick="showReceivingHistory()">
+                                            <i class="fas fa-history"></i> Receiving History
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.LineItems != null && Model.LineItems.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Item</th>
+                                                <th>Description</th>
+                                                <th>Quantity</th>
+                                                <th>Job Number</th>
+                                                <th>Unit Price</th>
+                                                <th>Total</th>
+                                                @if (Model.ShowReceivingActions)
+                                                {
+                                                    <th>Actions</th>
+                                                }
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in Model.LineItems)
+                                            {
+                                                <tr class="@(item.InventoryTracked ? "inventory-item" : "")">
+                                                    <td>
+                                                        @(item.ItemDescription ?? "N/A")
+                                                        @if (item.IsBulkItem && item.BulkUnitQuantity.HasValue && item.BulkUnitQuantity.Value > 0)
+                                                        {
+                                                            // Legacy container-based bulk item
+                                                            <br />
+                                                            <small class="text-info">
+                                                                <i class="fas fa-box"></i>
+                                                                @item.Quantity @(item.BulkContainerType)(s) x @item.BulkUnitQuantity @item.BulkUnitType = @((item.Quantity * item.BulkUnitQuantity.Value).ToString("N2")) @item.BulkUnitType total
+                                                                @if (item.CalculatedUnitCost.HasValue)
+                                                                {
+                                                                    var unitCostDisplay1 = item.CalculatedUnitCost.Value < 0.01m ? item.CalculatedUnitCost.Value.ToString("C5").TrimEnd('0') : item.CalculatedUnitCost.Value.ToString("C");
+                                                                    <span>@@ @unitCostDisplay1/@item.BulkUnitType</span>
+                                                                }
+                                                            </small>
+                                                        }
+                                                        else if (item.IsBulkItem && (item.UnitType == "Per Hundred" || item.UnitType == "Per Thousand"))
+                                                        {
+                                                            // New simplified bulk/special pricing
+                                                            var divisor = item.UnitType == "Per Hundred" ? 100m : 1000m;
+                                                            var total = (item.Quantity / divisor) * item.Cost;
+                                                            <br />
+                                                            <small class="text-info">
+                                                                <i class="fas fa-calculator"></i>
+                                                                @item.Quantity.ToString("N0") units @@ @item.Cost.ToString("C") @item.UnitType = @total.ToString("C")
+                                                            </small>
+                                                        }
+                                                    </td>
+                                                    <td>@(item.InternalComments ?? "N/A")</td>
+                                                    <td>
+                                                        @if (item.IsBulkItem && item.BulkUnitQuantity.HasValue && item.BulkUnitQuantity.Value > 0)
+                                                        {
+                                                            // Legacy container-based
+                                                            <strong>@item.Quantity</strong> <small class="text-muted">@(item.BulkContainerType)(s)</small>
+                                                            <br />
+                                                            <small class="text-info">
+                                                                = @((item.Quantity * item.BulkUnitQuantity.Value).ToString("N2")) @item.BulkUnitType
+                                                            </small>
+                                                        }
+                                                        else
+                                                        {
+                                                            <strong>@item.Quantity.ToString("N2")</strong> <small class="text-muted">@item.UnitDisplayText</small>
+                                                        }
+                                                    </td>
+                                                    <td>@item.JobTicketNumber</td>
+                                                    <td>
+                                                        @if (item.IsBulkItem && item.BulkUnitQuantity.HasValue && item.BulkUnitQuantity.Value > 0)
+                                                        {
+                                                            // Legacy container-based
+                                                            @(item.Cost.ToString("C"))<small class="text-muted">/@(item.BulkContainerType)</small>
+                                                            <br />
+                                                            if (item.CalculatedUnitCost.HasValue)
+                                                            {
+                                                                var unitCostDisplay2 = item.CalculatedUnitCost.Value < 0.01m ? item.CalculatedUnitCost.Value.ToString("C5").TrimEnd('0') : item.CalculatedUnitCost.Value.ToString("C");
+                                                                <small class="text-info">(@unitCostDisplay2/@item.BulkUnitType)</small>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            @(item.Cost.ToString("C"))<small class="text-muted">/@item.UnitDisplayText</small>
+                                                        }
+                                                    </td>
+                                                    <td>@item.LineTotal.ToString("C")</td>
+                                                    @if (Model.ShowReceivingActions)
+                                                    {
+                                                        <td>
+                                                            @if (item.ReceivingSummary?.IsFullyReceived != true)
+                                                            {
+                                                                <button type="button" class="btn btn-success btn-xs"
+                                                                        onclick="showReceiveModal(@item.PO_LineItemId, '@item.ItemDescription', @item.Quantity, @(item.ReceivingSummary?.TotalReceived ?? 0))">
+                                                                    <i class="fas fa-plus"></i> Receive
+                                                                </button>
+                                                                if (item.ReceivingSummary?.ReceiptCount > 0)
+                                                                {
+                                                                    <button type="button" class="btn btn-info btn-xs ml-1"
+                                                                            onclick="showItemHistory(@item.PO_LineItemId)">
+                                                                        <i class="fas fa-history"></i>
+                                                                    </button>
+                                                                }
+                                                            }
+                                                        </td>
+                                                    }
+                                                </tr>
+                                            }
+                                        </tbody>
+                                        <tfoot>
+                                            @{
+                                                var subtotal = Model.LineItems.Sum(x => x.LineTotal);
+                                                var freight = Model.Order.FreightAmount ?? 0;
+                                                var taxAmount = Model.Order.IsTaxPercentage
+                                                    ? subtotal * ((Model.Order.TaxRate ?? 0) / 100)
+                                                    : (Model.Order.TaxAmount ?? 0);
+                                                var grandTotal = subtotal + freight + taxAmount;
+                                            }
+                                            <tr class="font-weight-bold">
+                                                <td colspan="@(Model.ShowReceivingActions ? "5" : "4")" class="text-right">Subtotal:</td>
+                                                <td>@subtotal.ToString("C")</td>
+                                                @if (Model.ShowReceivingActions)
+                                                {
+                                                    <td></td>
+                                                }
+                                            </tr>
+                                            @if (freight > 0 || taxAmount > 0)
+                                            {
+                                                if (freight > 0)
+                                                {
+                                                    <tr>
+                                                        <td colspan="@(Model.ShowReceivingActions ? "5" : "4")" class="text-right">Freight/Shipping:</td>
+                                                        <td>@freight.ToString("C")</td>
+                                                        @if (Model.ShowReceivingActions)
+                                                        {
+                                                            <td></td>
+                                                        }
+                                                    </tr>
+                                                }
+                                                if (taxAmount > 0)
+                                                {
+                                                    <tr>
+                                                        <td colspan="@(Model.ShowReceivingActions ? "5" : "4")" class="text-right">
+                                                            Tax@(Model.Order.IsTaxPercentage ? " (" + (Model.Order.TaxRate ?? 0).ToString("F2") + "%)" : ""):
+                                                        </td>
+                                                        <td>@taxAmount.ToString("C")</td>
+                                                        @if (Model.ShowReceivingActions)
+                                                        {
+                                                            <td></td>
+                                                        }
+                                                    </tr>
+                                                }
+                                                <tr class="font-weight-bold table-success">
+                                                    <td colspan="@(Model.ShowReceivingActions ? "5" : "4")" class="text-right">Grand Total:</td>
+                                                    <td>@grandTotal.ToString("C")</td>
+                                                    @if (Model.ShowReceivingActions)
+                                                    {
+                                                        <td></td>
+                                                    }
+                                                </tr>
+                                            }
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No line items found.</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Receiving Summary (only show for approved orders with inventory items) -->
+                    @if (Model.ShowReceivingActions && Model.ReceivingSummary != null)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>Receiving Summary</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="text-primary">@Model.ReceivingSummary.TotalInventoryItems</h4>
+                                            <small class="text-muted">Total Items</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="text-success">@Model.ReceivingSummary.FullyReceivedItems</h4>
+                                            <small class="text-muted">Fully Received</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="text-warning">@Model.ReceivingSummary.PartiallyReceivedItems</h4>
+                                            <small class="text-muted">Partially Received</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="text-center">
+                                            <h4 class="text-secondary">@Model.ReceivingSummary.PendingItems</h4>
+                                            <small class="text-muted">Pending</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-12">
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-success" style="width: @Model.ReceivingSummary.CompletionPercentage%">
+                                                @Model.ReceivingSummary.CompletionPercentage.ToString("F1")% Complete
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if (Model.ReceivingSummary.FirstReceiptDate.HasValue)
+                                {
+                                    <div class="row mt-3">
+                                        <div class="col-md-6">
+                                            <strong>First Receipt:</strong> @Model.ReceivingSummary.FirstReceiptDate.Value.ToString("MMM dd, yyyy")
+                                        </div>
+                                        @if (Model.ReceivingSummary.LastReceiptDate.HasValue)
+                                        {
+                                            <div class="col-md-6">
+                                                <strong>Last Receipt:</strong> @Model.ReceivingSummary.LastReceiptDate.Value.ToString("MMM dd, yyyy")
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Approval History -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h4>Approval History</h4>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.Approvals != null && Model.Approvals.Any())
+                            {
+                                <div class="timeline">
+                                    @foreach (var approval in Model.Approvals)
+                                    {
+                                        <div class="timeline-item mb-3">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <small class="text-muted">@approval.ActionDate.ToString("MMM dd, yyyy HH:mm")</small>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <strong>@(approval.User?.FirstName + " " + approval.User?.LastName)</strong>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    @switch (approval.ActionTaken)
+                                                    {
+                                                        case "Approved":
+                                                            <span class="badge badge-success">Approved</span>
+                                                            break;
+                                                        case "Denied":
+                                                            <span class="badge badge-danger">Denied</span>
+                                                            break;
+                                                        case "SentBack":
+                                                            <span class="badge badge-info">Sent Back</span>
+                                                            break;
+                                                        default:
+                                                            <span class="badge badge-secondary">@approval.ActionTaken</span>
+                                                            break;
+                                                    }
+                                                </div>
+                                                <div class="col-md-4">
+                                                    @if (!string.IsNullOrEmpty(approval.Comments))
+                                                    {
+                                                        <small>@approval.Comments</small>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(approval.Tags))
+                                                    {
+                                                        <div class="mt-1">
+                                                            @foreach (var tag in approval.Tags.Split(','))
+                                                            {
+                                                                <span class="badge badge-light mr-1">@tag.Trim()</span>
+                                                            }
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No approval actions recorded yet.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- SLA Status -->
+                    @if (Model.SLAStatus != null)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5>SLA Status</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <strong>Status:</strong>
+                                    <span class="badge @Model.SLAStatus.StatusClass">@Model.SLAStatus.StatusText</span>
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Hours Remaining:</strong> @Model.SLAStatus.HoursRemaining
+                                </div>
+                                <div class="mb-2">
+                                    <strong>Due Date:</strong> @((Model.SLAStatus.DueDate.HasValue ? Model.SLAStatus.DueDate.Value.ToString("g") : "—"))
+                                </div>
+                                @if (Model.SLAStatus.IsOverdue)
+                                {
+                                    <div class="alert alert-danger mt-2">
+                                        <small><i class="fas fa-exclamation-triangle"></i> This PO is overdue!</small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Budget Impact -->
+            @if (Model.BudgetImpact != null)
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5>Budget Impact</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-2">
+                            <strong>Total Amount:</strong><br>
+                            @Model.BudgetImpact.TotalAmount.ToString("C")
+                        </div>
+                        <div class="mb-2">
+                            <strong>Billable Amount:</strong><br>
+                            @Model.BudgetImpact.BillableAmount.ToString("C")
+                        </div>
+                        <div class="mb-2">
+                            <strong>Non-Billable Amount:</strong><br>
+                            @Model.BudgetImpact.NonBillableAmount.ToString("C")
+                        </div>
+                        <div class="mb-2">
+                            <strong>Budget Remaining:</strong><br>
+                            @Model.BudgetImpact.BudgetRemaining.ToString("C")
+                        </div>
+                        <div class="mb-2">
+                            <strong>Budget Usage:</strong><br>
+                            @Model.BudgetImpact.PercentOfBudget.ToString("N2")%
+                        </div>
+                        <div class="progress mb-2">
+                            <div class="progress-bar @(Model.BudgetImpact.BudgetWarningLevel == "Critical" ? "bg-danger" : Model.BudgetImpact.BudgetWarningLevel == "Warning" ? "bg-warning" : "bg-success")"
+                                 style="width: @(Model.BudgetImpact.PercentOfBudget)%"></div>
+                        </div>
+                        @if (Model.BudgetImpact.WillExceedBudget)
+                        {
+                            <div class="alert alert-warning mt-2">
+                                <small><i class="fas fa-exclamation-triangle"></i> This PO will exceed the department budget!</small>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            @if (Model.Order.Status == "Pending")
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.CanFinalApprove)
+                        {
+                            using (Html.BeginForm("ProcessApproval", "PO25Approval", FormMethod.Post, new { id = "approvalForm" }))
+                            {
+                                @Html.AntiForgeryToken()
+                                @Html.Hidden("id", Model.Order.PO_OrderId)
+                                <input type="hidden" name="decision" id="decisionInput" value="" required />
+
+                                <div class="form-group">
+                                    <label class="d-block mb-2">Decision:</label>
+                                    <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
+                                        <label class="btn btn-outline-success flex-fill decision-btn" data-decision="Approved">
+                                            <input type="radio" name="decisionRadio" autocomplete="off">
+                                            <i class="fas fa-check mr-1"></i> Approve
+                                        </label>
+                                        <label class="btn btn-outline-danger flex-fill decision-btn" data-decision="Denied">
+                                            <input type="radio" name="decisionRadio" autocomplete="off">
+                                            <i class="fas fa-times mr-1"></i> Deny
+                                        </label>
+                                        <label class="btn btn-outline-warning flex-fill decision-btn" data-decision="SentBack">
+                                            <input type="radio" name="decisionRadio" autocomplete="off">
+                                            <i class="fas fa-undo mr-1"></i> Send Back
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" id="commentsSection">
+                                    <label for="comments">Comments:</label>
+                                    <textarea name="comments" id="comments" class="form-control" rows="3" placeholder="Optional comments..."></textarea>
+                                    <small class="form-text text-muted comments-hint" id="commentsHint"></small>
+                                </div>
+
+                                if (Model.AvailableTags != null && Model.AvailableTags.Any())
+                                {
+                                    <div class="form-group" id="tagsSection" style="display: none;">
+                                        <label>Tags:</label>
+                                        @foreach (var tag in Model.AvailableTags)
+                                        {
+                                            <div class="form-check">
+                                                <input type="checkbox" name="selectedTags" value="@tag.Value" class="form-check-input" id="tag_@tag.Value">
+                                                <label class="form-check-label" for="tag_@tag.Value">@tag.Text</label>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+
+                                <button type="submit" class="btn btn-primary btn-block" id="submitBtn" disabled>
+                                    <i class="fas fa-paper-plane mr-1"></i> Submit Decision
+                                </button>
+                            }
+                            <script>
+                                $(document).ready(function () {
+                                    $('.decision-btn').on('click', function () {
+                                        var decision = $(this).data('decision');
+                                        $('#decisionInput').val(decision);
+
+                                        // Remove active state from all buttons and add to clicked one
+                                        $('.decision-btn').removeClass('active btn-success btn-danger btn-warning')
+                                            .addClass(function () {
+                                                return 'btn-outline-' + $(this).data('decision').toLowerCase().replace('sentback', 'warning').replace('approved', 'success').replace('denied', 'danger');
+                                            });
+
+                                        $(this).removeClass('btn-outline-success btn-outline-danger btn-outline-warning');
+                                        if (decision === 'Approved') {
+                                            $(this).addClass('active btn-success');
+                                            $('#commentsHint').text('Add any notes for the requestor (optional)');
+                                            $('#tagsSection').hide();
+                                            $('#comments').attr('placeholder', 'Optional comments...');
+                                        } else if (decision === 'Denied') {
+                                            $(this).addClass('active btn-danger');
+                                            $('#commentsHint').text('Please provide a reason for denial');
+                                            $('#tagsSection').show();
+                                            $('#comments').attr('placeholder', 'Reason for denial...');
+                                        } else if (decision === 'SentBack') {
+                                            $(this).addClass('active btn-warning');
+                                            $('#commentsHint').text('Let the requestor know what changes are needed');
+                                            $('#tagsSection').hide();
+                                            $('#comments').attr('placeholder', 'What changes are needed...');
+                                        }
+
+                                        // Enable submit button
+                                        $('#submitBtn').prop('disabled', false);
+                                    });
+
+                                    // Form validation
+                                    $('#approvalForm').on('submit', function (e) {
+                                        var decision = $('#decisionInput').val();
+                                        if (!decision) {
+                                            e.preventDefault();
+                                            alert('Please select a decision');
+                                            return false;
+                                        }
+                                    });
+                                });
+                            </script>
+                        }
+                        else
+                        {
+                            var total = Model.Order.PO_LineItems25.Sum(li => li.Cost * li.Quantity);
+                            var userRoles = ViewBag.UserRoles as List<VM_UserRole25> ?? new List<VM_UserRole25>();
+
+                            // Check if user has department roles for this PO's department
+                            var hasDeptApprover = userRoles.Any(r => r.RoleName == "Department Approver" && r.DepartmentId == Model.Order.DepartmentId);
+                            var hasDeptManager = userRoles.Any(r => r.RoleName == "Department Manager" && r.DepartmentId == Model.Order.DepartmentId);
+                            var hasOwner = userRoles.Any(r => r.RoleName == "Owner");
+                            var hasAdmin = userRoles.Any(r => r.RoleName == "Admin");
+
+                            if (total > 5000)
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Owner Approval Required</strong><br>
+                                    This purchase order totals @total.ToString("C") and requires Owner approval.
+                                </div>
+                            }
+                            else if (total > 1000 && hasDeptApprover && !hasDeptManager && !hasOwner && !hasAdmin)
+                            {
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <strong>Department Manager Approval Required</strong><br>
+                                    This purchase order totals @total.ToString("C") and requires Department Manager or Owner approval.
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    You do not have permission to approve this purchase order.
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <a href="@Url.Action("Index", "PO25")" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Purchase Orders
+            </a>
+            @if (Model.Order.Status == "Draft" && Model.Order.OrderType != "Recurring")
+            {
+                <a href="@Url.Action("Edit", "PO25", new { id = Model.Order.PO_OrderId })" class="btn btn-warning ml-2">
+                    <i class="fas fa-edit"></i> Edit Order
+                </a>
+            }
+            else if (Model.Order.Status == "SentBack" && Model.Order.OrderType != "Recurring")
+            {
+                <a href="@Url.Action("Edit", "PO25", new { id = Model.Order.PO_OrderId })" class="btn btn-warning ml-2">
+                    <i class="fas fa-edit"></i> Edit & Resubmit
+                </a>
+            }
+            @if (ViewBag.CanAmendPO == true)
+            {
+                <a href="@Url.Action("AmendTaxFreight", "PO25", new { id = Model.Order.PO_OrderId })" class="btn btn-warning ml-2">
+                    <i class="fas fa-edit"></i> Amend Tax/Freight
+                </a>
+            }
+            @if (Model.Order.OrderType == "Recurring")
+            {
+                <a href="@Url.Action("RecurringIndex", "PO25")" class="btn btn-info ml-2">
+                    <i class="fas fa-list"></i> Go to Recurring Orders
+                </a>
+            }
+            <a href="@Url.Action("Print", "PO25", new { id = Model.Order.PO_OrderId })" class="btn btn-info ml-2" target="_blank">
+                <i class="fas fa-print"></i> Print
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Receive Item Modal -->
+<div class="modal fade" id="receiveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Receive Item</h5>
+                <button type="button" class="close" data-dismiss="modal" data-modal-to-close="#receiveModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="receiveForm">
+                    <input type="hidden" id="lineItemId" />
+
+                    <div class="form-group">
+                        <label>Item:</label>
+                        <div id="itemDescription" class="form-control-plaintext"></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Ordered Quantity:</label>
+                                <div id="orderedQuantity" class="form-control-plaintext"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Previously Received:</label>
+                                <div id="previouslyReceived" class="form-control-plaintext"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantityReceived">Quantity Received <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control" id="quantityReceived" min="1" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="storageLocation">Storage Location</label>
+                        <input type="text" class="form-control" id="storageLocation" placeholder="Optional" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="receiveNotes">Notes</label>
+                        <textarea class="form-control" id="receiveNotes" rows="3" placeholder="Optional notes about this receipt"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" data-modal-to-close="#receiveModal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="submitReceipt()">Record Receipt</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .inventory-item {
+        border-left: 3px solid #17a2b8;
+    }
+
+    .btn-xs {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.75rem;
+        line-height: 1.2;
+        border-radius: 0.2rem;
+    }
+
+    .receiving-status {
+        min-width: 120px;
+    }
+
+    .timeline-item {
+        border-left: 3px solid #dee2e6;
+        padding-left: 1rem;
+        position: relative;
+    }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 8px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #6c757d;
+        }
+
+    .badge-lg {
+        font-size: 0.9rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    /* Approval Decision Toggle Buttons */
+    .decision-btn {
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border-width: 2px;
+    }
+
+    .decision-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .decision-btn.active {
+        transform: translateY(0);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .decision-btn input[type="radio"] {
+        display: none;
+    }
+
+    .btn-group-toggle .btn-outline-success:hover {
+        background-color: rgba(40, 167, 69, 0.1);
+    }
+
+    .btn-group-toggle .btn-outline-danger:hover {
+        background-color: rgba(220, 53, 69, 0.1);
+    }
+
+    .btn-group-toggle .btn-outline-warning:hover {
+        background-color: rgba(255, 193, 7, 0.1);
+    }
+
+    #commentsHint {
+        min-height: 1.2em;
+    }
+</style>
+
+<script>
+    function showReceiveModal(lineItemId, itemDescription, orderedQty, receivedQty) {
+    $('#lineItemId').val(lineItemId);
+    $('#itemDescription').text(itemDescription);
+    $('#orderedQuantity').text(orderedQty);
+    $('#previouslyReceived').text(receivedQty);
+    $('#quantityReceived').attr('max', orderedQty - receivedQty);
+    $('#receiveModal').modal('show');
+}
+
+function submitReceipt() {
+    var formData = {
+        lineItemId: $('#lineItemId').val(),
+        quantityReceived: $('#quantityReceived').val(),
+        storageLocation: $('#storageLocation').val(),
+        notes: $('#receiveNotes').val()
+    };
+
+    $.post(ProcessUrl('@Url.Action("MarkItemAsReceived", "PO25Receiving")'), formData)
+        .done(function(response) {
+            if (response.success) {
+                $('#receiveModal').modal('hide');
+                location.reload(); // Refresh to show updated status
+            } else {
+                alert('Error: ' + response.message);
+            }
+        })
+        .fail(function (xhr, status, error) {
+            alert('An error occurred: ' + error + '\n' + xhr.responseText);
+        });
+}
+
+function showBulkReceiveModal() {
+    // Implementation for bulk receiving
+    if (confirm('Mark all pending inventory items as received?')) {
+        $.post(ProcessUrl('@Url.Action("MarkAsReceived", "PO25Receiving")'), { poId: @Model.Order.PO_OrderId })
+            .done(function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            });
+    }
+}
+
+    function showReceivingHistory() {
+        window.location.href = '@Url.Action("ReceivingHistory", "PO25Receiving", new { id = Model.Order.PO_OrderId })';
+    }
+
+function showItemHistory(lineItemId) {
+    // Implementation for showing individual item history
+    window.location.href = ProcessUrl('@Url.Action("ItemReceivingHistory", "PO25Receiving")') + '?lineItemId=' + lineItemId;
+}
+</script>

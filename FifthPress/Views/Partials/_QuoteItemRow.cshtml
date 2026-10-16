@@ -1,0 +1,453 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_QuoteItem
+
+@{
+    bool hasPress = Model.QuoteItem.Press.HasValue;
+    bool hasMaterial = Model.QuoteItem.Material.HasValue;
+
+    string dCutId = "hasDutchCut_" + Model.QuoteItem.Id.ToString();
+
+    bool hasDutchCut = (bool)ViewData[dCutId];
+}
+
+<div class="quote-item-row item-row @(Model.QuoteItem.SubitemOf.HasValue ? "sub-item" : "")" data-record-id="@Html.DisplayFor(model => model.QuoteItem.Id)" data-item-ordinal="@Html.DisplayFor(model => model.QuoteItem.Ordinal)">
+
+    @Html.HiddenFor(model => model.QuoteItem.Title, htmlAttributes: new { @class = "item-title" })
+    @Html.HiddenFor(model => model.QuoteItem.Material, htmlAttributes: new { @class = "selectedmaterial", id = ("sm_" + Model.QuoteItem.Id.ToString()) })
+    @Html.HiddenFor(model => model.QuoteItem.Press, htmlAttributes: new { @class = "selectedpress", id = ("sp_" + Model.QuoteItem.Id.ToString()) })
+    @Html.HiddenFor(model => model.QuoteItem.Ordinal, htmlAttributes: new { @class = "itemordinal" })
+    @Html.HiddenFor(model => model.QuoteItem.FormattedPrintTime)
+    @Html.HiddenFor(model => model.QuoteItem.Up, htmlAttributes: new { @class = "item-up-val" })
+    @Html.HiddenFor(model => model.QuoteItem.TotalQuantity, htmlAttributes: new { @class = "total-quantity" })
+    @Html.HiddenFor(model => model.QuoteItem.PressSpeedNumerator)
+    @Html.HiddenFor(model => model.QuoteItem.PressSpeedDenominator)
+    @Html.HiddenFor(model => model.QuoteItem.DoubleHit, htmlAttributes: new { @class = "press-double-ink" })
+    @Html.HiddenFor(model => model.QuoteItem.SubitemOf, htmlAttributes: new { @class = "subitem-of" })
+    @Html.HiddenFor(model => model.QuoteItem.Collate, htmlAttributes: new { @class = "press-collate" })
+    @Html.HiddenFor(model => model.QuoteItem.Staple, htmlAttributes: new { @class = "press-staple" })
+    @Html.HiddenFor(model => model.QuoteItem.CustomMarkup, htmlAttributes: new { @class = "custom-markup" })
+    @Html.HiddenFor(model => model.QuoteItem.SelectedSpeed, htmlAttributes: new { @class = "selected-speed" })
+    @Html.HiddenFor(model => model.QuoteItem.MaterialRunSize, htmlAttributes: new { @class = "current-mrs" })
+
+    @{
+        bool isDesignRequired = !Model.QuoteItem.ArtworkProvided.Value;
+    }
+
+    <div class="item-wrapper-ticket">
+        <div class="item-ticket-content-w">
+            <button type="button" class="btn btn-fc-caution ordinal-display">Item @Html.DisplayFor(model => model.QuoteItem.Ordinal)</button>
+        </div>
+        <div class="item-right-ticket-wrapper d-flex justify-content-between align-items-center">
+            <div class="px-3">
+                <div>
+                    <label for="#is_design_required">Design Required</label>
+                    @Html.CheckBoxFor(model => isDesignRequired, htmlAttributes: new { @class = "artwork-provided", @id = "is_design_required" })
+                </div>
+                <div class="mins-input design-time-input @(isDesignRequired ? "" : "d-none")">
+                    @Html.LabelFor(model => model.QuoteItem.DesignHours)
+                    @Html.EditorFor(model => model.QuoteItem.DesignHours, new { htmlAttributes = new { @class = "design-hours styled-input", @id = String.Format("design_hours_{0}", Model.QuoteItem.Id.ToString()) } })
+                </div>
+            </div>
+
+            <div class="field-binder-row-flex">
+                <div class="dup-item-btn me-4"><i class="fa-regular fa-copy"></i>Duplicate item</div>
+                <div class="add-related-item me-4"><i class="fa-solid fa-layer-group"></i>Add Related Item</div>
+                <button type="button" class="btn btn-danger btn-sm remove-btn"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-between row-border-btm">
+        <div class="col-12">
+            <div class="row">
+                <div class="col-4">
+                    <div class="field-binder-col-flex align-items-stretch">
+                        <div class="desc-wrapper row">
+                            <div class="col-12">
+                                <div class="dec-content-wrapper">
+                                    <div>
+                                        @Html.LabelFor(model => model.QuoteItem.Description)
+                                    </div>
+                                    <div>
+                                        <div class="item-title">Item Description</div>
+                                        @Html.TextAreaFor(model => model.QuoteItem.Description, htmlAttributes: new { @class = "item-description" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-4">
+                    <div class="field-binder-col-flex align-items-stretch">
+                        <div class="desc-wrapper row">
+                            <div class="col-12">
+                                <div class="dec-content-wrapper">
+                                    <div>
+                                        @Html.LabelFor(model => model.QuoteItem.Notes)
+                                    </div>
+                                    <div>
+                                        <div class="item-title">Notes</div>
+                                        @Html.TextAreaFor(model => model.QuoteItem.Notes, htmlAttributes: new { @class = "item-notes styled-input" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="field-binder-col-flex align-items-stretch">
+                        <div class="desc-wrapper row">
+                            <div class="col-12">
+                                <div class="dec-content-wrapper">
+                                    <div>
+                                        @Html.LabelFor(model => model.QuoteItem.InternalNotes)
+                                    </div>
+                                    <div>
+                                        <div class="item-title">Internal Notes</div>
+                                        @Html.TextAreaFor(model => model.QuoteItem.InternalNotes, htmlAttributes: new { @class = "internal-notes styled-input" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pt-5 row-border-btm">
+        <div class="col-1">
+            <div class="item-title-main">
+                Item Details
+            </div>
+        </div>
+        <div class="col-5">
+            <div class="field-binder-col-flex">
+                <label>Dimensions (L x W)</label>
+                <div class="field-binder-row-flex">
+                    @Html.EditorFor(model => model.QuoteItem.Length, new { htmlAttributes = new { @class = "item-length", @placeholder = "l", @title = "Length", @data_ordinal = Model.QuoteItem.Ordinal, @id = String.Format("item_length_{0}", Model.QuoteItem.Id.ToString()) } })
+                    <span class="mx-4"><i class="fa-solid fa-x"></i></span>
+                    @Html.EditorFor(model => model.QuoteItem.Width, new { htmlAttributes = new { @class = "item-width", @placeholder = "w", @title = "Width", @data_ordinal = Model.QuoteItem.Ordinal, @id = String.Format("item_width_{0}", Model.QuoteItem.Id.ToString()) } })
+                </div>
+                <div class="field-binder-row-flex mt-4">
+                    @Html.LabelFor(model => model.QuoteItem.Quantity)
+                    <label> - By</label>
+                </div>
+                <div class="field-binder-row-flex mins-input">
+                    @Html.EditorFor(model => model.QuoteItem.Quantity, new { htmlAttributes = new { @type = "number", @class = "item-quantity", @data_ordinal = Model.QuoteItem.Ordinal } })
+                    @Html.EditorFor(model => model.QuoteItem.QuantityBy, new { htmlAttributes = new { @type = "number", @class = "item-quantity-by", @data_ordinal = Model.QuoteItem.Ordinal } })
+                </div>
+            </div>
+        </div>
+        <div class="col-5">
+            <div class="item-title mb-3">Attatch Files</div>
+            <div class="doc-link">
+                <span class="document-btn"><i class="fa-solid fa-upload me-2"></i>  Click to upload <!--or drag and drop--></span>
+                @if (Model.QuoteItem.DocumentCount > 0)
+                {
+                    <i class="fa-solid fa-paperclip fs-24 ms-3 mt-1"></i>
+                }
+                else
+                {
+                    <i class="fa-solid fa-paperclip" style="display:none"></i>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="row mt-5 row-border-btm stock-row">
+        <div class="col-1">
+            <div class="item-title-main">
+                Stock
+            </div>
+        </div>
+        <div class="col-11 fs-4">
+            <div class="field-binder-col-flex">
+                <div class="field-binder-row-flex">
+                    <div class="material-name">
+                        @Html.DisplayFor(model => model.QuoteItem.Material1.Title)
+                    </div>
+                    <div class="field-binder-row-flex">
+                        <div class="selected-material-cost ms-3">
+                            $@Html.DisplayFor(model => model.QuoteItem.MaterialCost)
+                        </div>
+                        <div class="selected-material-cost-unit ms-1"> @Html.DisplayFor(model => model.QuoteItem.Material1.MaterialCostType.Title)</div>
+                    </div>
+                </div>
+                <div class="fw-bolder">
+                    Run: <span class="run-size">@Html.DisplayFor(model => model.QuoteItem.RunLength) @Html.Raw("x") @Html.DisplayFor(model => model.QuoteItem.RunWidth)</span> <span class="sheets-display">@Html.DisplayFor(model => model.QuoteItem.TotalSheets)</span> Sheets (<span class="out-display">@Html.DisplayFor(model => model.QuoteItem.Out)</span> Out, <span class="calced-up-val">@Html.DisplayFor(model => model.QuoteItem.Up)</span> Up)
+                </div>
+                <div class="fw-bolder">
+                    Finish: <span class="finish-size-display">@Html.DisplayFor(model => model.QuoteItem.Length) @Html.Raw("x") @Html.DisplayFor(model => model.QuoteItem.Width)</span>
+                </div>
+                <div>
+                    <!-- Front Color profile -->
+                    Front: <span class="front-color-display">@Html.DisplayFor(model => model.QuoteItem.PressColorProfileFront)</span>
+                </div>
+                <div>
+                    <!-- Back Color profile -->
+                    Back: <span class="back-color-display">@Html.DisplayFor(model => model.QuoteItem.PressColorProfileBack)</span>
+                </div>
+                <hr />
+                <div class="fw-bolder">
+                    Sheets: <span class="sheets-display">@Html.DisplayFor(model => model.QuoteItem.Sheets)</span>
+                </div>
+                <div class="fw-bolder">
+                    Scrap Sheets: <span class="scrap-sheets-display">@Html.DisplayFor(model => model.QuoteItem.TotalScrapSheets)</span>
+                </div>
+                <div class="fw-bolder">
+                    Run Sheets: <span class="run-sheets-display">@Html.DisplayFor(model => model.QuoteItem.RunSheets)</span>
+                </div>
+                <div class="fw-bolder">
+                    Buy Sheets: <span class="buy-sheets-display">@Html.DisplayFor(model => model.QuoteItem.BuySheets)</span>
+                </div>
+                <hr />
+                <div class="field-binder-col-flex justify-content-between">
+                    <div class="fw-bold">
+                        <div>Up: <span class="calced-up-val">@Html.DisplayFor(model => model.QuoteItem.Up)</span><button type="button" class="btn up-up-btn" @(Model.QuoteItem.Material.HasValue ? "" : "disabled")>+</button><button type="button" class="btn up-down-btn" @(Model.QuoteItem.Material.HasValue ? "" : "disabled")>-</button> </div>
+                        <div class="dutch-cut-display" style="color: blue; @(!hasDutchCut ? "display: none" : "")">
+                            <span class="fs-16">Dutch Cut Enabled</span>
+                        </div>
+                        <div class="sheet-override-display" style="color: orange; @(!(Model.QuoteItem.UserSheetOverride ?? false) ? "display: none" : "")">
+                            <span class="fs-16">Sheet Override Enabled</span>
+                        </div>
+                        <div class="double-ink-display" style="color: red; @(!(Model.QuoteItem.DoubleHit ?? false) ? "display: none" : "")">
+                            <span class="fs-16">Double Ink</span>
+                        </div>
+                        @Html.LabelFor(model => model.QuoteItem.UpValueLocked)
+                        @Html.CheckBoxFor(model => model.QuoteItem.UpValueLocked.Value, htmlAttributes: new { @class = "up-value-locked" })
+                    </div>
+                    <div class="fst-italic">
+                        <input type="button" class="btn btn-fc-caution view-layout-btn" value="View Layout" data-record-id="@Html.DisplayFor(model => model.QuoteItem.Id)" />
+                    </div>
+                </div>
+                <div class="field-binder-row-flex">
+                    <button type="button" class="btn btn-sm btn-fc-info select-material-button fs-16" data-modal-to-open="#materials_select_modal">Select Material</button>
+                    <button type="button" class="btn btn-sm btn-fc-info open-material-config ms-3 fs-16" data-modal-to-open="#material_config_modal">Open Material Config</button>
+                    @*<button type="button" class="btn btn-sm btn-fc-info add-material-btn ms-3 fs-16" data-modal-to-open="#dynamic_material_modal">Add Material</button>*@
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-5 row-border-btm">
+        <div class="col-1">
+            <div class="item-title-main">
+                Press
+            </div>
+        </div>
+        <div class="col-11 fs-4">
+            <div class="field-binder-col-flex">
+                <div class="field-binder-row-flex">
+                    @*<i class="fa-solid fa-gears print-ser-gears"></i>*@
+                    <div class="press-name">
+                        @Html.DisplayFor(model => model.QuoteItem.Press1.Title)
+                    </div>
+                </div>
+                <div class="selected-press-speed-display field-binder-row-flex">
+                    <div class="speed">@Html.DisplayFor(model => model.QuoteItem.PressSpeedNumerator)</div> <div class="speed-unit">@Html.DisplayFor(model => model.QuoteItem.SpeedDenominator.Text)</div>
+                </div>
+                <div class="field-binder-row-flex">
+                    <button type="button" class="btn btn-sm btn-fc-info select-press-btn fs-16" data-modal-to-open="#press_select_modal">Select Press</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- job normalized to this point (beneath) -->
+    <div class="row mt-5 row-border-btm">
+        <div class="col-1">
+            <div class="item-title-main">
+                Prepress
+            </div>
+        </div>
+        <div class="col-11">
+            <ul class="service-list prepress-service-list mt-4 fs-4" data-service-type="Prepress">
+                @if (Model.QuoteItem.QuoteItemServices.Count > 0)
+                {
+                    foreach (QuoteItemService qis in Model.QuoteItem.QuoteItemServices.Where(x => x.Service != null && x.Service.ServiceCategory.ServiceType1.Title == "Prepress").OrderBy(x => x.Ordinal).ToList())
+                    {
+                        <li data-record-type="service" class="ui-sortable-handle" data-record-id="@qis.Id" data-service-id="@qis.OriginalService" data-item-title="@qis.Service.Title">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-12 d-flex flex-row justify-content-between">
+                                        <i class="fa-solid fa-gears"></i>
+                                        @Html.HiddenFor(model => qis.ApexOrdinal, htmlAttributes: new { @class = "current-service-ordinal" })
+                                        @Html.HiddenFor(model => qis.IsCuttingService, htmlAttributes: new { @class = "is-cutting-service" })
+                                        <span>@qis.Title</span>
+                                        @if (qis.Service.Required ?? false)
+                                        {<span style="color:red">Required</span>}
+                                        else
+                                        {<span class="remove-link-li"><i class="fa-solid fa-minus" style="color: #8f0000;"></i></span>}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        @if ((qis.Service.IsTimed ?? false))
+                                        {
+                                            <span class="fw-light">Est. Time: <span class="service-time-value">@Html.DisplayFor(model => qis.FormattedServiceTime)</span></span>
+                                        }
+                                        else
+                                        {
+                                            <!-- Display some sort of quantity here -->
+                                        }
+                                        <p class="item-notes fst-italic text-start">@Html.DisplayFor(model => qis.Notes)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                }
+            </ul>
+            <button type="button" class="btn btn-sm btn-fc-info pre-ser-add-btn fs-16" data-modal-to-open="#prepress_service_select_modal">Add Prepress Service</button>
+        </div>
+    </div>
+
+
+
+    <div class="row mt-5 row-border-btm">
+        <div class="col-1">
+            <div class="item-title-main">
+                Printing
+            </div>
+        </div>
+        <div class="col-11">
+            <!--<ul class="service-list cutting-service-list mt-4 fs-4" data-service-type="Cutting">-->
+            <ul class="service-list printing-service-list mt-4 fs-4" data-service-type="Printing">
+                @if (Model.QuoteItem.QuoteItemServices.Count > 0)
+                {
+                    foreach (QuoteItemService qis in Model.QuoteItem.QuoteItemServices.Where(x => x.Service != null && x.Service.ServiceCategory.ServiceType1.Title == "Printing").OrderBy(x => x.Ordinal).ToList())
+                    {
+                        <li data-record-type="service" class="ui-sortable-handle" data-record-id="@qis.Id" data-service-id="@qis.OriginalService" data-item-title="@qis.Service.Title">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-12 d-flex flex-row justify-content-between">
+                                        <i class="fa-solid fa-gears"></i>
+                                        @Html.HiddenFor(model => qis.ApexOrdinal, htmlAttributes: new { @class = "current-service-ordinal" })
+                                        @Html.HiddenFor(model => qis.IsCuttingService, htmlAttributes: new { @class = "is-cutting-service" })
+                                        <span>@qis.Title</span>
+                                        @*if (qis.Service.Required ?? false)
+                                        {<span style="color:red">Required</span>}
+                                        else
+                                        {<span class="remove-link-li"><i class="fa-solid fa-minus" style="color: #8f0000;"></i></span>}*@
+                                        @*Removed Required/remove because this is contingent on the press state *@
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        @if ((qis.Service.IsTimed ?? false))
+                                        {
+                                            <span class="fw-light">Est. Time: <span class="service-time-value">@Html.DisplayFor(model => qis.FormattedServiceTime)</span></span>
+                                        }
+                                        else
+                                        {
+                                            <!-- Display some sort of quantity here -->
+                                        }
+                                        <p class="item-notes fst-italic text-start">@Html.DisplayFor(model => qis.Notes)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                }
+            </ul>
+        </div>
+    </div>
+
+
+
+    <div class="row mt-5 row-border-btm">
+        <div class="col-1">
+            <div class="item-title-main">
+                Cutting
+            </div>
+        </div>
+        <div class="col-11">
+            <ul class="service-list cutting-service-list mt-4 fs-4" data-service-type="Cutting">
+                @if (Model.QuoteItem.QuoteItemServices.Count > 0)
+                {
+                    foreach (QuoteItemService qis in Model.QuoteItem.QuoteItemServices.Where(x => x.Service != null && x.Service.ServiceCategory.ServiceType1.Title == "Finishing" && (x.Service.IsCuttingService ?? false)).OrderBy(x => x.Ordinal).ToList())
+                    {
+                        <li data-record-type="service" class="ui-sortable-handle" data-record-id="@qis.Id" data-service-id="@qis.OriginalService" data-item-title="@qis.Service.Title">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-12 d-flex flex-row justify-content-between">
+                                        <i class="fa-solid fa-gears"></i>
+                                        @Html.HiddenFor(model => qis.ApexOrdinal, htmlAttributes: new { @class = "current-service-ordinal" })
+                                        @Html.HiddenFor(model => qis.IsCuttingService, htmlAttributes: new { @class = "is-cutting-service" })
+                                        <span>@qis.Title</span>
+                                        @if (qis.Service.Required ?? false)
+                                        {<span style="color:red">Required</span>}
+                                        else
+                                        {<span class="remove-link-li"><i class="fa-solid fa-minus" style="color: #8f0000;"></i></span>}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        @if ((qis.Service.IsTimed ?? false))
+                                        {
+                                            <span class="fw-light">Est. Time: <span class="service-time-value">@Html.DisplayFor(model => qis.FormattedServiceTime)</span></span>
+                                        }
+                                        else
+                                        {
+                                            <!-- Display some sort of quantity here -->
+                                        }
+                                        <p class="item-notes fst-italic text-start">@Html.DisplayFor(model => qis.Notes)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                }
+            </ul>
+            <button type="button" class="btn btn-sm btn-fc-info cut-ser-add-btn fs-16" data-modal-to-open="#cutting_service_modal">Add Cutting Service</button>
+        </div>
+    </div>
+    <div class="row mt-5 row-border-btm">
+        <div class="col-1">
+            <div class="item-title-main">
+                Finishing
+            </div>
+        </div>
+        <div class="col-11">
+            <ul class="service-list finishing-service-list mt-4 fs-4" data-service-type="Finishing">
+                @if (Model.QuoteItem.QuoteItemServices.Count > 0)
+                {
+                    foreach (QuoteItemService qis in Model.QuoteItem.QuoteItemServices.Where(x => x.Service != null && x.Service.ServiceCategory.ServiceType1.Title == "Finishing" && !(x.Service.IsCuttingService ?? false)).OrderBy(x => x.Ordinal).ToList())
+                    {
+                        <li data-record-type="service" class="ui-sortable-handle" data-record-id="@qis.Id" data-service-id="@qis.OriginalService" data-item-title="@qis.Service.Title">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <div class="col-12 d-flex flex-row justify-content-between">
+                                        <i class="fa-solid fa-gears"></i>
+                                        @Html.HiddenFor(model => qis.ApexOrdinal, htmlAttributes: new { @class = "current-service-ordinal" })
+                                        @Html.HiddenFor(model => qis.IsCuttingService, htmlAttributes: new { @class = "is-cutting-service" })
+                                        <span>@qis.Title</span>
+                                        @if (qis.Service.Required ?? false)
+                                        {<span style="color:red">Required</span>}
+                                        else
+                                        {<span class="remove-link-li"><i class="fa-solid fa-minus" style="color: #8f0000;"></i></span>}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12">
+                                        @if ((qis.Service.IsTimed ?? false))
+                                        {
+                                            <span class="fw-light">Est. Time: <span class="service-time-value">@Html.DisplayFor(model => qis.FormattedServiceTime)</span></span>
+                                        }
+                                        else
+                                        {
+                                            <!-- Display some sort of quantity here -->
+                                        }
+                                        <p class="item-notes fst-italic text-start">@Html.DisplayFor(model => qis.Notes)</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                    }
+                }
+            </ul>
+            <button type="button" class="btn btn-sm btn-fc-info fin-ser-add-btn fs-16" data-modal-to-open="#finishing_service_select_modal">Add Finishing Service</button>
+            <button type="button" class="btn btn-sm btn-fc-info finishing-materials-btn fs-16" data-modal-to-open="#finishing_material_select_modal">Select Finishing Materials</button>
+            <button type="button" class="btn btn-sm btn-fc-info finishing-materials-config-btn fs-16" data-modal-to-open="#finishing_material_config_modal">Finishing Material Config</button>
+        </div>
+    </div>
+</div>

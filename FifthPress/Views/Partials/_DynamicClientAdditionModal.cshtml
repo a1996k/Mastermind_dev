@@ -1,0 +1,103 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Customer
+
+<style>
+    .contact-list li:not(:first-child) {
+        border-top: 2px solid black;
+    }
+
+    form[data-item-type="Customer"] h3 {
+        text-decoration: underline;
+    }
+
+    #dynamic_client_modal .single-line{
+        width: 90% !important;
+    }
+
+    #dynamic_client_modal label{
+        font-family: 'Poppins';
+        font-size: 14px;
+        font-weight:bold;
+    }
+</style>
+
+<div class="modal" tabindex="-1" id="dynamic_client_modal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title">Add Client</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#dynamic_client_modal" aria-label="Cancel">X Close</button>
+            </div>
+            <div class="modal-body">
+                <div class="container client-form">
+                    <div class="field-binder-row-flex">
+                        <div class="field-binder-col-flex">
+                            @Html.LabelFor(model => model.Client.Title)
+                            @Html.EditorFor(model => model.Client.Title, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                        </div>
+                        <div class="field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                <label>Blind Shipping</label>
+                                @Html.CheckBoxFor(model => model.Client.BlindShipping.Value)
+                            </div>
+                            <div class="field-binder-col-flex">
+                                <label>Tax Exempt</label>
+                                @Html.CheckBoxFor(model => model.Client.TaxExempt.Value)
+                            </div>
+                            <div class="field-binder-col-flex">
+                                <label>Golf Client</label>
+                                @Html.CheckBoxFor(model => model.Client.IsGolfClient.Value)
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field-binder-col-flex">
+                        <h3 class="pt-3"><u>Client Address</u></h3>
+                        <div class="field-binder-row-flex justify-content-between">
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.Client.Address)
+                                @Html.EditorFor(model => model.Client.Address, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.Client.AddressAlt)
+                                @Html.EditorFor(model => model.Client.AddressAlt, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                            </div>
+                            <div class="field-binder-row-flex justify-content-between">
+                                <div class="field-binder-col-flex">
+                                    @Html.LabelFor(model => model.Client.City)
+                                    @Html.EditorFor(model => model.Client.City, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                                </div>
+                                <div class="field-binder-col-flex">
+                                    @Html.LabelFor(model => model.Client.USStateId)
+                                    @Html.DropDownListFor(model => model.Client.USStateId, ViewData["Client.USStateId"] as SelectList, htmlAttributes: new { @class = "styled-input" })
+                                </div>
+                                <div class="field-binder-col-flex">
+                                    @Html.LabelFor(model => model.Client.Zip)
+                                    @Html.EditorFor(model => model.Client.Zip, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                                </div>
+                            </div>
+                            <div class="field-binder-col-flex">
+                                @Html.LabelFor(model => model.Client.AREmail)
+                                @Html.EditorFor(model => model.Client.AREmail, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                                <span class="text-muted small">Use commas to separate multiple emails</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field-binder-row-flex">
+                        <div class="field-binder-col-flex w-50">
+                            @Html.LabelFor(model => model.Client.Notes)
+                            @Html.TextAreaFor(model => model.Client.Notes, htmlAttributes: new { @data_changed = false, @class = "single-line styled-input" })
+                        </div>
+                        <div class="field-binder-col-flex">
+                            @Html.LabelFor(model => model.Client.Markup)
+                            @Html.EditorFor(model => model.Client.Markup, new { htmlAttributes = new { @data_changed = false, @class = "single-line styled-input" } })
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#dynamic_client_modal">Cancel</button>
+                <button class="btn btn-fc-success save-dynamic-client" data-modal-to-close="#dynamic_client_modal">Save</button> <!-- save-dynamic-client -->
+            </div>
+        </div>
+    </div>
+</div>

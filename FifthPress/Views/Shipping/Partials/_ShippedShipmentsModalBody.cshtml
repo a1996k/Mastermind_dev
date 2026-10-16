@@ -1,0 +1,25 @@
+﻿@model List<ShipmentsShipped>
+
+<h3 class="ff-dm-sans fw-bold fs-16 text-decoration-underline">Shipments</h3>
+@if (Model.Count > 0)
+{
+    <div class="field-binder-row-flex flex-wrap mb-5">
+        @foreach (ShipmentsShipped ss in Model.OrderBy(x => x.ShipmentDate))
+        {
+            string d = ss.ShipmentDate.Value.ToLongDateString();
+            <div class="shipment-card mt-3" data-record-id="@Html.DisplayFor(model => ss.Id)">
+                <div class="field-binder-col-flex">
+                    <span class="ff-poppins fs-14 fw-normal">@Html.DisplayFor(model => d)</span>
+                    <div class="field-binder-row-flex">
+                        <label class="ff-poppins fs-14 fw-normal">Tracking #: </label>
+                        <span class="ff-dm-sans fs-14 fw-bold"> @Html.DisplayFor(model => ss.TrackingNumber)</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <p class="ff-poppins fs-14 fw-bold">No shipments found for this job shipment.</p>
+}

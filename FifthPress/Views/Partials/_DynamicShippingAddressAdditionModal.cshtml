@@ -1,0 +1,80 @@
+﻿@model ShippingAddress
+
+<style>
+#dynamic_sa_modal .single-line{
+    width: 100% !important;
+}
+</style>
+<div class="modal dynamic-sa-modal" tabindex="-1" id="dynamic_sa_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Shipping Address</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#dynamic_sa_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-12">
+
+                            @using (Html.BeginForm("DynamicShippingAddressAddition", "Customers", FormMethod.Post, htmlAttributes: new { @class = "gy-3", @id = "shipping_address_adder" }))
+                            {
+                                <div class="field-binder-row-flex justify-content-between flex-wrap">
+
+                                    <div class="field-binder-row-flex">
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.CustomerName)
+                                            @Html.EditorFor(model => model.CustomerName, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.Address)
+                                            @Html.EditorFor(model => model.Address, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.Address2)
+                                            @Html.EditorFor(model => model.Address2, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.City)
+                                            @Html.EditorFor(model => model.City, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.State)
+                                            @Html.DropDownList("State", ViewData["State"] as SelectList, htmlAttributes: new { })
+                                        </div>
+                                        <div class="field-binder-col-flex">
+                                            @Html.LabelFor(model => model.Zip)
+                                            @Html.EditorFor(model => model.Zip, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                        </div>
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Phone)
+                                        @Html.EditorFor(model => model.Phone, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Email)
+                                        @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Attention)
+                                        @Html.EditorFor(model => model.Attention, new { htmlAttributes = new { @class = "styled-input single-line" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <button type="button" class="btn btn-fc-primary validate-modal-address-btn me-2">Validate Address</button>
+                                        <input type="submit" class="btn btn-fc-info" value="Save" data-modal-to-close="#dynamic_sa_modal" />
+                                        <input type="button" class="btn btn-fc-caution" value="Cancel" data-modal-to-close="#dynamic_sa_modal" />
+                                    </div>
+                                </div>
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <div class="address-validation-feedback" style="display:none; padding: 10px; border-radius: 4px;"></div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

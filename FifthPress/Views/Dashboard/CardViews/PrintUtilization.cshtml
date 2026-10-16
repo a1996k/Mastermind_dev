@@ -1,0 +1,78 @@
+﻿@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_AgencyOverview
+
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "u01")
+
+<div class="field-binder-row-flex chart-icon-wrapper">
+    <i class="fa-solid fa-users" id="open-u01-user-list-modal"></i>
+    <i class="fa-solid fa-circle-info"></i>
+</div>
+
+<div class="modal" id="user-list-modal-u01" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User List</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="u01-user-list"></ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal-to-close="#" data-dismiss="modal">Close</button>
+                <button type="button" data-modal-to-close="#" class="btn btn-primary update-u01-results user-list-submitted">Update Results</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="field-binder-col-flex card-user-list-wrapper">
+    <h3>(Debug) User List</h3>
+    <ul class="u01-user-list"></ul>
+    <button type="button" class="btn btn-sm btn-fc-info update-u01-results card-filter-btn">Update Results</button>
+</div>
+
+<div class="informational-block">
+    <p>This Utilization chart provides a day-by-day view of overall team utilization, based on users included in the "Users" list (accessible by clicking the “Users” icon at the top-right of the chart). Each bar represents daily utilization rates, and the chart includes two reference lines for context: a solid blue line indicating the target utilization level and a dotted green line showing the average utilization across the displayed period. Days with zero recorded clock time are excluded for accuracy.</p>
+    <p>Alongside the chart, a metrics table provides additional insights:</p>
+    <p>These metrics provide a detailed view of daily utilization, helping track how closely the team meets targets and identify patterns in work time and adherence to schedules.</p>
+</div>
+
+@if (String.IsNullOrEmpty(Model.AjaxIdOverride))
+{
+    <canvas class="agency-overview-chart metric-chart" id="u01"></canvas>
+}
+else
+{
+    <canvas class="agency-overview-chart metric-chart" id="@Html.DisplayFor(model => model.AjaxIdOverride)"></canvas>
+}
+<script>
+
+    @foreach(User u in Model.FilterableUsers.OrderBy(x => x.FirstName).ToList())
+    {
+        <text>$('.u01-user-list').append(
+        `<li class="user-list-entry pt-2" data-user-id="@Html.DisplayFor(model => u.Id)">
+            <div class="field-binder-row-flex justify-content-between">
+                <label for="ulcb_@Html.DisplayFor(model => u.Id)" class="ff-poppins fs-16 fw-bold">@Html.DisplayFor(model => u.FirstName) @Html.DisplayFor(model => u.LastName)</label>
+                <input type="checkbox" id="ulcb_@Html.DisplayFor(model => u.Id)" checked />
+            </div>
+         </li>`)</text>
+        //^^ "checked" will need to be dynamic
+    }
+
+    $('.range-selector[data-card-ajax-id="u01"] select[name="Range"]').val('@Model.RangeOverride');
+    $('.range-selector[data-card-ajax-id="u01"] input[name="Locked"]').prop('checked', '@Model.IsLocked' === 'True');
+
+    // Modal functionality
+    $(document).ready(function () {
+        $('#open-u01-user-list-modal').on('click', function () {
+            $('#user-list-modal-u01').modal('show');
+        });
+
+        $('#user-list-modal-u01 .close, #user-list-modal-u01 .btn-secondary').on('click', function () {
+            $('#user-list-modal-u01').modal('hide');
+        });
+    });
+</script>

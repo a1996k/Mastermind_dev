@@ -1,0 +1,16 @@
+select 
+	mat.Title,
+	a.PropertyName,
+	a.OldValue,
+	a.NewValue,
+	a.ChangeDateTime,
+	usr.Username
+from 
+	Audits as a
+inner join MaterialInventory as inv on cast(a.PrimaryKeyValue as int) = inv.Id
+inner join Materials as mat on mat.Inventory = inv.Id
+inner join Users as usr on a.UserId = usr.Id
+where 
+	a.EntityType = 'MaterialInventory' 
+order by 
+	a.ChangeDateTime desc

@@ -1,0 +1,51 @@
+﻿@model List<Constraint>
+
+<ul class="p-constraints striped-ul row-one-titles">
+    <li>
+        <div></div>
+        <div>Name</div>
+        <div>Value</div>
+        <div>Type</div>
+        <div>Value Type</div>
+        <div>Unit</div>
+        <div>Error Msg.</div>
+    </li>
+    @foreach(Constraint c in Model.OrderBy(x => x.ConstraintName))
+        {
+            <li data-record-id="@Html.DisplayFor(model => c.Id)">
+                <div>
+                    <a href="javascript:void(0);" class="edit-constraint-link">Edit</a>
+                </div>
+                <div>
+                    <!-- Constraint Name -->
+                    @Html.DisplayFor(model => c.ConstraintName)
+                </div>
+                @if(c.ConstraintType1.Title == "Range")
+                {
+                    <div>
+                        <div>@Html.DisplayFor(model => c.MinValue)</div> <b >to</b> <div>@Html.DisplayFor(model => c.MaxValue)</div>
+                    </div>
+                }
+                else
+                {
+                    <div>@Html.DisplayFor(model => c.MinValue)</div>
+                }
+                <div>
+                    <!-- Constraint Type -->
+                    @Html.DisplayFor(model => c.ConstraintType1.Title)
+                </div>
+                <div>
+                    <!-- Constraint Value Type -->
+                    @Html.DisplayFor(model => c.ConstraintValueType.ValueType)
+                </div>
+                <div>
+                    <!-- Constraint unit -->
+                    @Html.DisplayFor(model => c.Unit)
+                </div>
+                <div>
+                    <!-- Constraint Error Message -->
+                    @Html.DisplayFor(model => c.ErrorMessage)
+                </div>
+            </li>
+        }
+</ul>

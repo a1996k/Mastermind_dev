@@ -1,0 +1,422 @@
+@using FifthPress.Models.ViewModels
+@model VM_BudgetProjectDetail
+
+@{
+    ViewBag.Title = "Budget Tracker – " + Model.ContractName;
+    string remClass    = Model.HoursRemaining < 0    ? "bt-val-danger" : "bt-val-success";
+    string budRemClass = Model.BudgetRemaining < 0   ? "bt-val-danger" : "bt-val-success";
+    double hPct  = Model.ApprovedHours > 0  ? (double)(Model.HoursUsed  / Model.ApprovedHours  * 100) : 0;
+    double bPct  = Model.ApprovedBudget > 0 ? (double)(Model.SpentToDate / Model.ApprovedBudget * 100) : 0;
+    string hBar  = hPct > 100 ? "danger" : hPct > 80 ? "warning" : "success";
+    string bBar  = bPct > 100 ? "danger" : bPct > 80 ? "warning" : "success";
+}
+
+<style>
+    .bt-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .bt-card-header {
+        padding: 12px 18px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .bt-card-header h4 { margin: 0; font-size: 14px; font-weight: 600; color: #2c3e50; }
+    .bt-card-body { padding: 18px; }
+    .bt-stat-box {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 14px 18px;
+        text-align: center;
+    }
+    .bt-stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #888; margin-bottom: 4px; }
+    .bt-stat-value { font-size: 22px; font-weight: 600; line-height: 1.1; color: #333; }
+    .bt-val-danger  { color: #c0392b !important; }
+    .bt-val-warning { color: #e67e22 !important; }
+    .bt-val-success { color: #27ae60 !important; }
+    .bt-progress-wrap { margin-top: 18px; }
+    .bt-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 4px; }
+    .dept-group-row td { vertical-align: middle; }
+    .dg-sub-row td { border-top: none !important; }
+    .month-row td { vertical-align: middle; }
+    .bc-detail-row td { border-top: none !important; }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+
+            <ol class="breadcrumb">
+                <li><a href="/Forecasting/BudgetTracker">Budget Tracker</a></li>
+                <li><a href="/Forecasting/BudgetTrackerClient/@(ViewBag.ClientId ?? 0)">@Model.ClientName</a></li>
+                <li class="active">@Model.ContractName</li>
+            </ol>
+
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:4px;">
+                <h2 style="margin:0;">@Model.ContractName</h2>
+                <span class="label label-@(Model.IsRetainer ? "info" : "default")" style="font-size:13px;">
+                    @(Model.IsRetainer ? "Retainer" : "Project")
+                </span>
+            </div>
+            <p class="text-muted" style="margin-bottom:20px;">
+                @Model.ClientName &nbsp;&mdash;&nbsp;
+                @Model.StartDate.ToString("MMM d, yyyy") &ndash; @Model.EndDate.ToString("MMM d, yyyy")
+            </p>
+
+            @if (!Model.HasLinkedProject)
+            {
+                <div class="alert alert-warning">
+                    <i class="glyphicon glyphicon-warning-sign"></i>
+                    This contract has no linked Paymo project. Hours used cannot be calculated.
+                    Link a project on the <a href="/Forecasting/EditContract/@Model.ContractForecastId">contract edit page</a>.
+                </div>
+            }
+
+            <!-- Summary Card -->
+            <div class="bt-card">
+                <div class="bt-card-header"><h4>Budget Summary</h4></div>
+                <div class="bt-card-body">
+                    <div class="row">
+                        <div class="col-sm-2" style="margin-bottom:12px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Approved Hours</div>
+                                <div class="bt-stat-value">@Model.ApprovedHours.ToString("N1")</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2" style="margin-bottom:12px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Hours Used</div>
+                                <div class="bt-stat-value">@Model.HoursUsed.ToString("N1")</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2" style="margin-bottom:12px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Hours Remaining</div>
+                                <div class="bt-stat-value @remClass">@Model.HoursRemaining.ToString("N1")</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2" style="margin-bottom:12px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Approved Budget</div>
+                                <div class="bt-stat-value">@Model.ApprovedBudget.ToString("C0")</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2" style="margin-bottom:12px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Spent to Date</div>
+                                <div class="bt-stat-value">@Model.SpentToDate.ToString("C0")</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-2" style="margin-bottom:12px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Budget Remaining</div>
+                                <div class="bt-stat-value @budRemClass">@Model.BudgetRemaining.ToString("C0")</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.HasLinkedProject)
+                    {
+                        <div class="bt-progress-wrap">
+                            <div class="bt-progress-label">
+                                <span>Hours — @hPct.ToString("F1")% used</span>
+                                <span class="@(Model.HoursRemaining < 0 ? "bt-val-danger" : "")">
+                                    @Math.Abs(Model.HoursRemaining).ToString("N1") hrs @(Model.HoursRemaining < 0 ? "over" : "remaining")
+                                </span>
+                            </div>
+                            <div class="progress" style="height:10px; border-radius:5px; margin-bottom:10px;">
+                                <div class="progress-bar progress-bar-@hBar" style="width:@Math.Min(hPct,100).ToString("F1")%; min-width:2px;"></div>
+                            </div>
+                            <div class="bt-progress-label">
+                                <span>Budget — @bPct.ToString("F1")% spent</span>
+                                <span class="@(Model.BudgetRemaining < 0 ? "bt-val-danger" : "")">
+                                    @Math.Abs(Model.BudgetRemaining).ToString("C0") @(Model.BudgetRemaining < 0 ? "over" : "remaining")
+                                </span>
+                            </div>
+                            <div class="progress" style="height:10px; border-radius:5px; margin-bottom:0;">
+                                <div class="progress-bar progress-bar-@bBar" style="width:@Math.Min(bPct,100).ToString("F1")%; min-width:2px;"></div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Billing Class Breakdown Card -->
+            @if (Model.DepartmentGroups != null && Model.DepartmentGroups.Any())
+            {
+                <div class="bt-card">
+                    <div class="bt-card-header"><h4>Billing Class Breakdown</h4></div>
+                    <div class="bt-card-body" style="padding:0;">
+                        <table class="table table-condensed" style="margin:0;">
+                            <thead>
+                                <tr style="background:#f5f5f5;">
+                                    <th style="padding:10px 18px;">Department / Billing Class</th>
+                                    <th class="text-right" style="padding:10px 18px;">Approved Hrs</th>
+                                    <th class="text-right" style="padding:10px 18px;">Blended Rate</th>
+                                    <th class="text-right" style="padding:10px 18px;">Approved Budget</th>
+                                    <th class="text-right" style="padding:10px 18px;">Hours Used</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{ int dIdx = 0; }
+                                @foreach (var dept in Model.DepartmentGroups)
+                                {
+                                    string dToggle = "dg-" + dIdx;
+                                    bool hasBcs = dept.BillingClasses != null && dept.BillingClasses.Any();
+                                    <tr class="dept-group-row@(hasBcs ? " dept-group-expandable" : "")" data-target="@dToggle"
+                                        style="background:#f9f9f9; font-weight:600; border-top:2px solid #e8e8e8; @(hasBcs ? "cursor:pointer;" : "")">
+                                        <td style="padding:10px 18px;">
+                                            @if (hasBcs) { <span class="dg-toggle glyphicon glyphicon-chevron-right" style="font-size:10px; margin-right:6px; color:#aaa;"></span> }
+                                            @if (!dept.IsInContract)
+                                            {
+                                                <span style="color:#999;">@dept.DepartmentName</span>
+                                                <small class="text-muted"> &mdash; not in contract</small>
+                                            }
+                                            else
+                                            {
+                                                @dept.DepartmentName
+                                            }
+                                        </td>
+                                        <td class="text-right" style="padding:10px 18px; @(dept.IsInContract ? "" : "color:#bbb;")">
+                                            @if (dept.IsInContract) { @dept.ApprovedHours.ToString("N1") } else { @Html.Raw("&mdash;") }
+                                        </td>
+                                        <td class="text-right" style="padding:10px 18px; @(dept.IsInContract ? "" : "color:#bbb;")">
+                                            @if (dept.IsInContract && dept.ApprovedHours > 0) { @dept.BlendedRate.ToString("C") } else { @Html.Raw("&mdash;") }
+                                        </td>
+                                        <td class="text-right" style="padding:10px 18px; @(dept.IsInContract ? "" : "color:#bbb;")">
+                                            @if (dept.IsInContract) { @dept.ApprovedBudget.ToString("C") } else { @Html.Raw("&mdash;") }
+                                        </td>
+                                        <td class="text-right" style="padding:10px 18px;">@dept.HoursUsed.ToString("N1")</td>
+                                    </tr>
+                                    if (hasBcs)
+                                    {
+                                        foreach (var bc in dept.BillingClasses)
+                                        {
+                                            <tr class="dg-sub-row @dToggle" style="display:none; background:#fff;">
+                                                <td style="padding:8px 18px 8px 40px; color:#666; font-size:12px;">@bc.BillingClassName</td>
+                                                <td class="text-right" style="padding:8px 18px; color:#666; font-size:12px;">@bc.BudgetedHours.ToString("N1")</td>
+                                                <td class="text-right" style="padding:8px 18px; color:#666; font-size:12px;">@bc.HourlyRate.ToString("C")</td>
+                                                <td class="text-right" style="padding:8px 18px; color:#666; font-size:12px;">@bc.ApprovedBudget.ToString("C")</td>
+                                                <td></td>
+                                            </tr>
+                                        }
+                                    }
+                                    dIdx++;
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr style="background:#eaf4fb; font-weight:600; border-top:2px solid #d0e8f5;">
+                                    <td style="padding:10px 18px;">Total</td>
+                                    <td class="text-right" style="padding:10px 18px;">@Model.ApprovedHours.ToString("N1")</td>
+                                    <td></td>
+                                    <td class="text-right" style="padding:10px 18px;">@Model.ApprovedBudget.ToString("C")</td>
+                                    <td class="text-right" style="padding:10px 18px;">@Model.HoursUsed.ToString("N1")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <script>
+                    $(document).on('click', '.dept-group-expandable', function () {
+                        var target = $(this).data('target');
+                        var isOpen = $(this).hasClass('dg-open');
+                        $('.' + target).toggle(!isOpen);
+                        $(this).find('.dg-toggle')
+                            .toggleClass('glyphicon-chevron-right', isOpen)
+                            .toggleClass('glyphicon-chevron-down', !isOpen);
+                        $(this).toggleClass('dg-open', !isOpen);
+                    });
+                </script>
+            }
+
+            @if (Model.MonthlyBreakdown != null && Model.MonthlyBreakdown.Any())
+            {
+                <!-- Chart Card -->
+                <div class="bt-card">
+                    <div class="bt-card-header">
+                        <h4>Monthly Hours by Department</h4>
+                        @if (Model.IsRetainer)
+                        {
+                            <small class="text-muted">
+                                @Model.ApprovedBudget.ToString("C0") over @Model.ContractMonthCount months
+                                (@(Model.ContractMonthCount > 0 ? (Model.ApprovedBudget / Model.ContractMonthCount).ToString("C0") : "$0")/mo)
+                            </small>
+                        }
+                        else
+                        {
+                            <small class="text-muted">@Model.ApprovedBudget.ToString("C0") total budget</small>
+                        }
+                    </div>
+                    <div class="bt-card-body">
+                        <canvas id="monthlyChart" height="80"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly Detail Card -->
+                <div class="bt-card">
+                    <div class="bt-card-header"><h4>Monthly Detail</h4></div>
+                    <div class="bt-card-body" style="padding:0;">
+                        <table class="table table-condensed" style="margin:0;">
+                            <thead>
+                                <tr style="background:#f5f5f5;">
+                                    <th style="padding:10px 18px;">Month</th>
+                                    <th class="text-right" style="padding:10px 18px;">Hours Used</th>
+                                    <th class="text-right" style="padding:10px 18px;">Est. Cost</th>
+                                    @if (Model.IsRetainer)
+                                    {
+                                        <th class="text-right" style="padding:10px 18px;">Monthly Budget</th>
+                                        <th class="text-right" style="padding:10px 18px;">vs Budget</th>
+                                    }
+                                    else
+                                    {
+                                        <th class="text-right" style="padding:10px 18px;">Cumulative Spent</th>
+                                        <th class="text-right" style="padding:10px 18px;">Budget Remaining</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var month in Model.MonthlyBreakdown)
+                                {
+                                    string toggleId = "mo-" + month.Year + "-" + month.MonthNumber;
+                                    bool hasDepts = month.DepartmentBreakdown != null && month.DepartmentBreakdown.Any();
+                                    if (Model.IsRetainer)
+                                    {
+                                        decimal variance = month.EstimatedCost - month.MonthlyBudgetAllocation;
+                                        string varClass = variance > 0 ? "bt-val-danger" : "bt-val-success";
+                                        string varSign  = variance > 0 ? "+" : "";
+                                        <tr class="month-row@(hasDepts ? " month-has-bc" : "")" data-target="@toggleId"
+                                            style="font-weight:600; border-top:2px solid #e8e8e8; @(hasDepts ? "cursor:pointer;" : "")">
+                                            <td style="padding:10px 18px;">
+                                                @if (hasDepts) { <span class="month-toggle glyphicon glyphicon-chevron-right" style="font-size:10px; margin-right:6px; color:#aaa;"></span> }
+                                                @month.MonthName
+                                            </td>
+                                            <td class="text-right" style="padding:10px 18px;">@month.HoursUsed.ToString("N1")</td>
+                                            <td class="text-right" style="padding:10px 18px;">@month.EstimatedCost.ToString("C0")</td>
+                                            <td class="text-right" style="padding:10px 18px;">@month.MonthlyBudgetAllocation.ToString("C0")</td>
+                                            <td class="text-right @varClass" style="padding:10px 18px;">@varSign@variance.ToString("C0")</td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        decimal budgetLeft = Model.ApprovedBudget - month.CumulativeCost;
+                                        double cumPct = Model.ApprovedBudget > 0 ? (double)(month.CumulativeCost / Model.ApprovedBudget * 100) : 0;
+                                        string cumClass = budgetLeft < 0 ? "bt-val-danger" : cumPct > 80 ? "bt-val-warning" : "";
+                                        <tr class="month-row@(hasDepts ? " month-has-bc" : "")" data-target="@toggleId"
+                                            style="font-weight:600; border-top:2px solid #e8e8e8; @(hasDepts ? "cursor:pointer;" : "")">
+                                            <td style="padding:10px 18px;">
+                                                @if (hasDepts) { <span class="month-toggle glyphicon glyphicon-chevron-right" style="font-size:10px; margin-right:6px; color:#aaa;"></span> }
+                                                @month.MonthName
+                                            </td>
+                                            <td class="text-right" style="padding:10px 18px;">@month.HoursUsed.ToString("N1")</td>
+                                            <td class="text-right" style="padding:10px 18px;">@month.EstimatedCost.ToString("C0")</td>
+                                            <td class="text-right" style="padding:10px 18px;">
+                                                @month.CumulativeCost.ToString("C0")
+                                                <small class="text-muted" style="font-weight:normal;">(@cumPct.ToString("F0")%)</small>
+                                            </td>
+                                            <td class="text-right @cumClass" style="padding:10px 18px;">@budgetLeft.ToString("C0")</td>
+                                        </tr>
+                                    }
+                                    if (hasDepts)
+                                    {
+                                        foreach (var dept in month.DepartmentBreakdown)
+                                        {
+                                            <tr class="bc-detail-row @toggleId" style="display:none; background:#fafafa;">
+                                                <td style="padding:7px 18px 7px 38px; color:#777; font-size:12px; font-weight:normal;">@dept.DepartmentName</td>
+                                                <td class="text-right" style="padding:7px 18px; color:#777; font-size:12px;">@dept.HoursUsed.ToString("N1")</td>
+                                                <td class="text-right" style="padding:7px 18px; color:#777; font-size:12px;">@dept.EstimatedCost.ToString("C0")</td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr style="background:#eaf4fb; font-weight:600; border-top:2px solid #d0e8f5;">
+                                    <td style="padding:10px 18px;">Total</td>
+                                    <td class="text-right" style="padding:10px 18px;">@Model.HoursUsed.ToString("N1")</td>
+                                    <td class="text-right" style="padding:10px 18px;">@Model.SpentToDate.ToString("C0")</td>
+                                    <td class="text-right" style="padding:10px 18px;">@(Model.IsRetainer ? Model.ApprovedBudget.ToString("C0") : Model.SpentToDate.ToString("C0"))</td>
+                                    <td class="text-right @(Model.BudgetRemaining < 0 ? "bt-val-danger" : "")" style="padding:10px 18px;">@Model.BudgetRemaining.ToString("C0")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <script>
+                    $(document).on('click', '.month-has-bc', function () {
+                        var target = $(this).data('target');
+                        var isOpen = $(this).hasClass('bc-open');
+                        $('.' + target).toggle(!isOpen);
+                        $(this).find('.month-toggle')
+                            .toggleClass('glyphicon-chevron-right', isOpen)
+                            .toggleClass('glyphicon-chevron-down', !isOpen);
+                        $(this).toggleClass('bc-open', !isOpen);
+                    });
+                </script>
+            }
+            else if (Model.HasLinkedProject)
+            {
+                <div class="alert alert-info">No time entries found for this project in Paymo.</div>
+            }
+
+        </div>
+    </div>
+</div>
+
+@if (Model.MonthlyBreakdown != null && Model.MonthlyBreakdown.Any())
+{
+    var chartColors = new[] {
+        "rgba(54,162,235,0.8)",  "rgba(255,99,132,0.8)",  "rgba(75,192,192,0.8)",
+        "rgba(255,159,64,0.8)",  "rgba(153,102,255,0.8)", "rgba(255,205,86,0.8)",
+        "rgba(201,203,207,0.8)", "rgba(54,162,100,0.8)",  "rgba(255,99,200,0.8)",
+        "rgba(100,149,237,0.8)"
+    };
+    var deptNames = Model.MonthlyBreakdown
+        .SelectMany(m => m.DepartmentBreakdown ?? new System.Collections.Generic.List<VM_BudgetMonthDepartment>())
+        .Select(d => d.DepartmentName).Distinct()
+        .OrderBy(n => n == "Other").ThenBy(n => n).ToList();
+    var chartDatasets = deptNames.Select((name, i) => new {
+        label = name,
+        data  = Model.MonthlyBreakdown
+                    .Select(m => (double)(m.DepartmentBreakdown
+                        ?.FirstOrDefault(d => d.DepartmentName == name)?.HoursUsed ?? 0m))
+                    .ToArray(),
+        backgroundColor = chartColors[i % chartColors.Length]
+    }).ToList();
+    <script src="~/Scripts/chart.js"></script>
+    <script>
+        (function () {
+            var labels   = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.MonthlyBreakdown.Select(m => m.MonthName)));
+            var datasets = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(chartDatasets));
+
+            var ctx = document.getElementById('monthlyChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: { labels: labels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    scales: {
+                        xAxes: [{ stacked: true }],
+                        yAxes: [{ stacked: true, ticks: { beginAtZero: true } }]
+                    },
+                    tooltips: {
+                        mode: 'index',
+                        callbacks: {
+                            label: function (item, data) {
+                                return data.datasets[item.datasetIndex].label + ': ' + item.yLabel.toFixed(1) + ' hrs';
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+}

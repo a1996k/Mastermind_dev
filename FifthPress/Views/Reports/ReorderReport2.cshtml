@@ -1,0 +1,63 @@
+﻿@model List<IGrouping<string, LowStockInventory3_Result>>
+
+<div class="container fs-16">
+    <table class="table table-striped" id="lst3">
+        <thead>
+            <tr>
+                <th>Material Code</th>
+                <th>Type</th>
+                <th class="text-right">In Stock (ft/sheets)</th>
+                <th class="text-center">Needed (in/sheets)</th>
+                <th class="text-right">On Order (ft/sheets)</th>
+                <th class="text-right">To Order (ft/sheets)</th>
+                <th class="text-right">Min Level (ft/sheets)</th>
+                <th>Job Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var group in Model)
+            {
+                foreach (var item in group)
+                {
+                    <tr>
+                        <td>@item.MaterialName</td>
+                        <td>@(item.StockType == 3 ? "Sheets" : "Roll Stock")</td>
+                        <td class="text-right">@item.CurrentStock @(item.StockType == 3 ? "sheets" : "ft")</td>
+                        <td class="text-center">@item.RemainingRequired @(item.StockType == 3 ? "sheets" : "ft")</td>
+                        <td class="text-right">@item.OnOrder @(item.StockType == 3 ? "sheets" : "ft")</td>
+                        <td class="text-right">@item.ReorderAmount @(item.StockType == 3 ? "sheets" : "ft")</td>
+                        <td class="text-right">@item.MinLevel @(item.StockType == 3 ? "sheets" : "ft")</td>
+                        <td>@item.JobIdentifier</td>
+                    </tr>
+                }
+
+                if (!group.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center">No low-stock items found</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .tr-urgent {
+        background-color: #fff3f3;
+        font-weight: 500;
+    }
+</style>
+
+<script>
+    $(function () {
+        $('#lst3').DataTable({
+            pageLength: 50,
+            order: [[0, 'asc']],
+            columnDefs: [
+                { targets: [1, 3, 4, 5], className: 'text-right' },
+                { targets: 2, className: 'text-center' }
+            ]
+        });
+    });
+</script>

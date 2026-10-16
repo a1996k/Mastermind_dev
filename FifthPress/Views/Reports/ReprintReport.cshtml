@@ -1,0 +1,111 @@
+@model FifthPress.Models.ViewModels.VM_ReprintReport
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-lg-12">
+            <h2>Reprint Report</h2>
+            <button id="download_csv" class="btn btn-fc-info">Download as CSV</button>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <table class="table table-striped" id="reprint_table">
+                <thead class="fs-4">
+                    <tr>
+                        <th>Job Description</th>
+                        <th>Client</th>
+                        <th>Original Job #</th>
+                        <th>Reprint Job #</th>
+                        <th>Item #</th>
+                        <th>Item Title</th>
+                        <th>Reprint Type</th>
+                        <th>Reprint Category</th>
+                        <th>Reason</th>
+                        <th>Quantity</th>
+                        <th>Due Date</th>
+                        <th>Item Price</th>
+                        <th>Item Cost</th>
+                        <th>Reprint Job Total</th>
+                    </tr>
+                </thead>
+                <tbody class="fs-4">
+                    @foreach (var entry in Model.Entries)
+                    {
+                        <tr data-reprint-id="@entry.ReprintId">
+                            <td>@Html.DisplayFor(model => entry.JobDescription)</td>
+                            <td>@Html.DisplayFor(model => entry.Client)</td>
+                            <td><a href="/Job/Edit/@entry.OriginalJobId" target="_blank">@entry.OriginalJobNumber</a></td>
+                            <td><a href="/Job/Edit/@entry.ReprintJobId" target="_blank">@entry.ReprintJobNumber</a></td>
+                            <td>@Html.DisplayFor(model => entry.ItemNumber)</td>
+                            <td>@Html.DisplayFor(model => entry.ItemTitle)</td>
+                            <td>@Html.DisplayFor(model => entry.ReprintType)</td>
+                            <td>@Html.DisplayFor(model => entry.ReprintCategory)</td>
+                            <td>@Html.DisplayFor(model => entry.ReprintReason)</td>
+                            <td>@Html.DisplayFor(model => entry.ReprintQuantity)</td>
+                            <td data-sort="@(entry.DueDate?.ToString("yyyy-MM-dd") ?? "")">@Html.DisplayFor(model => entry.DueDateFormatted)</td>
+                            <td data-sort="@entry.ItemPrice">@Html.DisplayFor(model => entry.ItemPriceFormatted)</td>
+                            <td data-sort="@entry.ItemCost">@Html.DisplayFor(model => entry.ItemCostFormatted)</td>
+                            <td data-sort="@entry.ReprintJobPrice">@Html.DisplayFor(model => entry.ReprintJobPriceFormatted)</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="fs-4 fw-bold">
+                        <td colspan="12" class="text-end">Totals:</td>
+                        <td>@Model.TotalReprintCostFormatted</td>
+                        <td>@Model.TotalReprintPriceFormatted</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        var reprintTable = $('#reprint_table').DataTable({
+            'paging': true,
+            'pageLength': 50,
+            'order': [[4, 'asc'], [10, 'asc']] // Order by Item # then Due Date
+        });
+
+        $('#download_csv').click(function () {
+            var csv = [];
+            var cellDelimiter = ',';
+            var lineDelimiter = '\n';
+            var headers = [];
+
+            // Extract headers
+            $('#reprint_table thead th').each(function () {
+                var text = $(this).text().trim().replace(/"/g, '""');
+                headers.push('"' + text + '"');
+            });
+            csv.push(headers.join(cellDelimiter));
+
+            // Extract data
+            reprintTable.rows({ search: 'applied' }).every(function () {
+                var row = [];
+                $(this.node()).find('td').each(function () {
+                    var text = $(this).text().trim().replace(/"/g, '""');
+                    row.push('"' + text + '"');
+                });
+                csv.push(row.join(cellDelimiter));
+            });
+
+            // Add total row (cols 0-11 label/blank, col 12 = total cost, col 13 = total price)
+            var totalRow = ['"Totals:"', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '""', '"@Model.TotalReprintCostFormatted"', '"@Model.TotalReprintPriceFormatted"'];
+            csv.push(totalRow.join(cellDelimiter));
+
+            // Create and download CSV
+            var csvFile = new Blob([csv.join(lineDelimiter)], { type: 'text/csv' });
+            var downloadLink = document.createElement('a');
+            var today = new Date().toISOString().split('T')[0];
+            downloadLink.download = 'reprint-report-' + today + '.csv';
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = 'none';
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        });
+    });
+</script>

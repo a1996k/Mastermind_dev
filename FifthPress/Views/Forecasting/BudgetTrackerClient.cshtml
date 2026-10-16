@@ -1,0 +1,252 @@
+@using FifthPress.Models.ViewModels
+@model List<VM_BudgetProject>
+
+@{
+    ViewBag.Title = "Budget Tracker – " + ViewBag.ClientName;
+    string clientName = ViewBag.ClientName as string ?? "Client";
+
+    decimal totalApprovedHours  = Model != null ? Model.Sum(p => p.ApprovedHours)  : 0;
+    decimal totalHoursUsed      = Model != null ? Model.Sum(p => p.HoursUsed)      : 0;
+    decimal totalApprovedBudget = Model != null ? Model.Sum(p => p.ApprovedBudget) : 0;
+    decimal totalSpent          = Model != null ? Model.Sum(p => p.SpentToDate)    : 0;
+    double  overallPct          = totalApprovedHours > 0 ? (double)(totalHoursUsed / totalApprovedHours * 100) : 0;
+    string  sumHrsClass         = overallPct > 100 ? "bt-val-danger" : overallPct > 80 ? "bt-val-warning" : "bt-val-success";
+}
+
+<style>
+    .bt-stat-box {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 14px 18px;
+        text-align: center;
+        height: 100%;
+    }
+    .bt-stat-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: #888;
+        margin-bottom: 4px;
+    }
+    .bt-stat-value { font-size: 22px; font-weight: 600; line-height: 1.1; color: #333; }
+    .bt-val-danger  { color: #c0392b !important; }
+    .bt-val-warning { color: #e67e22 !important; }
+    .bt-val-success { color: #27ae60 !important; }
+
+    .bt-contract-card {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .bt-contract-header {
+        padding: 14px 18px;
+        border-bottom: 1px solid #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .bt-contract-header.status-ok   { background: #eafaf1; border-left: 5px solid #27ae60; }
+    .bt-contract-header.status-warn { background: #fef9e7; border-left: 5px solid #f39c12; }
+    .bt-contract-header.status-over { background: #fdedec; border-left: 5px solid #c0392b; }
+    .bt-contract-header.status-none { background: #f4f6f7; border-left: 5px solid #bdc3c7; }
+    .bt-contract-title { font-size: 16px; font-weight: 600; margin: 0; }
+    .bt-contract-title a { color: #2c3e50; text-decoration: none; }
+    .bt-contract-title a:hover { text-decoration: underline; }
+    .bt-contract-dates { font-size: 12px; color: #888; white-space: nowrap; }
+    .bt-body { padding: 18px; }
+    .bt-progress-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 4px;
+    }
+    .bt-billing-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+    .bt-billing-chip {
+        background: #f0f3f4;
+        border: 1px solid #dce0e1;
+        border-radius: 4px;
+        padding: 4px 10px;
+        font-size: 12px;
+        color: #555;
+        white-space: nowrap;
+    }
+    .bt-billing-chip strong { color: #333; }
+    .bt-footer {
+        padding: 10px 18px;
+        background: #fafafa;
+        border-top: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .bt-summary-bar {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+
+            <ol class="breadcrumb">
+                <li><a href="/Forecasting/BudgetTracker">Budget Tracker</a></li>
+                <li class="active">@clientName</li>
+            </ol>
+
+            <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:16px;">
+                <h2 style="margin:0;">@clientName</h2>
+                @if (Model != null && Model.Any())
+                {
+                    <span class="text-muted" style="font-size:13px;">@Model.Count contract@(Model.Count == 1 ? "" : "s")</span>
+                }
+            </div>
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-info">
+                    <strong>No contracts found.</strong> No active actual contracts are linked to this client.
+                </div>
+            }
+
+            @if (Model != null && Model.Any())
+            {
+                <div>
+                <div class="bt-summary-bar">
+                    <div class="row">
+                        <div class="col-xs-6 col-md-3" style="margin-bottom:8px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Total Approved Hours</div>
+                                <div class="bt-stat-value">@totalApprovedHours.ToString("N1")</div>
+                            </div>
+                        </div>
+                        <div class="col-xs-6 col-md-3" style="margin-bottom:8px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Total Hours Used</div>
+                                <div class="bt-stat-value @sumHrsClass">@totalHoursUsed.ToString("N1")</div>
+                            </div>
+                        </div>
+                        <div class="col-xs-6 col-md-3" style="margin-bottom:8px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Total Approved Budget</div>
+                                <div class="bt-stat-value">@totalApprovedBudget.ToString("C0")</div>
+                            </div>
+                        </div>
+                        <div class="col-xs-6 col-md-3" style="margin-bottom:8px;">
+                            <div class="bt-stat-box">
+                                <div class="bt-stat-label">Total Spent to Date</div>
+                                <div class="bt-stat-value">@totalSpent.ToString("C0")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @foreach (var project in Model)
+                {
+                    double pct          = project.ApprovedHours > 0 ? (double)(project.HoursUsed / project.ApprovedHours * 100) : 0;
+                    double barWidth     = Math.Min(pct, 100);
+                    string headerStatus = !project.HasLinkedProject ? "status-none" : pct > 100 ? "status-over" : pct > 80 ? "status-warn" : "status-ok";
+                    string barClass     = pct > 100 ? "danger" : pct > 80 ? "warning" : "success";
+                    string remHrsClass  = project.HoursRemaining < 0 ? "bt-val-danger" : "";
+                    string remBudClass  = project.BudgetRemaining < 0 ? "bt-val-danger" : "";
+                    string statusLabel  = !project.HasLinkedProject ? "No Paymo Link" : pct > 100 ? "Over Budget" : pct > 80 ? "Near Limit" : "On Track";
+                    string labelClass   = !project.HasLinkedProject ? "default" : pct > 100 ? "danger" : pct > 80 ? "warning" : "success";
+
+                    <div class="bt-contract-card">
+                        <div class="bt-contract-header @headerStatus">
+                            <div>
+                                <p class="bt-contract-title">
+                                    <a href="/Forecasting/BudgetTrackerProject/@project.ContractForecastId">@project.ContractName</a>
+                                </p>
+                                <span class="bt-contract-dates">
+                                    @project.StartDate.ToString("MMM d, yyyy") &ndash; @project.EndDate.ToString("MMM d, yyyy")
+                                </span>
+                            </div>
+                            <span class="label label-@labelClass">@statusLabel</span>
+                        </div>
+
+                        <div class="bt-body bg-white">
+                            <div class="row">
+                                <div class="col-sm-3" style="margin-bottom:12px;">
+                                    <div class="bt-stat-box">
+                                        <div class="bt-stat-label">Approved Hours</div>
+                                        <div class="bt-stat-value">@project.ApprovedHours.ToString("N1")</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3" style="margin-bottom:12px;">
+                                    <div class="bt-stat-box">
+                                        <div class="bt-stat-label">Hours Used</div>
+                                        <div class="bt-stat-value">@project.HoursUsed.ToString("N1")</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3" style="margin-bottom:12px;">
+                                    <div class="bt-stat-box">
+                                        <div class="bt-stat-label">Approved Budget</div>
+                                        <div class="bt-stat-value">@project.ApprovedBudget.ToString("C0")</div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3" style="margin-bottom:12px;">
+                                    <div class="bt-stat-box">
+                                        <div class="bt-stat-label">Spent to Date</div>
+                                        <div class="bt-stat-value">@project.SpentToDate.ToString("C0")</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if (project.HasLinkedProject)
+                            {
+                                <div class="bt-progress-label">
+                                    <span>@pct.ToString("F1")% of hours used</span>
+                                    <span class="@remHrsClass">
+                                        @Math.Abs(project.HoursRemaining).ToString("N1") hrs @(project.HoursRemaining < 0 ? "over" : "remaining")
+                                    </span>
+                                </div>
+                                <div class="progress" style="margin-bottom:0; height:10px; border-radius:5px;">
+                                    <div class="progress-bar progress-bar-@barClass" style="width:@barWidth.ToString("F1")%; min-width:2px;"></div>
+                                </div>
+                            }
+
+                            @if (project.BillingClasses != null && project.BillingClasses.Any())
+                            {
+                                <div class="bt-billing-row">
+                                    @foreach (var bc in project.BillingClasses)
+                                    {
+                                        <span class="bt-billing-chip">
+                                            <strong>@bc.BillingClassName</strong>
+                                            &nbsp;@bc.BudgetedHours.ToString("N0") hrs
+                                            @if (bc.HourlyRate > 0)
+                                            {
+                                                <text>&#64; @bc.HourlyRate.ToString("C0")/hr</text>
+                                            }
+                                        </span>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <div class="bt-footer">
+                            <span style="font-size:12px; color:#666;">
+                                Budget remaining: <strong class="@remBudClass">@project.BudgetRemaining.ToString("C0")</strong>
+                            </span>
+                            <a href="/Forecasting/BudgetTrackerProject/@project.ContractForecastId" class="btn btn-sm btn-default">
+                                Monthly Breakdown &rarr;
+                            </a>
+                        </div>
+                    </div>
+                }
+                </div>
+            }
+
+        </div>
+    </div>
+</div>

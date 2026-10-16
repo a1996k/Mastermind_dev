@@ -1,0 +1,351 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_LiveJobTable
+
+@Styles.Render("~/Content/joblistcss")
+
+<style>
+    #print_table {
+        font-size: 1.5rem !important;
+    }
+
+    .tv-mode #print_table {
+        font-size: 1.0rem !important;
+    }
+
+    #print_table thead tr.aggregate-row {
+        font-family: 'Lato';
+    }
+
+    #print_table thead tr:not(.aggregate-row) {
+        font-family: 'DM Sans';
+    }
+
+    #print_table tbody tr td {
+        font-family: 'Lato';
+    }
+
+        #print_table tbody tr td:nth-child(4),
+        #print_table tbody tr td:nth-child(5) {
+            font-family: 'DM Sans';
+        }
+
+    .dtfh-floatingparent {
+        height: 100px !important;
+    }
+</style>
+
+<div class="print-table">
+    <div class="field-binder-row-flex justify-content-between mt-5 date-time-binder">
+        @*<span class="fs-3 ff-poppins">Mastermind by FifthColor</span>*@
+        <div class="field-binder-row-flex">
+            <span class="fs-3 ff-lato">@DateTime.Now.ToLongDateString()</span>
+            <div class="fs-3 ff-lato ms-3" id="clock">Time is a Construct</div>
+        </div>
+    </div>
+    <table class="table-borderless" id="print_table">
+        <thead>
+            <tr class="aggregate-row">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                @*<td></td>*@
+                <td></td>
+                @foreach (VM_DepartmentTotal v2 in Model.DepartmentTotals.ToList())
+                {
+                    <td>@Html.DisplayFor(model => v2.DecimalHours)</td>
+                }
+                <td></td>
+            </tr>
+            <tr>
+                <th>
+                    Days
+                </th>
+                <th>
+                    Min Start Date
+                </th>
+                <th>
+                    Job Number
+                </th>
+                <th>
+                    Customer
+                </th>
+                <th>
+                    Title
+                </th>
+                <th>
+                    Due Date
+                </th>
+                <th>
+                    CSR
+                </th>
+                <th>
+                    Van
+                </th>
+                <th>
+                    Tau
+                </th>
+                <th>
+                    Ric
+                </th>
+                <th>
+                    VLT
+                </th>
+                <th>
+                    Lam
+                </th>
+                <th>
+                    Zun
+                </th>
+                <th>
+                    Gul
+                </th>
+                <th>
+                    Die
+                </th>
+                <th>
+                    Fin
+                </th>
+                <th>
+                    OUT
+                </th>
+                <th>
+                    SPs
+                </th>
+                <th>
+                    Stage
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (VM_ForecastedJob v in Model.Jobs.ToList())
+            {
+
+                <tr class="job-item @(v.IsCreditHold ? "credit-hold" : "")" data-record-id="@Html.DisplayFor(model => v.JobId)" data-item-id="@(v.ScheduleSquash ? "" : v.JobItemId)">
+                    <td class="upd-days-remaining">
+                        @Html.DisplayFor(model => v.DaysRemaining)
+                    </td>
+                    <td class="upd-min-start-date">
+                        @Html.DisplayFor(model => v.MinStartDateFormatted)
+                    </td>
+                    <td class="upd-job-number">
+                        @Html.DisplayFor(model => v.JobNumber)
+                    </td>
+                    <td class="upd-job-client">
+                        @Html.DisplayFor(model => v.Customer)
+                    </td>
+                    <td class="upd-job-description" title="@Html.DisplayFor(model => v.FullDescription)">
+                        @Html.DisplayFor(model => v.TruncatedDescription)
+                    </td>
+                    <td class="upd-due-date @(v.IsOverdue == false ? "not-overdue" : "overdue") @(v.IsDueToday == true ? "due-today" : "not-due-today")" data-sort="@Html.DisplayFor(model => v.DueDate.Ticks)">
+                        @Html.DisplayFor(model => v.DueDateFormatted)
+                    </td>
+                    @*<td>
+                        @Html.DisplayFor(model => v.Week)
+                    </td>*@
+                    <td>
+                        @Html.DisplayFor(model => v.CSR)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.Van)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.Tau)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.Ric)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.VLT)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.Lam)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.Zun)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.Gul)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.Die)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.Fin)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.Out)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.SPs)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(model => v.JobStage)
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Context Menu -->
+<div id="job_context_menu" class="job-context-menu">
+    <input type="hidden" id="qa_selected_job_id" />
+    <input type="hidden" id="qa_selected_item_id" />
+
+    <a href="#" class="menu-item qa-quick-view" data-url-template="Job/View/{jobId}">
+        <i class="fa-solid fa-eye"></i> <span>Quick View</span>
+    </a>
+
+    <a href="#" class="menu-item qa-edit-job" data-url-template="Job/Edit/{jobId}">
+        <i class="fa-solid fa-pen-to-square"></i> <span>Edit</span>
+    </a>
+
+    <a href="#" class="menu-item qa-time-tracking" data-url-template="time-tracking/{jobId}/{itemId}">
+        <i class="fa-regular fa-clock-desk"></i> <span>Time Tracking</span>
+    </a>
+
+    <a href="#" class="menu-item qa-job-ticket" data-url-template="GetJobTicket/{jobId}" target="_blank">
+        <i class="fa-solid fa-ticket"></i> <span>View Job Ticket</span>
+    </a>
+
+    <a href="#" class="menu-item qa-cost-sheet" data-url-template="job-cost-sheet/{jobId}" target="_blank">
+        <i class="fa-sharp fa-solid fa-dollar-sign"></i> <span>View Cost Sheet</span>
+    </a>
+</div>
+
+@if ((bool)ViewData["TvMode"] == true)
+{
+    <script>
+        function RemoveBodyPadding() {
+            $('body').css('padding-left', '0!important');
+            $('body').css('padding-top', '0!important');
+            $('body').css('padding-bottom', '0!important');
+            $('body').css('padding-right', '0!important');
+        };
+
+        $(function () {
+            $('.sidenav').remove();
+            $('.navbar').remove();
+            $('.refresh-arrows,.clostbtn,.openbtn').remove();
+            $('.body-content').css('padding', '5px!important');
+            $('.date-time-binder').removeClass('mt-5');
+            RemoveBodyPadding();
+        });
+    </script>
+}
+
+<script>
+    const $contextMenu = $('#job_context_menu');
+
+    function showContextMenu(event, $jobElement) {
+        const offset = $jobElement.offset();
+
+        // Get job and item IDs from data attributes
+        let jobId = $jobElement.attr('data-record-id');
+        let itemId = $jobElement.attr('data-item-id');
+
+        // Store IDs in hidden fields for backward compatibility
+        $('#qa_selected_job_id').val(jobId);
+        $('#qa_selected_item_id').val(itemId);
+
+        // Update all anchor hrefs with actual URLs
+        $contextMenu.find('a[data-url-template]').each(function() {
+            const $link = $(this);
+            const template = $link.data('url-template');
+            const url = template
+                .replace('{jobId}', jobId)
+                .replace('{itemId}', itemId);
+            $link.attr('href', ProcessUrl(url));
+        });
+
+        $contextMenu.css({
+            top: offset.top + $jobElement.height(),
+            left: offset.left
+        }).show();  // Position and show the context menu
+    };
+
+    function RecalculateAggregateRow(api) {
+        // Calculate totals for each department column (Van through Out, columns 7-19)
+        for (let colIndex = 7; colIndex <= 16; colIndex++) {
+            let total = 0;
+            api.column(colIndex, { search: 'applied' }).nodes().each(function(cell) {
+                const val = parseFloat($(cell).text()) || 0;
+                total += val;
+            });
+            // Update the aggregate cell for this column
+            const aggregateCell = $('tr.aggregate-row td').eq(colIndex);
+            if (total > 0) {
+                aggregateCell.text(total.toFixed(2));
+            } else {
+                aggregateCell.text('');
+            }
+        }
+    };
+
+    function InstantiateJobTable() {
+        @if (ViewData["Filter"] != null)
+        {
+            var filter = ViewData["Filter"].ToString();
+            var columnIndex = filter == "Vanguard" ? 7 : (filter == "Zund" ? 12 : -1);
+            if (columnIndex >= 0)
+            {
+                <text>
+                // Apply custom filter for @filter
+                $.fn.dataTable.ext.search.push(
+                    function(settings, data, dataIndex) {
+                        // Only apply to print_table
+                        if (settings.nTable.id !== 'print_table') {
+                            return true;
+                        }
+
+                        const colIndex = @columnIndex;
+                        const cellValue = data[colIndex];
+                        const cleanValue = (cellValue || '').toString().trim();
+                        const val = parseFloat(cleanValue) || 0;
+                        return val > 0;
+                    }
+                );
+                </text>
+            }
+        }
+
+        let printTableConfig = {
+            "paging": false,
+            "searching": true,
+            "columnDefs": [
+                { "type": "date", "targets": 1 }
+            ],
+            "order": [[1, 'asc']],
+            "drawCallback": function(settings) {
+                RecalculateAggregateRow(this.api());
+            }
+        };
+        @if ((bool)ViewData["TvMode"] == true)
+            {
+                <text>
+                // Keep searching enabled for filters, but hide the search box via DOM
+                printTableConfig.dom = 'rt';
+                </text>
+            }
+
+        printTable = $('#print_table').DataTable(printTableConfig);
+    };
+
+    $(function () {
+        // Hide the context menu when clicking outside
+        $(document).on('click', function (event) {
+            if (!$(event.target).closest('tr.job-item').length && !$(event.target).closest('#job_context_menu').length) {
+                $contextMenu.hide();
+                $('.job-item.clicked-job').removeClass('clicked-job');
+            }
+        });
+
+        InstantiateJobTable();
+    })
+        .on('click', 'tr.job-item', function (event) { showContextMenu(event, $(this)); });
+</script>
+
+@Scripts.Render("~/bundles/autorefresh")

@@ -1,0 +1,31 @@
+﻿<div class="modal" tabindex="-1" id="duplicate_service_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <input type="hidden" id="ds_prompt_cancel_helper" />
+                <h5 class="modal-title">Confirm Multiple Active Services</h5>
+                <button type="button" class="btn-close ds-prompt-cancel" data-bs-dismiss="modal" data-modal-to-close="#duplicate_service_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="active-service-wrapper">
+                            </div>
+                        </div>
+                        <div class="col-12 pt-3">
+                            <p class="ff-poppins fs-14">
+                                If necessary, please use the "Stop" buttons above to end active services before starting.
+                                When you're ready to start the service, press "Confirm".
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer d-flex justify-content-end">
+                <button type="button" class="btn btn-sm btn-fc-danger ds-prompt-cancel" data-modal-to-close="#duplicate_service_modal">Cancel</button>
+                <button type="button" class="btn btn-sm btn-fc-info confirm-multiple-services" data-modal-to-close="#duplicate_service_modal">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>

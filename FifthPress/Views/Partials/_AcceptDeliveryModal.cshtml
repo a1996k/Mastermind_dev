@@ -1,0 +1,26 @@
+﻿
+
+<div class="modal fs-3" tabindex="-1" id="accept_delivery_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Accepting <span class="item-title"></span></h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#accept_delivery_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" class="active-id" />
+                <ul class="delivery-list">
+
+                </ul>
+                <h4>Enter the amount Received</h4>
+                <input type="number" class="amount-received" max="0" /> / <span class="amount-remaining fs-2"></span>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-fc-caution" data-modal-to-close="#accept_delivery_modal">Cancel</button>
+                <button type="button" class="btn btn-fc-primary submit-delivery-btn" data-modal-to-close="#accept_delivery_modal">Done</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- cutting-config-back-button should hide this modal and show the previous one; records are loaded when initial modal is shown so the user will need to reselect their cutting service -->

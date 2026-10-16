@@ -1,0 +1,49 @@
+﻿
+<div class="modal" tabindex="-1" id="receive_stock_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title">Pending Stock Deliveries</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#receive_stock_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <ul class="pending-deliveries" style="list-style-type: none">
+                                <li class="header-line" style="text-decoration:underline">
+                                    <div class="container">
+                                        <div class="row fs-3">
+                                            <div class="col">PO #</div>
+                                            <div class="col">Amount Ordered</div>
+                                            <div class="col">Cost</div>
+                                            <div class="col"></div>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function PassesAddPendingStockValidation(toCheck) {
+        return toCheck > 0;
+    };
+    
+    function AddPendingStockToMaterial() {
+
+        let entered = Number($('.amount-to-queue').val());
+        
+        if (PassesAddPendingStockValidation(entered)) {
+            UpdateMaterialInventory('add-pending-stock', $('#ac_helper').val(), entered);
+        }
+    };
+
+    $(function () { })
+        .on('click', '.pending-stock-confirm-btn', AddPendingStockToMaterial);
+</script>

@@ -1,0 +1,93 @@
+﻿@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_PrintOverviewAlt
+
+@*change second parameter of this partial call for new cards*@
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "u02")
+
+<div class="field-binder-row-flex chart-icon-wrapper">
+    @*change id of icon for new cards*@
+    <i class="fa-solid fa-users" id="open-u02-user-list-modal"></i>
+    <i class="fa-solid fa-circle-info"></i>
+</div>
+@* change the modal id for a new card *@
+<div class="modal" id="user-list-modal-u02" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">User List</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @* change the class name for the new card *@
+                <ul class="u02-user-list"></ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal-to-close="#" data-dismiss="modal">Close</button>
+                @*update button class name (below)for new cards*@
+                <button type="button" data-modal-to-close="#" class="btn btn-primary update-u02-results user-list-submitted">Update Results</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="field-binder-col-flex card-user-list-wrapper d-none">
+    <h3>(Debug) User List</h3>
+    @*change this class name as well*@
+    <ul class="u02-user-list"></ul>
+    @*change button class name for new cards *@
+    <button type="button" class="btn btn-sm btn-fc-info update-u02-results card-filter-btn">Update Results</button>
+</div>
+@*
+    TODO: Update informational block
+<div class="informational-block">
+    <p>This Utilization chart provides a day-by-day view of overall team utilization, based on users included in the "Users" list (accessible by clicking the “Users” icon at the top-right of the chart). Each bar represents daily utilization rates, and the chart includes two reference lines for context: a solid blue line indicating the target utilization level and a dotted green line showing the average utilization across the displayed period. Days with zero recorded clock time are excluded for accuracy.</p>
+    <p>Alongside the chart, a metrics table provides additional insights:</p>
+    <p>These metrics provide a detailed view of daily utilization, helping track how closely the team meets targets and identify patterns in work time and adherence to schedules.</p>
+</div>
+    *@
+@if (String.IsNullOrEmpty(Model.AjaxIdOverride))
+{
+    @* print utilization is being expanded to ext/int/non like agency, so I've taken the agency template as a base. for now, I'll leave these canvas class names alone *@
+    <canvas class="agency-overview-chart-alt metric-chart" id="u02"></canvas>
+}
+else
+{
+    <canvas class="agency-overview-chart-alt metric-chart" id="@Html.DisplayFor(model => model.AjaxIdOverride)"></canvas>
+}
+<script>
+    $('.u02-user-list').append(
+        `<li class="user-list-entry pt-2" data-user-id="-1">
+            <div class="field-binder-row-flex justify-content-between">
+                <label for="ulcb_-1" class="ff-poppins fs-16 fw-bold fst-italic">Select All</label>
+                <input type="checkbox" id="ulcb_-1" checked />
+            </div>
+         </li>`);
+    @foreach(User u in Model.FilterableUsers.OrderBy(x => x.FirstName).ToList())
+    {
+        <text>$('.u02-user-list').append(
+        `<li class="user-list-entry pt-2" data-user-id="@Html.DisplayFor(model => u.Id)">
+            <div class="field-binder-row-flex justify-content-between">
+                <label for="ulcb_@Html.DisplayFor(model => u.Id)" class="ff-poppins fs-16 fw-bold">@Html.DisplayFor(model => u.FirstName) @Html.DisplayFor(model => u.LastName)</label>
+                <input type="checkbox" id="ulcb_@Html.DisplayFor(model => u.Id)" checked />
+            </div>
+         </li>`)</text>
+        //^^ "checked" will need to be dynamic
+    }
+
+    @*update the following selectors for new cards *@
+    $('.range-selector[data-card-ajax-id="u02"] select[name="Range"]').val('@Model.RangeOverride');
+    $('.range-selector[data-card-ajax-id="u02"] input[name="Locked"]').prop('checked', '@Model.IsLocked' === 'True');
+
+    // Modal functionality
+    $(document).ready(function () {
+        $('#open-u02-user-list-modal').on('click', function () {
+            $('#user-list-modal-u02').modal('show');
+        });
+
+        $('#user-list-modal-u02 .close, #user-list-modal-u02 .btn-secondary').on('click', function () {
+            $('#user-list-modal-u02').modal('hide');
+        });
+    });
+</script>

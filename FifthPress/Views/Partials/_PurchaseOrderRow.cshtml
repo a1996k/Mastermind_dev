@@ -1,0 +1,96 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_PO_Items
+
+<div class="po-item-row p-3" data-record-id="@Html.DisplayFor(model => model.Item.Id)">
+    @Html.HiddenFor(model => model.Item.Id)
+    @Html.HiddenFor(model => model.Item.GLCode)
+    @Html.HiddenFor(model => model.Item.PurchaseOrder)
+    @Html.HiddenFor(model => model.Item.TotalPrice)
+    @Html.HiddenFor(model => model.Item.Job)
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="field-binder-row-flex justify-content-between">
+                <div class="field-binder-col-flex align-items-center">
+                    @Html.Label("Inventory Item")
+                    @Html.CheckBoxFor(model => model.Item.TrackInventory.Value)
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Item)
+                    @if ((Model.Item.TrackInventory ?? false))
+                    {
+                        <input type="text" id="ma_@Html.DisplayFor(model => model.Item.Id)" class="material-autocomplete styled-input" value="@Html.DisplayFor(model => model.Item.ItemTitle)" data-row-id="@Html.DisplayFor(model => model.Item.Id)" />
+                        <input type="text" id="ia_@Html.DisplayFor(model => model.Item.Id)" class="item-autocomplete styled-input" value="" data-row-id="@Html.DisplayFor(model => model.Item.Id)" style="display:none" />
+                    }
+                    else
+                    {
+                        <input type="text" id="ma_@Html.DisplayFor(model => model.Item.Id)" class="material-autocomplete styled-input" value="" data-row-id="@Html.DisplayFor(model => model.Item.Id)" style="display:none" />
+                        <input type="text" id="ia_@Html.DisplayFor(model => model.Item.Id)" class="item-autocomplete styled-input" value="@Html.DisplayFor(model => model.Item.ItemTitle)" data-row-id="@Html.DisplayFor(model => model.Item.Id)" />
+                    }
+
+                    @Html.HiddenFor(model => model.Item.Item, htmlAttributes: new { @id = "material_" + Model.Item.Id })
+                </div>
+                <div class="field-binder-col-flex fs-2 align-items-end">
+                    <div class="field-binder-row-flex">
+                        <a href="/Job/Edit/@Html.DisplayFor(model => model.Item.Job)" class="job-link ps-3" @(Model.Item.Job.HasValue ? "style=\"display:none\"" : "")>Go To Job</a>
+                    </div>
+                    @if (Model.Item.Job.HasValue)
+                    {
+                        <button type="button" class="btn btn-sm r-navy-action-btn fs-3 mt-3 change-job-btn" data-record-id="@Html.DisplayFor(model => model.Item.Id)" data-modal-to-open="#job_select_modal">#@Html.DisplayFor(model => model.Item.Job1.JobNumber)</button>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-sm r-navy-action-btn fs-3 mt-3 change-job-btn" data-record-id="@Html.DisplayFor(model => model.Item.Id)" data-modal-to-open="#job_select_modal">Select Job</button>
+                    }
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Item.DueDate)
+                    @Html.TextBoxFor(model => model.Item.DueDate, "{0:yyyy-MM-dd}", htmlAttributes: new { @type = "date", @class = "styled-input" })
+                </div>
+            </div>
+            <div class="field-binder-row-flex justify-content-between">
+                <div class="field-binder-col-flex mins-input">
+                    @Html.LabelFor(model => model.Item.Price)
+                    @Html.EditorFor(model => model.Item.Price, new { htmlAttributes = new { @class = "styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Item.CostType)
+                    @Html.DropDownListFor(model => model.Item.CostType, ViewData["Item.CostType"] as SelectList, htmlAttributes: new { @id = "ct_" + Model.Item.Id.ToString(), @class = "styled-input" })
+                    <!--Set the selected cost type -->
+                    <script>
+                        $('#ct_' + '@Model.Item.Id.ToString()').val('@Model.Item.CostType');
+                    </script>
+                </div>
+                <div class="field-binder-col-flex mins-input">
+                    @Html.LabelFor(model => model.Item.Quantity)
+                    @Html.EditorFor(model => model.Item.Quantity, new { htmlAttributes = new { @class = "styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Item.TotalPrice)
+                    <span class="total-price-value">$@Html.DisplayFor(model => model.Item.TotalPrice)</span>
+                </div>
+                <div class="action-menu">
+                    <div class="action-label">Actions</div>
+                    <div class="action-list">
+                        @if (!Model.Item.Delivered.HasValue)
+                        {
+                            <span class="accept-delivery-btn fs-4" data-modal-to-open="#accept_delivery_modal" data-record-id="@Html.DisplayFor(model => model.Item.Id)">Accept Delivery</span>
+                        }
+                        <span class="delivery-history-btn fs-4" data-modal-to-open="#delivery_history_modal" data-record-id="@Html.DisplayFor(model => model.Item.Id)">History</span>
+                        <span class="invoice-btn fs-4" data-modal-to-open="#invoice_modal" data-record-id="@Html.DisplayFor(model => model.Item.Id)">Invoices</span>
+                        @if (!Model.Item.Delivered.HasValue)
+                        {
+                            <span class="remove-btn fs-4 mt-3" data-record-id="@Html.DisplayFor(model => model.Item.Id)">Remove</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="field-binder-col-flex">
+                @Html.LabelFor(model => model.Item.Notes)
+                @Html.TextAreaFor(model => model.Item.Notes, htmlAttributes: new { @style = "width:50%;" })
+            </div>
+        </div>
+    </div>
+</div>

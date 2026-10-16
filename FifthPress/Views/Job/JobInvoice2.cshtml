@@ -1,0 +1,279 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Invoice2
+
+@Styles.Render("~/Content/invoice")
+
+<div class="d-flex edit-job-wrapper justify-content-between align-items-center">
+    <div class="back-arrow-group" data-record-id="@Html.DisplayFor(model => model.Job.Id)">
+        <i class="fa-solid fa-arrow-left"></i>
+        <span class="ps-4 fw-bold">Edit Job</span>
+    </div>
+    <div class="save-print-links field-binder-row-flex">
+        <div class="print-link field-binder-row-flex">
+            <i class="fa-solid fa-print"></i>
+            <button type="button" class="btn btn-lg btn-fc-info print-invoice">Print Invoice</button>
+        </div>
+    </div>
+    <!-- Put other action buttons for job here -->
+</div>
+
+<div class="container invoice-wrapper fs-3">
+
+    <div class="row border-bottom-target inv-header-row">
+        <div class="col-4 fs-4">
+            <div class="field-binder-col-flex border-right-target pb-3">
+                <span class="pb-2 fst-italic">
+                    <img class="inv-fc-logo" src="~/Content/images/nb-logo.png" />
+                </span><!-- FifthColor Logo here-->
+                <span>@Html.DisplayFor(model => model.SourceInformation.Address)</span>
+                <span>@Html.DisplayFor(model => model.SourceInformation.City), @Html.DisplayFor(model => model.SourceInformation.State) @Html.DisplayFor(model => model.SourceInformation.ZipCode)</span>
+                <span>@Html.DisplayFor(model => model.SourceInformation.Phone)</span>
+
+                <span class="py-2 fw-bold">@DateTime.Now.ToLongDateString()</span>
+
+                <span class="pt-2 fw-bold">Project Manager: </span>
+                <span>@Html.DisplayFor(model => model.Job.User.FirstName) @Html.DisplayFor(model => model.Job.User.LastName)</span>
+            </div>
+        </div>
+        <div class="col-8 ps-5 pb-3">
+            <div class="field-binder-row-flex justify-content-between fs-2">
+                <h3 class="fw-bold">Invoice #@Html.DisplayFor(model => model.Job.JobNumber)</h3>
+            </div>
+            @if (Model.Job.IsReprint && Model.Job.OriginalJobId.HasValue)
+            {
+                var db2 = new FifthPress.FifthPressEntities();
+                var originalJob2 = db2.Jobs.Find(Model.Job.OriginalJobId.Value);
+                if (originalJob2 != null)
+                {
+                    <div class="fw-bold" style="font-size: 14px;">Reprint of Job #@originalJob2.JobNumber</div>
+                }
+            }
+            <div class="row fs-4">
+                <div class="col-6">
+                    <div class="field-binder-col-flex">
+                        <span class="fw-bold">Customer:</span>
+                        <span>@Html.DisplayFor(model => model.ClientInformation.ClientName)</span>
+                    </div>
+                    <div class="field-binder-col-flex">
+                        <span class="fw-bold">P.O.:</span>
+                        <span>@Html.DisplayFor(model => model.Job.PurchaseOrderNumber)</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="field-binder-col-flex">
+                        <span class="fw-bold">Ordered By:</span>
+                        <span>@Html.DisplayFor(model => model.ClientInformation.ContactName)</span>
+                        <span>@Html.DisplayFor(model => model.ClientInformation.Email)</span>
+                        <span>@Html.DisplayFor(model => model.ClientInformation.Phone)</span>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="field-binder-col-flex">
+                        @if (!(Model.Job.IsPickup ?? false))
+                        {
+                            if (Model.Job.ShippingAddress.HasValue)
+                            {
+
+                                <span class="fw-bold">Ship To:</span>
+                                if (!String.IsNullOrEmpty(Model.ShippingInformation.Attention))
+                                {
+                                    <span class="py-1 mb-0">@Html.DisplayFor(model => model.ShippingInformation.Attention)</span>
+                                }
+                                <span class="py-1 mb-0">@Html.DisplayFor(model => model.ShippingInformation.CompanyName)</span>
+                                <span class="py-1 mb-0">@Html.DisplayFor(model => model.ShippingInformation.Address)</span>
+                                if (!String.IsNullOrEmpty(Model.ShippingInformation.Address2))
+                                {
+                                    <span class="py-1 mb-0">@Html.DisplayFor(model => model.ShippingInformation.Address2)</span>
+                                }
+                                <span class="py-1 mb-0">@Html.DisplayFor(model => model.ShippingInformation.City), @Html.DisplayFor(model => model.ShippingInformation.State) @Html.DisplayFor(model => model.ShippingInformation.ZipCode)</span>
+                            }
+                            else
+                            {
+                                <span class="fw-bold">Ship To:</span>
+                                <span class="py-1 mb-0 fst-italic" style="font-family:Georgia">No Address Selected</span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="fw-bold">Pickup At:</span>
+                            <span class="mb-0">@Html.DisplayFor(model => model.SourceInformation.Address)</span>
+                            <span class="mb-0">@Html.DisplayFor(model => model.SourceInformation.City), @Html.DisplayFor(model => model.SourceInformation.State) @Html.DisplayFor(model => model.SourceInformation.ZipCode)</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="price-list-wrapper col-12 mt-2 p-5">
+            <h3 class="ff-poppins fs-16 fw-bold">Items</h3>
+            <div class="row col-header-row">
+                <div class="col col-7 fw-bold item-header-row gx-5 p-3">
+                    Items
+                </div>
+                <div class="col col-1 fw-bold gx-3 p-3">
+                    Qty
+                </div>
+                <div class="col col-2 fw-bold gx-3 p-3">
+                    Unit Price
+                </div>
+                <div class="col col-2 fw-bold gx-3 p-3">
+                    Total Price
+                </div>
+            </div>
+
+            @foreach (VM_InvoiceRow2 ir in Model.Rows.OrderBy(x => x.Ordinal))
+            {
+                <div class="row invoice-row pt-3">
+                    <div class="col-7 item preserve-formatting">
+                        @Html.DisplayFor(model => ir.Description)
+                        @if (!String.IsNullOrEmpty(ir.Notes))
+                        {
+                            <div class="row">
+                                <div class="col-12 item-notes ff-dm-sans fs-12 fw-normal preserve-formatting">@Html.DisplayFor(model => ir.Notes)</div>
+                            </div>
+                        }
+                    </div>
+                    <div class="col-1 quantity">
+                        @Html.DisplayFor(model => ir.Quantity)
+                    </div>
+                    <div class="col-2 unit-price">
+                        @Html.DisplayFor(model => ir.UnitPriceString)/ea.
+                    </div>
+                    <div class="col-2 total-price">
+                        @Html.DisplayFor(model => ir.PriceString)
+                    </div>
+                </div>
+            }
+            <div class="row totals-wrapper mt-5">
+                <div class="col-6"></div>
+                <div class="col-6">
+                    <!-- Shipment totals -->
+                    <div class="field-binder-row-flex justify-content-between subtotal-line border-bottom">
+                        <label>Subtotal</label>
+                        <span>@Html.DisplayFor(model => model.TotalPriceString)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="price-list-wrapper col-12 p-5">
+            <h3 class="ff-poppins fs-16 fw-bold">Shipments</h3>
+            @if (Model.Job.Shipped.HasValue)
+            {
+                <div class="mb-3 fs-4">
+                    <span class="fw-bold">Shipped:</span> @Model.Job.Shipped.Value.ToLongDateString()
+                </div>
+            }
+            <div class="row col-header-row">
+                <div class="col col-3 fw-bold item-header-row gx-5 p-3">
+                    Tracking #
+                </div>
+                <div class="col col-6 fw-bold gx-3 p-3">
+                    Shipment Notes
+                </div>
+                <div class="col col-3 fw-bold gx-3 p-3">
+                    Shipping Price
+                </div>
+            </div>
+
+            @foreach (OrdersShipped os in Model.Shipments.ToList())
+            {
+                string fPriceString = os.FreightPrice.HasValue ? String.Format("{0}", os.FreightPrice.Value.ToString("N2")) : "0.00";
+                <div class="row invoice-row pt-3">
+                    <div class="col-3 item">
+                        @Html.DisplayFor(model => os.TrackingNumber)
+                    </div>
+                    <div class="col-6">
+                        @Html.DisplayFor(model => os.Notes)
+                    </div>
+                    <div class="col-3">
+                        @Html.DisplayFor(model => fPriceString)
+                    </div>
+                </div>
+            }
+            @foreach (ShipmentsShipped ss in Model.GroupedShipments.ToList())
+            {
+                decimal sharePrice = Model.GroupedShipmentShares.ContainsKey(ss.Id)
+                    ? Model.GroupedShipmentShares[ss.Id]
+                    : (ss.FreightPrice ?? 0m);
+                string fPriceString = sharePrice.ToString("N2");
+                <div class="row invoice-row pt-3">
+                    <div class="col-3 item">
+                        @Html.DisplayFor(model => ss.TrackingNumber)
+                    </div>
+                    <div class="col-6">
+                        @Html.DisplayFor(model => ss.Notes)
+                    </div>
+                    <div class="col-3">
+                        @Html.DisplayFor(model => fPriceString)
+                    </div>
+                </div>
+            }
+            <div class="row totals-wrapper mt-5">
+                <div class="col-6"></div>
+                <div class="col-6">
+                    <!-- Shipment totals -->
+                    <div class="field-binder-row-flex justify-content-between subtotal-line border-bottom">
+                        <label>Shipping Total</label>
+                        <span>@Html.DisplayFor(model => model.TotalFreightPriceString)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="totals-wrapper">
+        <div class="row mt-5">
+            <div class="col-9">
+                <h3 class="ty-msg">Thank you for the order!</h3>
+                <h3 class="ty-msg-2">Please pay from this invoice.</h3>
+                <h3 class="ty-msg-3">Note: Shipping is NOT included in tax</h3>
+            </div>
+            <div class="col-3">
+                <div class="field-binder-row-flex justify-content-between subtotal-line border-bottom">
+                    <label>Shipping</label>
+                    <span>@Html.DisplayFor(model => model.TotalFreightPriceString)</span>
+                </div>
+                <div class="field-binder-row-flex justify-content-between subtotal-line border-bottom">
+                    <label>Subtotal</label>
+                    <span>@Html.DisplayFor(model => model.TotalPriceString)</span>
+                </div>
+                <div class="field-binder-row-flex justify-content-between tax-line border-bottom">
+                    <label>Tax</label>
+                    <span>@Html.DisplayFor(model => model.TaxAmountString)</span>
+                </div>
+                <div class="field-binder-row-flex justify-content-between total-line fw-bold border-bottom">
+                    <label>Total</label>
+                    <span>@Html.DisplayFor(model => model.FinalTotalString)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function invBackToJob() {
+        let id = $(this).attr('data-record-id');
+        window.location = ProcessUrl('Job/Edit') + '/' + id;
+    };
+
+    function printInvoice() {
+        window.print();
+    };
+
+    $('title').html('@Model.Job.JobNumber Invoice');
+
+    $(function () {
+
+        setHeaderWidth();
+        $(window).on('resize', setHeaderWidth);
+    })
+        .on('click', '.back-arrow-group', invBackToJob)
+        .on('click', '.print-invoice', printInvoice);
+</script>

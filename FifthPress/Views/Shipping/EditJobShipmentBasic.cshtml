@@ -1,0 +1,138 @@
+@model JobShipment
+
+@{
+    ViewBag.Title = "Edit Shipment";
+    var existingJobs = Model.JobShipmentPivots
+        .Where(p => p.Job1 != null || (p.JobItem1 != null && p.JobItem1.Job1 != null))
+        .GroupBy(p => p.Job ?? p.JobItem1?.Job)
+        .Where(g => g.Key != null)
+        .Select(g => new {
+            JobId = g.Key,
+            JobNumber = g.First().Job1?.JobNumber ?? g.First().JobItem1?.Job1?.JobNumber
+        })
+        .ToList();
+}
+
+<style>
+    .edit-shipment-form {
+        font-size: 2rem;
+        padding: 2rem;
+        background: #fff;
+        border-radius: 1rem;
+        box-shadow: 0 0 16px rgba(0, 0, 0, 0.1);
+        margin-top: 2rem;
+    }
+
+        .edit-shipment-form label {
+            font-weight: 600;
+            font-size: 2rem;
+        }
+
+        .edit-shipment-form input[type="text"],
+        .edit-shipment-form textarea {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+        }
+
+        .edit-shipment-form .list-group-item {
+            font-size: 1.75rem;
+            padding: 1rem;
+        }
+
+        .edit-shipment-form button {
+            font-size: 2rem;
+            padding: 1rem 2rem;
+            margin-top: 2rem;
+        }
+
+        .edit-shipment-form h4 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            font-weight: bold;
+        }
+
+    .jobs-list .list-group-item {
+        border-radius: 0.375rem;
+        margin-bottom: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .remove-job {
+        font-size: 1.5rem;
+        padding: 0.4rem 0.8rem;
+    }
+</style>
+
+<div class="container edit-shipment-form">
+    @using (Html.BeginForm("EditJobShipmentBasic", "Shipping", FormMethod.Post))
+    {
+        @Html.Hidden("Id", Model.Id)
+
+        <h4>Edit Shipment</h4>
+
+        <label>Title</label>
+        <input type="text" name="Title" class="form-control" value="@Model.Title" />
+
+        <label>Notes</label>
+        <textarea name="Notes" class="form-control" rows="4">@Model.Notes</textarea>
+
+        <label class="mt-4">Add Job to Shipment</label>
+        <input type="text" class="form-control job-num-autocomplete" placeholder="Type job number..." />
+
+        <label class="mt-4">Jobs on Shipment</label>
+        <ul class="list-group jobs-list">
+            @foreach (var job in existingJobs)
+            {
+                <li class="list-group-item d-flex justify-content-between align-items-center" data-id="@job.JobId">
+                    <span>@job.JobNumber</span>
+                    <input type="hidden" name="JobIds" value="@job.JobId" />
+                    <button type="button" class="btn btn-sm btn-outline-danger remove-job">&times;</button>
+                </li>
+            }
+        </ul>
+
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+    }
+</div>
+
+<script>
+    $(function () {
+        $(".job-num-autocomplete").autocomplete({
+            source: function (request, response) {
+                const selectedIds = new Set($('.jobs-list li').map(function () {
+                    return $(this).data('id');
+                }).get());
+
+                $.get(ProcessUrl('AutocompleteJobsReadyToShip'), { q: request.term }, function (data) {
+                    const results = JSON.parse(data)
+                        .filter(item => !selectedIds.has(item.Id))
+                        .map(item => ({ label: item.JobNumber, value: item.JobNumber, recordId: item.Id }));
+                    response(results);
+                });
+            },
+            minLength: 2,
+            select: function (event, ui) {
+                const id = ui.item.recordId;
+                const label = ui.item.label;
+
+                $(".job-num-autocomplete").val('');
+
+                if (!$(`.jobs-list li[data-id="${id}"]`).length) {
+                    $('.jobs-list').append(`
+                        <li class="list-group-item d-flex justify-content-between align-items-center" data-id="${id}">
+                            <span>${label}</span>
+                            <input type="hidden" name="JobIds" value="${id}" />
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-job">&times;</button>
+                        </li>`);
+                }
+
+                return false;
+            }
+        });
+
+        $(document).on('click', '.remove-job', function () {
+            $(this).closest('li').remove();
+        });
+    });
+</script>

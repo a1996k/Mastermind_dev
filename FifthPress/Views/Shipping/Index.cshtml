@@ -1,0 +1,51 @@
+﻿<style>
+    .shipping-nav-wrapper {
+        background: white;
+        padding: 3rem;
+        max-width: 700px;
+        margin: 5rem auto;
+        border-radius: 1rem;
+        box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.1);
+    }
+
+        .shipping-nav-wrapper h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .shipping-nav-wrapper .btn {
+            font-size: 1.5rem;
+            padding: 1rem;
+        }
+</style>
+
+<div class="shipping-nav-wrapper">
+    <h2>Shipping & Pickup</h2>
+    <p class="lead">Choose how you'd like to proceed:</p>
+
+    <div class="d-grid gap-3 mt-4">
+        <a class="btn btn-outline-primary" href="/ReadyToShip">
+            Individual Job Pickup and Shipping
+        </a>
+        <a class="btn btn-outline-success grp-ship" href="#">
+            Group Job Shipping (Create Shipment)
+        </a>
+        <a class="btn btn-outline-warning pnd-ship" href="#">
+            Pending Shipments (Finalize)
+        </a>
+    </div>
+</div>
+
+
+<script>
+    $(function () {
+
+        $('.grp-ship').on('click', function () {
+            window.location.href = ProcessUrl('Shipping/BundleJobShipments_Index');
+        });
+        $('.pnd-ship').on('click', function () {
+            window.location.href = ProcessUrl('Shipping/ReviewShipments');
+        });
+    });
+</script>

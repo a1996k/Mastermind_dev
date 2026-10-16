@@ -1,0 +1,218 @@
+﻿@using Newtonsoft.Json;
+@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_AgencyBurndownReport
+
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "bd01")
+
+<div class="field-binder-row-flex chart-icon-wrapper">
+    <i class="fa-solid fa-circle-info"></i>
+</div>
+
+<div class="field-binder-col-flex card-user-list-wrapper">
+    <h3>(Debug) User List</h3>
+    <ul class="au01-user-list"></ul>
+    <button type="button" class="btn btn-sm btn-fc-info update-bd01-results card-filter-btn">
+        Update Results
+    </button>
+</div>
+
+<div class="informational-block">
+    <p></p>
+    <p></p>
+</div>
+
+<!-- Main DataTable: displays a row per client -->
+<table id="hierarchical-table" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th></th> <!-- Expand/Collapse button for each client row -->
+            <th>Client</th>
+            <th>Budget Time</th>
+            <th>Used Time</th>
+            <th>Difference</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<script>
+$(document).ready(function () {
+    // 1) Grab the server-side data (List<BurndownClientTotals>).
+    const clientsData = @Html.Raw(JsonConvert.SerializeObject(Model.ClientTotals));
+
+    // 2) Initialize the DataTable for client-level rows.
+    const table = $('#hierarchical-table').DataTable({
+        data: clientsData,
+        columns: [
+            {
+                className: 'details-control',
+                orderable: false,
+                data: null,
+                defaultContent: '<i class="fa-solid fa-caret-down"></i>',
+                width: '5%'
+            },
+            { data: 'ClientName', title: 'Client Name' },
+            { data: 'OverallBudgetTimeFormatted', title: 'Overall Budget' },
+            { data: 'OverallActualTimeFormatted', title: 'Overall Worked' },
+            { data: 'OverallRemainingTimeFormatted', title: 'Overall Remaining' }
+        ],
+        order: [],
+        rowCallback: function (row, data) {
+            // Attach child row data to parent row for searching
+            if (data.ProjectTotals && data.ProjectTotals.length > 0) {
+                const childData = data.ProjectTotals.map(proj => {
+                    return `${proj.ProjectTitle} ${proj.OverallBudgetTimeFormatted} ${proj.OverallActualTimeFormatted} ${proj.OverallRemainingTimeFormatted}`;
+                }).join(' ');
+                // Add child data as a custom attribute
+                $(row).attr('data-child', childData.toLowerCase());
+            }
+        }
+    });
+
+    // 3) Expand/Collapse logic for client rows
+    $('#hierarchical-table tbody').on('click', 'td.details-control', function () {
+        const tr = $(this).closest('tr');
+        const row = table.row(tr);
+
+        if (row.child.isShown()) {
+            // Already open -> close it
+            row.child.hide();
+            tr.removeClass('shown');
+            $(this).find('i.fa-caret-down').removeClass('rotated'); // Remove rotated class
+        } else {
+            const clientData = row.data(); // BurndownClientTotals object
+
+            // Build subtable
+            let childHtml = `
+                <table class="child-table" style="margin: 10px; width: 90%;">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;"></th>
+                            <th style="width: 25%;">Budget Time</th>
+                            <th style="width: 25%;">Used Time</th>
+                            <th style="width: 25%;">Difference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Overall Creative</strong></td>
+                            <td>${clientData.CreativeBudgetTimeFormatted}</td>
+                            <td>${clientData.CreativeActualTimeFormatted}</td>
+                            <td>${clientData.CreativeRemainingTimeFormatted}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Overall Strategy</strong></td>
+                            <td>${clientData.StrategyBudgetTimeFormatted}</td>
+                            <td>${clientData.StrategyActualTimeFormatted}</td>
+                            <td>${clientData.StrategyRemainingTimeFormatted}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Overall Development</strong></td>
+                            <td>${clientData.DevelopmentBudgetTimeFormatted}</td>
+                            <td>${clientData.DevelopmentActualTimeFormatted}</td>
+                            <td>${clientData.DevelopmentRemainingTimeFormatted}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            `;
+
+            // Projects table
+            childHtml += `
+                <table class="client-projects-table" style="margin: 20px; width: 90%; border-top:1px solid #ccc;">
+                    <thead>
+                        <tr>
+                            <th style="width:5%;"></th>
+                            <th style="width:30%;">Project Name</th>
+                            <th style="width:20%;">Budget Time</th>
+                            <th style="width:20%;">Used Time</th>
+                            <th style="width:20%;">Difference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            if (clientData.ProjectTotals && clientData.ProjectTotals.length > 0) {
+                clientData.ProjectTotals.forEach((proj, index) => {
+                    childHtml += `
+                        <tr class="project-row">
+                            <td class="project-expand-control">
+                                <i class="proj-toggle fa-solid fa-caret-down" data-proj-index="${index}"></i>
+                            </td>
+                            <td>${proj.ProjectTitle}</td>
+                            <td>${proj.OverallBudgetTimeFormatted}</td>
+                            <td>${proj.OverallActualTimeFormatted}</td>
+                            <td>${proj.OverallRemainingTimeFormatted}</td>
+                        </tr>
+                        <tr class="dept-row" id="dept-row-${index}" style="display:none;">
+                            <td colspan="5">
+                                <table style="width: 100%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 25%;">Department</th>
+                                            <th style="width: 25%;">Budget Time</th>
+                                            <th style="width: 25%;">Used Time</th>
+                                            <th style="width: 25%;">Difference</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="proj-dep-row">
+                                            <td>Creative</td>
+                                            <td>${proj.CreativeBudgetTimeFormatted}</td>
+                                            <td>${proj.CreativeActualTimeFormatted}</td>
+                                            <td>${proj.CreativeRemainingTimeFormatted}</td>
+                                        </tr>
+                                        <tr class="proj-dep-row">
+                                            <td>Strategy</td>
+                                            <td>${proj.StrategyBudgetTimeFormatted}</td>
+                                            <td>${proj.StrategyActualTimeFormatted}</td>
+                                            <td>${proj.StrategyRemainingTimeFormatted}</td>
+                                        </tr>
+                                        <tr class="proj-dep-row">
+                                            <td>Development</td>
+                                            <td>${proj.DevelopmentBudgetTimeFormatted}</td>
+                                            <td>${proj.DevelopmentActualTimeFormatted}</td>
+                                            <td>${proj.DevelopmentRemainingTimeFormatted}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    `;
+                });
+            } else {
+                childHtml += `
+                    <tr>
+                        <td colspan="5">
+                            <em>No projects found for this client.</em>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            childHtml += `
+                    </tbody>
+                </table>
+            `;
+
+            // Insert everything as the row.child
+            row.child(childHtml).show();
+            tr.addClass('shown');
+            $(this).find('i.fa-caret-down').addClass('rotated'); // Add rotated class for main toggle
+
+            // Bind the second-level expand logic
+            $(row.child()).find('.proj-toggle').on('click', function () {
+                const projIndex = $(this).data('proj-index');
+                const deptRow = $(row.child()).find('#dept-row-' + projIndex);
+
+                if (deptRow.is(':visible')) {
+                    deptRow.hide();
+                    $(this).removeClass('rotated'); // Remove rotated class
+                } else {
+                    deptRow.show();
+                    $(this).addClass('rotated'); // Add rotated class
+                }
+            });
+        }
+    });
+});
+</script>

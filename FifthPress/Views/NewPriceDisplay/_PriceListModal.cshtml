@@ -1,0 +1,86 @@
+@using FifthPress.Models.ViewModels.NewPriceDisplay;
+@model PriceListViewModel
+
+<style>
+    .markup-overridden { background-color: #fff3cd !important; }
+</style>
+
+<!-- Bootstrap modal for Price Details -->
+<div class="modal fade" id="priceListModal" tabindex="-1" role="dialog" aria-labelledby="priceListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex justify-content-between align-items-center w-100">
+                    <h5 class="modal-title" id="priceListModalLabel">Price Details</h5>
+                </div>
+            </div>
+            <div class="modal-body">
+                @foreach (var item in Model.Items.OrderBy(x => x.Ordinal))
+                {
+                    <div class="price-item-group mb-4">
+                        <h6>@item.ItemName (Item #@Html.DisplayFor(model => item.Ordinal) of @Model.Items.Count)</h6>
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Reason</th>
+                                    <th>Duration / Quantity</th>
+                                    <th>Cost</th>
+                                    <th>Markup</th>
+                                    <th>Price</th>
+                                    <th>Difference</th>
+                                    <th>Position on Item</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var record in item.PriceRecords)
+                                {
+                                    <tr data-record-id="@record.Id" data-jobitem-id="@item.JobItemId" class="@(record.OverriddenMarkup ? "markup-overridden" : "")">
+                                        <td>@record.Reason</td>
+                                        <td>@record.DurationOrQuantity</td>
+                                        <td>@record.Cost.ToString("C")</td>
+                                        <td>
+                                            <!-- Individual markup input (displayed as %) -->
+                                            <input type="text"
+                                                   class="markup-val-2 form-control"
+                                                   value="@((record.Markup * 100).ToString("N2"))"
+                                                   data-record-id="@record.Id"
+                                                   data-jobitem-id="@item.JobItemId" />%
+                                            @if (record.OverriddenMarkup)
+                                            {
+                                                <i class="fa-solid fa-arrow-rotate-left reset-service-markup"
+                                                   data-record-id="@record.Id"
+                                                   title="Reset to default markup"
+                                                   style="cursor:pointer; margin-left:4px; color:#856404;"></i>
+                                            }
+                                        </td>
+                                        <td>@record.Price.ToString("C")</td>
+                                        <td>@record.Difference.ToString("C")</td>
+                                        <td>@record.Ordinal</td>
+                                        <td><button type="button" class="btn btn-sm btn-fc-danger remove-price" data-record-id="@record.Id">Remove</button></td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="2">Totals for @item.ItemName</th>
+                                    <th>@item.TotalCost.ToString("C")</th>
+                                    <th>
+                                        <!-- Group markup input for the job item (displayed as %) -->
+                                        <input type="text"
+                                               class="group-markup markup-val-2 form-control"
+                                               data-jobitem-id="@item.JobItemId"
+                                               value="@(item.GroupMarkup.HasValue ? (item.GroupMarkup.Value * 100).ToString("N2") : "")" />%
+                                    </th>
+                                    <th>@item.TotalPrice.ToString("C")</th>
+                                    <th>@item.TotalDifference.ToString("C")</th>
+                                    <th></th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

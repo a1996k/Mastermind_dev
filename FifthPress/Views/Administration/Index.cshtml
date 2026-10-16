@@ -1,0 +1,263 @@
+﻿@{
+    ViewBag.Title = "Administration";
+}
+
+@Styles.Render("~/Content/admincss")
+
+<input type="hidden" class="hidden-navver" />
+
+<div class="container-fluid admin-wrapper">
+    <div class="row justify-content-between">
+        <div class="col-lg-4 d-flex flex-direction-column align-items-center">
+            <h2 class="admin-h2">Administration</h2>
+        </div>
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-end admin-nav-group">
+                <button type="button" class="btn btn-lg btn-fc-caution fc-btn-admin me-3" data-ajax-load="Users">Users</button>
+                <button type="button" class="btn btn-lg btn-fc-caution fc-btn-admin me-3" data-ajax-load="Customers">Clients</button>
+                <button type="button" class="btn btn-lg btn-fc-caution fc-btn-admin me-3" data-ajax-load="Services">Services</button>
+                <button type="button" class="btn btn-lg btn-fc-caution fc-btn-admin me-3" data-ajax-load="ServiceCategories">Service Categories</button>
+                <button type="button" class="btn btn-lg btn-fc-caution fc-btn-admin me-3" data-ajax-load="Materials">Materials</button>
+                <button type="button" class="btn btn-lg btn-fc-caution fc-btn-admin me-3" data-ajax-load="Presses">Presses</button>
+                <a href="@Url.Action("Index", "ClientLogin")" data-permissions="3d" class="btn btn-lg btn-fc-caution fc-btn-admin me-3">Client Login</a>
+                <a href="@Url.Action("ReprintReasons", "Administration")" class="btn btn-lg btn-fc-caution fc-btn-admin me-3">Reprint Reasons</a>
+                <button type="button" class="btn btn-lg btn-fc-caution me-3 bugs-btn">View Bugs</button>
+                <button type="button" class="btn btn-lg btn-fc-danger me-3" data-modal-to-open="#set_password_modal">Change My Password</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-flex flex-row flex-nowrap justify-content-around fc-table-wrapper">
+    <div class="container-fluid p-4">
+        <div class="row">
+            <div class="col-3" style="display:none">
+                <div class="sidebar-container pt-5">
+                </div>
+            </div>
+            <div class="col-9">
+                <div class="fc-table-content">
+                    <div class="d-flex justify-content-between mb-4 align-items-center">
+                        <div class="dynamic-button-home"></div>
+                        <button type="button" class="btn btn-success new-user-btn" style="display:none" data-ajax-load="Users">Add New User</button>
+                        <button type="button" class="btn btn-success new-service-btn " style="display:none" data-ajax-load="Services">New Service</button>
+                        <button type="button" class="btn btn-success new-material-btn " style="display:none" data-ajax-load="Materials">New Material</button>
+                        <button type="button" class="btn btn-success new-press-btn " style="display:none" data-ajax-load="Presses">New Press</button>
+                        <button type="button" class="btn btn-success new-service-cat-btn " style="display:none" data-ajax-load="ServiceCategories">New Service Category</button>
+                        <button type="button" class="btn btn-success new-customer-btn " style="display:none" data-ajax-load="Customers">New Customer</button>
+                    </div>
+                    <table class="table table-borderless" id="psDataTable">
+                        <thead>
+                        </thead>
+                        <tbody class="viewer fc-item-td">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="edit_material_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editing <span name="title"></span></h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_material_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="edit_service_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editing <span name="title"></span></h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_service_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="edit_press_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editing <span name="title"></span></h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_press_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="new_material_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Material</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#new_material_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="new_service_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Service</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#new_service_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="new_press_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Press</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#new_press_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="edit_service_cat_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Editing <span name="title"></span></h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_service_cat_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="new_service_cat_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Service Category</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#new_service_cat_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="new_user_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New User</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#new_user_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="edit_user_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit User</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_user_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="edit_plate_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Plate</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_plate_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="edit_client_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Client</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#edit_client_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="new_client_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Client</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#new_client_modal" aria-label="Cancel">Close</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_ClockActivityEditorModal.cshtml")
+@Html.Partial("~/Views/Partials/_SetPasswordModal.cshtml")
+
+<button type="button" class="d-none" id="editservicemodal" data-modal-to-open="#edit_service_modal">HiddenButton</button>
+<button type="button" class="d-none" id="editmaterialmodal" data-modal-to-open="#edit_material_modal">HiddenButton</button>
+<button type="button" class="d-none" id="editpressmodal" data-modal-to-open="#edit_press_modal">HiddenButton</button>
+<button type="button" class="d-none" id="editservicecatmodal" data-modal-to-open="#edit_service_cat_modal">HiddenButton</button>
+<button type="button" class="d-none" id="editusermodal" data-modal-to-open="#edit_user_modal">HiddenButton</button>
+<button type="button" class="d-none" id="newservicemodal" data-modal-to-open="#new_service_modal">HiddenButton</button>
+<button type="button" class="d-none" id="newmaterialmodal" data-modal-to-open="#new_material_modal">HiddenButton</button>
+<button type="button" class="d-none" id="newpressmodal" data-modal-to-open="#new_press_modal">HiddenButton</button>
+<button type="button" class="d-none" id="newservicecatmodal" data-modal-to-open="#new_service_cat_modal">HiddenButton</button>
+<button type="button" class="d-none" id="newusermodal" data-modal-to-open="#new_user_modal">HiddenButton</button>
+<button type="button" class="d-none" id="newplatemodal" data-modal-to-open="#new_plate_modal">HiddenButton</button>
+<button type="button" class="d-none" id="editplatemodal" data-modal-to-open="#edit_plate_modal">HiddenButton</button>
+<button type="button" class="d-none" id="newclientmodal" data-modal-to-open="#new_client_modal">HiddenButton</button>
+<button type="button" class="d-none" id="editclientmodal" data-modal-to-open="#edit_client_modal">HiddenButton</button>
+
+<div class="modal new-stock-type-modal" tabindex="-1" id="new_stock_type_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Stock Type</h5>
+            </div>
+            <div class="modal-body">
+                <p class="fs-3">This stock type was not found for the selected press. Would you like to add this stock type to this press?</p>
+                <p><button type="button" class="btn btn-fc-info new-stock-type-btn" data-modal-to-close="#new_stock_type_modal">Yes</button><button type="button" class="btn btn-fc-caution cancel-new-stock-type" data-modal-to-close="#new_stock_type_modal">No</button></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Scripts.Render("~/bundles/administration")
+@Scripts.Render("~/bundles/timingparams")

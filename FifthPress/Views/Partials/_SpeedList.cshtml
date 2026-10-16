@@ -1,0 +1,38 @@
+﻿@model List<PressSpeed>
+
+<ul class="p-speeds striped-ul row-one-titles">
+    <li>
+        <div></div>
+        <div>Speed</div>
+        <div>Notes</div>
+        <div>Default</div>
+    </li>
+    @foreach (PressSpeed ps in Model)
+    {
+        <li data-record-id="@Html.DisplayFor(model => ps.Id)">
+            <div>
+                <a href="javascript:void(0);" class="edit-speed-link">Edit</a>
+            </div>
+            <div>
+                <!-- Press Speed -->
+                @Html.DisplayFor(model => ps.SpeedNumerator) @Html.DisplayFor(model => ps.SpeedDenominator1.Text)
+            </div>
+            <div>
+                <!-- Press Notes -->
+                @Html.DisplayFor(model => ps.Notes)
+            </div>
+            <div>
+                @if (ps.IsDefault.Value == true)
+                {
+                <i class="fa-solid fa-check"></i>
+                }
+            </div>
+        </li>
+    }
+</ul>
+
+<script>
+$(function(){
+    $('.p-speeds').sortable();
+});
+</script>

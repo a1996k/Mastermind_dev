@@ -1,0 +1,200 @@
+﻿/* ------------------------------------
+   General Styles
+------------------------------------ */
+body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    margin: 10px !important; /* Adds margin for all pages */
+}
+
+.back-arrow-group {
+    cursor: pointer;
+    color: white;
+    font-size: 20px;
+}
+
+.inv-fc-logo {
+    width: 120px;
+    max-width: 80%;
+    margin-bottom: 10px;
+}
+
+.print-prev {
+    display: block;
+}
+
+.edit-job-wrapper {
+    background-color: #4f4f4f;
+    padding: 20px;
+    position: fixed;
+    top: 75px;
+    z-index: 99;
+}
+
+    .edit-job-wrapper button {
+        background-color: transparent;
+        color: white;
+        border: none;
+    }
+
+.print-link i {
+    font-size: 16px;
+    color: white;
+}
+
+.ty-msg {
+    font-family: 'Poppins';
+    font-style: italic;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.ty-msg-2 {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.ty-msg-3 {
+    font-family: 'Poppins';
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.item-header-row {
+    font-family: Georgia, serif;
+}
+
+.price-list-wrapper .col-header-row {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+    .price-list-wrapper .col-header-row .item-header-row {
+        font-style: italic;
+    }
+
+.col-header-row .col {
+    background: #f2ebe6;
+    font-size: 12px;
+}
+
+.invoice-row {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    border-bottom: 1px solid black;
+}
+
+    .invoice-row .item {
+        font-weight: bold;
+    }
+
+    .invoice-row .quantity,
+    .invoice-row .unit-price,
+    .invoice-row .total-price {
+        font-family: 'Lato', sans-serif;
+    }
+
+.wrp-border {
+    border-bottom: 1px solid black;
+}
+
+.totals-wrapper label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+}
+
+.totals-wrapper span {
+    font-family: 'Lato', sans-serif;
+    font-size: 12px;
+}
+
+.inv-header-row {
+    font-family: 'DM Sans', sans-serif;
+}
+
+    .inv-header-row h3 {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    .inv-header-row span {
+        font-size: 12px;
+    }
+
+.body-content {
+    background: white !important;
+}
+
+/* ------------------------------------
+   Invoice Wrapper
+------------------------------------ */
+
+.border-right-target {
+    position: relative;
+}
+
+    .border-right-target:after {
+        background: black;
+        width: 1px;
+        height: calc(100% - 15px);
+        content: '';
+        position: absolute;
+        right: 0;
+    }
+
+/* ------------------------------------
+   Print Styles
+------------------------------------ */
+@media print {
+    .edit-job-wrapper {
+        display: none !important; /* Hide the edit job section during print */
+    }
+
+    .invoice-wrapper {
+        padding-top: 0 !important;
+        margin: 0 !important;
+        width: calc(100% - 20px) !important; /* Adds breathing space for the content */
+        max-width: 100% !important;
+    }
+
+    .body-content {
+        padding: 0 !important;
+        font-size: 2rem; /* Larger print font */
+    }
+
+    .container {
+        padding: 10px !important; /* Adds some inner padding */
+        margin: 0 auto !important; /* Centers the content */
+    }
+
+    .row {
+        width: 100% !important; /* Ensure rows use the full width */
+        margin: 0 !important;
+    }
+
+    .col {
+        padding-left: 5px !important; /* Small padding for readability */
+        padding-right: 5px !important;
+    }
+
+    .totals-wrapper {
+        margin-top: 15px !important;
+    }
+
+    .preserve-formatting {
+        white-space: pre-wrap;
+    }
+
+    .totals-wrapper {
+        page-break-inside: avoid;
+    }
+
+    .invoice-row > div {
+        padding: 3px;
+    }
+
+    @page {
+        margin: 5mm; /* Adds margins around the page */
+    }
+}

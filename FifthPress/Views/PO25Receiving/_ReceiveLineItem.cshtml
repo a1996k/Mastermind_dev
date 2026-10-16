@@ -1,0 +1,24 @@
+﻿@model PO_LineItems25
+
+@using (Html.BeginForm("AcceptDelivery", "PO25Receiving", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    @Html.Hidden("lineItemId", Model.PO_LineItemId)
+
+    <div>
+        <label>Quantity Received</label>
+        <input type="number" name="quantityReceived" min="1" max="@Model.Quantity" required />
+    </div>
+
+    <div>
+        <label>Storage Location</label>
+        <input type="text" name="storageLocation" maxlength="255" />
+    </div>
+
+    <div>
+        <label>Notes</label>
+        <textarea name="notes" rows="2" cols="50"></textarea>
+    </div>
+
+    <button type="submit">Accept Delivery</button>
+}

@@ -1,0 +1,132 @@
+﻿@model List<JobShipment>
+
+@Styles.Render("~/Content/joblistcss")
+
+<input type="hidden" id="cur_sid" />
+
+<div class="container mt-4">
+    <div class="accordion" id="shipmentAccordion">
+        @foreach (var shipment in Model)
+        {
+            <div class="shipment-card mb-3">
+                <div class="shipment-card-header bg-light d-flex justify-content-between align-items-center" id="heading-@shipment.Id">
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-sm text-decoration-none ff-poppins fs-20 d-flex align-items-center toggle-icon"
+                                data-bs-toggle="collapse" data-bs-target="#collapse-@shipment.Id"
+                                aria-expanded="false" aria-controls="collapse-@shipment.Id">
+                            <!-- Initially collapsed, icon starts with right chevron -->
+                            <i class="fa fa-chevron-right me-2" id="icon-@shipment.Id"></i>
+                            <span class="ps-3">@shipment.Title</span>
+                        </button>
+                    </div>
+                    <button class="btn btn-success fs-14 ff-dm-sans open-shipped-shipments-modal" data-record-id="@shipment.Id">Manage Shipments</button>
+                </div>
+
+                <!-- Displaying the notes outside of the collapse section so that they are always visible -->
+                <div class="shipment-card-body ps-3">
+                    <p class="small text-muted ff-dm-sans fs-14">@shipment.Notes</p>
+                </div>
+
+                <div id="collapse-@shipment.Id" class="collapse" aria-labelledby="heading-@shipment.Id">
+                    <div class="shipment-card-body ps-3">
+                        <h6 class="mt-3 ff-poppins fs-18">Shipment Items</h6>
+                        <table class="table table-sm table-bordered">
+                            <thead class="bg-light">
+                                <tr class="ff-dm-sans fs-14">
+                                    <th>Job Number</th>
+                                    <th>Client</th>
+                                    <th>Item Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in shipment.JobShipmentPivots)
+                                {
+                                    string jobItemIdentifier = String.Format("{0}.{1}", item.JobItem1.Job1.JobNumber, item.JobItem1.Ordinal);
+                                    <tr class="ff-dm-sans fs-14">
+                                        <td class="ff-lato">@jobItemIdentifier</td>
+                                        <td>@item.JobItem1.Job1.Client1.Title</td>
+                                        <td>@item.JobItem1.Description</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@Html.Partial("~/Views/Shipping/_ShippedShipmentsModal.cshtml")
+
+<script>
+
+    function SetHelperField() {
+        let id = $(this).attr('data-record-id');
+        $('#cur_sid').val(id);
+
+        $('#shipped_shipments_modal').modal('show');
+    };
+
+    function MarkShipmentAsShipped() {
+        let id = $('#cur_sid').val();
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('mark-shipment-as-shipped'),
+            data: {
+                shipment: id
+            },
+            success: function (data) {
+                alert('Shipment marked as shipped');
+                window.location.reload();
+            },
+            error: function (err) {
+                alert('Error marking shipment as shipped');
+            }
+        });
+    };
+
+    // JavaScript to toggle the FontAwesome icon when collapse is expanded/collapsed
+    document.querySelectorAll('.toggle-icon').forEach(button => {
+        button.addEventListener('click', function () {
+            let icon = this.querySelector('i');
+            setTimeout(() => {
+                let collapseElement = document.querySelector(this.getAttribute('data-bs-target'));
+                // Check if the collapse is currently showing
+                if (collapseElement.classList.contains('show')) {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-down');
+                } else {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-right');
+                }
+            }, 200);  // Timeout to allow Bootstrap's collapse transition
+        });
+    });
+
+    // Ensure icons are set correctly when the page is loaded
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.collapse').forEach(function (collapseElement) {
+            let icon = document.querySelector(`#icon-${collapseElement.id.replace('collapse-', '')}`);
+            if (collapseElement.classList.contains('show')) {
+                icon.classList.remove('fa-chevron-right');
+                icon.classList.add('fa-chevron-down');
+            } else {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-right');
+            }
+        });
+    });
+
+    var srtsTable = $('#srts_table').dataTable({
+        paging: false
+    });
+
+    $(function () { })
+        .on('click', '.open-shipped-shipments-modal', SetHelperField)
+        .on('click', '.mark-job-as-shipped', MarkShipmentAsShipped);
+</script>
+
+
+@Scripts.Render("~/bundles/shipmentshipping")

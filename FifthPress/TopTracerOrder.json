@@ -1,0 +1,48 @@
+{
+  "orderid": "f77c82f",
+  "orderdate": "2021-07-01",
+  "orderstatus": "paid",
+  "orderamount": 100.00,
+  "customer": {
+    "email": "itsupport@ifthcolor.com",
+    "name": "IFT Support"
+  },
+  "shipping": {
+    "address": "123 Main St",
+    "address2": "Suite 100",
+    "country": "US",
+    "city": "Anytown",
+    "state": "CA",
+    "zip": "12345"
+  },
+  "items": [
+    {
+      "sku": "12345",
+      "name": "Bay Numbers",
+      "quantity": 2,
+      "unitprice": 100.00,
+      "totalprice": 200.00,
+      "options": [
+        {
+          "color": "blue",
+          "numbers": "1,2-5,7,9"
+        }
+      ]
+    },
+    {
+      "sku": "54321",
+      "name": "Retractable Banner",
+      "quantity": 2,
+      "unitprice": 100.00,
+      "totalprice": 200.00,
+      "options": [
+        {
+          "color": "blue",
+          "generatedPhoto": "https://aws.amazon.com/s3/12345.jpg",
+          "customLogo": "https://aws.amazon.com/s3/54321.jpg",
+          "hardwareNoHadware": "hardware"
+        }
+      ]
+    }
+  ]
+}

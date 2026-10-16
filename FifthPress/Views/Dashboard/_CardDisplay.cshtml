@@ -1,0 +1,34 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_CardDisplay
+
+@*
+<div class="row general-filter-row">
+    <div class="field-binder-row-flex">
+        <div class="field-binder-col-flex">
+            <label class="ff-poppins fs-14 fw-bold">DEPARTMENTS</label>
+            @Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.DepartmentSelect)
+        </div>
+        <div class="field-binder-col-flex ps-5">
+            <label class="ff-poppins fs-14 fw-bold">USERS</label>
+            @Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.UserSelect)
+        </div>
+        
+    </div>
+</div>
+    *@
+
+<div class="metric-menu-wrapper mt-5">
+    <i class="fa-solid fa-arrows-rotate fa-3x refresh-dashboard ps-3"></i>
+    <div class="metric-wrapper d-flex flex-row flex-wrap justify-content-between">
+        @foreach (DashboardCard dc in Model.Cards)
+        {
+            <div class="@Html.DisplayFor(model => dc.slug) p-3 m-3 ajaxable" data-ajax-id="@Html.DisplayFor(model => dc.AjaxId)">
+                <div class="loader" style="display:none"></div>
+                <h3 class="text-center">@Html.DisplayFor(model => dc.CardTitle)</h3>
+
+                <div class="card-data-wrapper p-5">
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,205 @@
+﻿@model List<Quote>
+
+<style>
+    table tbody tr {
+        font-size: 18px;
+    }
+
+    .list-edit-btn,
+    .convert-to-job-btn {
+        font-size: 14px;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-12">
+            <table id="quote_list_table">
+                <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Edit</th>
+                        <th>Convert</th>
+                        <th>Job Number</th>
+                        <th>Client</th>
+                        <th>Description (Click -> More Info)</th>
+                        <th>Date Added</th>
+                        <th>CSR</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Quote q in Model)
+                    {
+                        <tr data-record-id="@Html.DisplayFor(model => q.Id)">
+                            <td>@Html.DisplayFor(model => q.Id)</td> <!-- Record id -->
+                            <td><button type="button" class="btn btn-fc-caution list-edit-btn" data-record-id="@Html.DisplayFor(model => q.Id)">Edit</button></td> <!-- Edit button -->
+                            <td><button type="button" class="btn btn-fc-info convert-to-job-btn" data-record-id="@Html.DisplayFor(model => q.Id)">Convert To Job</button></td> <!-- Convert button -->
+                            <td>@Html.DisplayFor(model => q.JobNumber)</td> <!-- Job (Quote) Number -->
+                            <td>@Html.DisplayFor(model => q.Client1.Title) </td> <!-- Client Name -->
+                            <td data-full-description="@Html.DisplayFor(model => q.Description)">@Html.DisplayFor(model => q.TruncatedDescription)</td> <!-- Description -->
+                            @if (q.CreatedAt.HasValue)
+                            {
+                                <td>@q.CreatedAt.Value.ToString("M/d/yyyy")</td>
+                            }
+                            else
+                            {
+                                <td></td>
+                            }
+                            <!-- CSR -->
+                            @if (q.CreatedBy.HasValue)
+                            {
+                                <td>@Html.DisplayFor(model => q.User.FirstName) @Html.DisplayFor(model => q.User.LastName)</td>
+                            }
+                            else
+                            {
+                                <td></td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal convert-to-job-modal" tabindex="-1" id="convert_to_job_modal">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <input type="hidden" id="ctj_record_id" />
+            <div class="modal-header">
+                <h5 class="modal-title">Convert Quote -> Job</h5>
+            </div>
+            <div class="modal-body">
+                <div class="field-binder-flexxy align-items-center pb-3">
+                    <label for="user_entered_po_num" class="pe-3">Enter PO #</label>
+                    <input type="text" id="user_entered_po_num" maxlength="15" />
+                </div>
+                <p class="ui-state-error-text fs-3 d-none" id="pon_msg">A purchase order number is required</p>
+
+                <div class="field-binder-flexxy align-items-center">
+                    <label for="user_entered_due_date" class="pe-3">Enter Due Date</label>
+                    <input type="date" id="user_entered_due_date" />
+                </div>
+                <p class="ui-state-error-text fs-3 d-none" id="dd_msg">A due date is required</p>
+
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-fc-danger cancel-btn" data-modal-to-close="#convert_to_job_modal" value="Cancel" />
+                <input type="button" class="btn btn-fc-info convert-btn" value="Go" />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="snackbar2">Job Created!</div>
+
+<script>
+    var vmQuoteListTable;
+
+    function ListItemEdit() {
+        var recordId = $(this).attr('data-record-id');
+        window.location = ProcessUrl('Quote/Edit/' + recordId);
+    };
+
+    function OpenConvertModal() {
+        let recordId = $(this).attr('data-record-id');
+        $('#ctj_record_id').val(recordId);
+        $('#convert_to_job_modal').modal('show');
+    };
+
+    function CreateJobFromQuote() {
+        $('.convert-to-job-modal .convert-btn').prop('disabled', true);
+        $('.convert-to-job-modal .cancel-btn').prop('disabled', true);
+
+        if (!$('#pon_msg').hasClass('d-none')) {
+            $('#pon_msg').addClass('d-none');
+        }
+
+        if (!$('#dd_msg').hasClass('d-none')) {
+            $('#dd_msg').addClass('d-none');
+        }
+
+        var pon = $('#user_entered_po_num').val();
+        var dd = $('#user_entered_due_date').val();
+        var hasPon = pon !== '';
+        var hasdd = dd !== '';
+
+        //if either of the vars are '', show an error message that the fields are required
+        /*if (!hasPon) {
+            $('#pon_msg').removeClass('d-none');
+        }*/
+        if (!hasdd) {
+            $('#dd_msg').removeClass('d-none');
+        }
+
+        /*if (!hasPon || !hasdd) {*/
+        if (!hasdd) {
+            return;
+        }
+
+        //send Id, PoNum and DueDate to Job/CreateJobFromQuote
+        var quoteId = $('#ctj_record_id').val();
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('Job/CreateJobFromQuote'),
+            data: {
+                'quoteId': quoteId,
+                'po_num': pon,
+                'due_date': dd
+            },
+            success: function (data) {
+                YummySnackbar2(data);
+            },
+            error: function () {
+                $('.convert-to-job-modal .convert-btn').prop('disabled', false);
+                $('.convert-to-job-modal .cancel-btn').prop('disabled', false);
+            }
+        });
+    };
+
+    function YummySnackbar2(data) {
+        // Get the snackbar DIV
+        var x = document.getElementById("snackbar2");
+
+        // Add the "show" class to DIV
+        x.className = "show";
+
+        $('#snackbar2').addClass('show');
+
+        // After 2 seconds, remove the show class from DIV
+        setTimeout(function () { window.location = ProcessUrl('Job/Edit') + '/' + data; }, 2000);
+    };
+
+    $(function () {
+        vmQuoteListTable = $('#quote_list_table').DataTable({
+            'paging': true,
+            'pageLength': 50,
+            "columnDefs": [
+                {
+                    "targets": [0],
+                    "visible": false
+                },
+                {
+                    "targets": [6],
+                    "render": function (data, type, row) {
+                        if (type === 'display' || type === 'filter') {
+                            var date = moment(data, "MM/DD/YYYY");
+                            if (!date.isValid()) {
+                                return ''; // Custom message for invalid date
+                            }
+                            return date.format('MM/DD/YYYY'); // Change this format if needed
+                        }
+                        return moment(data, "MM/DD/YYYY").format(); // ISO format for sorting
+                    },
+                    "type": 'date'
+                }
+            ],
+            "order": [[0, "desc"]]
+        });
+    })
+        .on('click', '.list-edit-btn', ListItemEdit)
+        .on('click', '.convert-to-job-btn', OpenConvertModal)
+        .on('click', '.convert-btn', CreateJobFromQuote);
+</script>

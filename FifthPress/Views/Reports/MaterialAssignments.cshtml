@@ -1,0 +1,111 @@
+@model FifthPress.Models.ViewModels.VM_MaterialAssignmentsReport
+
+@{
+    ViewBag.Title = "Material Assignments";
+    var shortCount = Model.Rows.Select(r => r.MaterialCode).Where(mc => Model.Rows.First(r => r.MaterialCode == mc).IsShort).Distinct().Count();
+}
+
+<style>
+    .row-short { background-color: #fdecea !important; }
+    .row-short td { font-weight: 500; }
+    .legend-swatch { display: inline-block; width: 14px; height: 14px; vertical-align: middle; margin-right: 6px; border: 1px solid #ccc; }
+    .summary-pill { display: inline-block; padding: 4px 10px; margin-right: 8px; border-radius: 12px; background: #eef; font-size: 13px; }
+    .summary-pill.danger { background: #fdecea; color: #a3231b; }
+</style>
+
+<div class="container-fluid">
+    <div class="row mb-3">
+        <div class="col-lg-12">
+            <h2>Material Assignments</h2>
+            <p class="text-muted">Active jobs (due date set, not yet complete) and the materials allocated to them.</p>
+            <div>
+                <span class="summary-pill">@Model.Rows.Count assignment row(s)</span>
+                <span class="summary-pill">@Model.Rows.Select(r => r.MaterialCode).Distinct().Count() unique material(s)</span>
+                @if (shortCount > 0)
+                {
+                    <span class="summary-pill danger">@shortCount material(s) short (stock + on-order &lt; net needed)</span>
+                }
+                <span style="margin-left:12px;">
+                    <span class="legend-swatch" style="background:#fdecea;"></span>
+                    <small class="text-muted">Row highlighted when material is short across all jobs</small>
+                </span>
+            </div>
+            <div style="margin-top:10px;">
+                <button id="download_csv" class="btn btn-fc-info">Download as CSV</button>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-12">
+            <table class="table table-striped" id="material_assignments_table">
+                <thead class="fs-4">
+                    <tr>
+                        <th>Material Code</th>
+                        <th>Type</th>
+                        <th>Job Number</th>
+                        <th class="text-right">Allocated</th>
+                        <th>Pulled?</th>
+                        <th class="text-right">Pulled</th>
+                        <th class="text-right">In Stock</th>
+                        <th class="text-right">On Order</th>
+                        <th class="text-right">Min Level</th>
+                        <th class="text-right">Net Needed (material)</th>
+                    </tr>
+                </thead>
+                <tbody class="fs-4">
+                    @foreach (var r in Model.Rows)
+                    {
+                        <tr class="@(r.IsShort ? "row-short" : "")">
+                            <td>@r.MaterialCode</td>
+                            <td>@r.Type</td>
+                            <td>@r.JobNumber</td>
+                            <td class="text-right" data-sort="@r.Allocated">@r.Allocated</td>
+                            <td>@r.Pulled</td>
+                            <td class="text-right" data-sort="@r.PulledAmount">@r.PulledAmount</td>
+                            <td class="text-right" data-sort="@r.InStock">@r.InStock.ToString("N0")</td>
+                            <td class="text-right" data-sort="@r.OnOrder">@r.OnOrder</td>
+                            <td class="text-right" data-sort="@(r.MinLevel ?? 0)">@(r.MinLevel.HasValue ? r.MinLevel.Value.ToString("N0") : "-")</td>
+                            <td class="text-right" data-sort="@r.TotalAllocatedForMaterial">@r.TotalAllocatedForMaterial</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        var table = $('#material_assignments_table').DataTable({
+            paging: true,
+            pageLength: 50,
+            order: [[0, 'asc'], [2, 'asc']]
+        });
+
+        $('#download_csv').click(function () {
+            var csv = [];
+            var headers = [];
+            $('#material_assignments_table thead th').each(function () {
+                headers.push('"' + $(this).text().trim().replace(/"/g, '""') + '"');
+            });
+            csv.push(headers.join(','));
+
+            table.rows({ search: 'applied' }).every(function () {
+                var row = [];
+                $(this.node()).find('td').each(function () {
+                    row.push('"' + $(this).text().trim().replace(/"/g, '""') + '"');
+                });
+                csv.push(row.join(','));
+            });
+
+            var blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+            var link = document.createElement('a');
+            link.download = 'material-assignments-' + new Date().toISOString().split('T')[0] + '.csv';
+            link.href = window.URL.createObjectURL(blob);
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+    });
+</script>

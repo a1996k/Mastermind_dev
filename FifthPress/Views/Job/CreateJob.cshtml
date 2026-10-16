@@ -1,0 +1,235 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_JobWrapper
+
+@{
+    ViewBag.Title = "Create Job";
+}
+
+@{
+    var type = typeof(QuoteItem);
+    var properties = type.GetProperties();
+}
+
+@foreach (var property in properties)
+{
+    var constrainableAttribute = property.GetCustomAttributes(typeof(AdditionalMetadataAttribute), false)
+                                          .FirstOrDefault() as AdditionalMetadataAttribute;
+    if (constrainableAttribute != null && constrainableAttribute.Name == "Constrainable")
+    {
+        <p>Constrainable: @constrainableAttribute.Value</p>
+    }
+}
+
+@Scripts.Render("~/bundles/ccalc")
+
+<script>
+    var oinvnivosn = ('@Model.RequiresValidator' === 'True');
+</script>
+
+<input type="hidden" id="sp_adder_helper" />
+<input type="hidden" id="cut_config_helper" />
+
+<select class="d-none" id="print_speed_ref_sl">
+    <option value="1">Sheets/Hr.</option>
+    <option value="2">Rolls/Hr.</option>
+    <option value="3">Sq.Ft./Hr.</option>
+    <option value="4">Ft./Hr.</option>
+    <option value="5">None</option>
+</select>
+
+
+<div class="create-wrapper container">
+    <div class="step d-none" data-step-num="1">
+        <a class="btn btn-fc-danger gb-btn2" href="/?initNav">Back</a>
+        <h2>Create Job From...</h2>
+        <div class="quick-buttons-flex">
+            <div class="quick-buttons-menu">
+                <button type="button" class="btn quick-button get-quotes" data-go-to="2">Quote</button>
+                <button type="button" class="btn quick-button get-estimates" data-go-to="3">Estimate</button>
+                <button type="button" class="btn quick-button get-jobs" data-go-to="4">Existing Job</button>
+                <button type="button" class="btn quick-button blank-job" data-go-to="5">Scratch</button>
+            </div>
+        </div>
+    </div>
+    <div class="step d-none" data-step-num="2">
+        <div class="quote-wrapper"></div>
+
+        <button class="btn btn-fc-danger gb-btn" data-go-to="1">Back</button>
+
+        <h3>New Job From Quote</h3>
+
+        <table class="table-borderless" id="quote_select_table">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="step d-none" data-step-num="3">
+        <div class="estimate-wrapper"></div>
+
+        <button class="btn btn-fc-danger gb-btn" data-go-to="1">Back</button>
+
+        <h3>New Job From Estimate</h3>
+
+        <table class="table-borderless" id="estimate_select_table">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="step d-none" data-step-num="4">
+        <div class="job-wrapper"></div>
+
+        <button class="btn btn-fc-danger gb-btn" data-go-to="1">Back</button>
+
+        <h3>New Job From Existing</h3>
+
+        <table class="table-borderless" id="job_select_table">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="step d-none" data-step-num="5">
+        <!-- new Job from scratch -->
+        <button class="btn btn-fc-danger gb-btn mb-3" data-go-to="1">Back</button>
+        <h3>New Job</h3>
+
+
+        <div class="container">
+            @using (Html.BeginForm("UpdateJob", "Job", FormMethod.Post, htmlAttributes: new { @class = "gy-3", @id = "job_builder" }))
+            {
+                @Html.HiddenFor(model => model.VM_Job.Job.Id)
+                @Html.HiddenFor(model => model.VM_Job.Job.Deleted)
+                @Html.HiddenFor(model => model.VM_Job.Job.Client)
+                @Html.HiddenFor(model => model.VM_Job.Job.Contact)
+                @Html.HiddenFor(model => model.VM_Job.Job.QuoteNumber)
+                <input type="hidden" id="mat_id_list" value="" /> <!-- space seperated -->
+
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="field-binder-row-flex offset-labels">
+                            @Html.LabelFor(model => model.VM_Job.Job.Client)
+                            <input type="text" id="client_autocomplete" />
+                            @Html.CheckBoxFor(model => model.VM_Job.Job.BlindShipping.Value)
+                            @Html.LabelFor(model => model.VM_Job.Job.BlindShipping)
+                            @Html.LabelFor(model => model.VM_Job.Job.MinStartDate)
+                            @Html.TextBoxFor(model => model.VM_Job.Job.MinStartDate, "{0:dd-MM-yyyy}", htmlAttributes: new { @type = "date", @data_changed = false })
+                            @Html.LabelFor(model => model.VM_Job.Job.DueDate)
+                            @Html.TextBoxFor(model => model.VM_Job.Job.DueDate, "{0:dd-MM-yyyy}", htmlAttributes: new { @type = "date", @data_changed = false })
+                            @Html.LabelFor(model => model.VM_Job.Job.JobNumber)
+                            @Html.EditorFor(model => model.VM_Job.Job.JobNumber, new { htmlAttributes = new { @data_changed = false, @placeholder = "Autopopulate?" } })
+                            @Html.LabelFor(model => model.VM_Job.Job.PurchaseOrderNumber)
+                            @Html.EditorFor(model => model.VM_Job.Job.PurchaseOrderNumber)
+                            <label>Quote #: @Html.DisplayFor(model => model.VM_Job.Job.QuoteNumber)</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-list-wrapper" style="display:none">
+                    <div class="row contact-list-row">
+                        <div class="col-lg-12">
+                            <!-- Contact list here -->
+                            <ul class="contact-list">
+                            </ul>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-fc-info show-hide-contacts">Hide</button>
+                </div>
+                <div class="row flex-column flex-lg-row">
+                    <div class="d-inline-block">
+                        <div class="btn-group">
+                            <div class="d-inline-block">
+                                <input type="radio" name="pickup_ship" id="rad_pickup" @if ((Model.VM_Job.Job.IsPickup ?? false)) { @("checked") ; } />
+                                <label for="rad_pickup">Pickup</label>
+                            </div>
+                            <div class="d-inline-block">
+                                <input type="radio" name="pickup_ship" id="rad_ship" @if (!(Model.VM_Job.Job.IsPickup ?? false)) { @("checked") ; } />
+                                <label for="rad_ship">Ship</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row ship-select-row">
+                    <div class="col">
+                        @Html.DropDownListFor(model => model.VM_Job.Job.ShippingMethod, ViewData["VM_Job.Job.ShippingMethod"] as SelectList, htmlAttributes: new { })
+                        <button type="button" class="btn btn-sm btn-fc-info select-address-btn" data-modal-to-open="#shipping_address_modal">Select Shipping Address</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.LabelFor(model => model.VM_Job.Job.Description)
+                            @Html.EditorFor(model => model.VM_Job.Job.Description, new { htmlAttributes = new { @data_changed = false } })
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.LabelFor(model => model.VM_Job.Job.Notes)
+                            @Html.EditorFor(model => model.VM_Job.Job.Notes, new { htmlAttributes = new { @data_changed = false } })
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.DisplayFor(model => model.VM_Job.Job.InternalNotes)
+                            @Html.EditorFor(model => model.VM_Job.Job.InternalNotes, new { htmlAttributes = new { @data_changed = false } })
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fixed-bg">
+                    <input type="submit" value="Next (Arrange Services)" class="btn btn-fc-info" />
+                    <button type="button" class="btn btn-fc-info save-record">Save</button>
+                </div>
+            }
+            <div class="row slide-i-left mt-3">
+                <div class="col-12" id="job_items" style="display: none">
+                    <!-- Empty because this is where the selected products/services are placed -->
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 pt-3 text-center">
+                    <input type="button" class="btn btn-fc-caution add-item-btn" value="Add Item" />
+                    <input type="button" class="btn btn-fc-caution add-outsourced-item-btn" value="Add Outsourced Item" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_ClientEditor.cshtml")
+
+@Html.Partial("~/Views/Partials/_PricingBreakdownModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_CostComparisonModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_PressSpeedSelectModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_ServiceNotesModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_DocumentListModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_AddDocumentModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_DeleteDocumentModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_MaterialPriceOverrideModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_CuttingServiceModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_CuttingServiceConfigModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_SheetOverrideModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_FinishingMaterialConfigurationModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_ShippingAddressSelectModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_DynamicVendorAdditionModal.cshtml", new Vendor())
+
+@Html.Partial("~/Views/Partials/_DynamicMaterialAdditionModal.cshtml", new Material())
+
+<script>
+    //temporary
+    $(function () {
+        $('.blank-job').trigger('click');
+    });
+</script>
+
+@Scripts.Render("~/bundles/jobs")

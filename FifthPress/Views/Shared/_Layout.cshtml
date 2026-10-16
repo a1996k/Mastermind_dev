@@ -1,0 +1,164 @@
+﻿﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    @{
+        var host = HttpContext.Current.Request.ServerVariables["HTTP_HOST"];
+        var isMmFifthcolor = host.Contains("mm.fifthcolor");
+        var isInternalsFifthcolor = host.Contains("internals.fifthcolor");
+        var title = isMmFifthcolor ? "Mastermind by FifthColor" : "*DEV* Mastermind by FifthColor *DEV*";
+        var timeTrackingModel = ViewData["TimeTrackingModel"] as FifthPress.Models.ViewModels.VM_GlobalTimeTracking;
+    }
+    <title>@title</title>
+
+    <!-- Preconnect and Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    @Styles.Render(
+        "~/Content/css",
+        "~/Content/globalcss",
+        "~/Content/sidenavcss",
+        "~/Content/owlcss",
+        "~/Content/jqueryuicss"
+    )
+
+    <!-- Scripts -->
+    @Scripts.Render(
+        "~/bundles/modernizr",
+        "~/bundles/jquery",
+        "~/bundles/jqueryuijs",
+        "~/bundles/bootstrap",
+        "~/bundles/owljs",
+        "~/bundles/chart",
+        "~/bundles/validator",
+        "~/bundles/globaljs",
+        "~/bundles/qol"
+    )
+
+    <!-- DataTables CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <!-- FixedHeader CSS and JS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/fixedheader/3.3.1/css/fixedHeader.dataTables.min.css" />
+    <script src="https://cdn.datatables.net/fixedheader/3.3.1/js/dataTables.fixedHeader.min.js"></script>
+
+    <!-- Moment.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <!-- jQuery UI -->
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+
+    <!-- Additional Chart js -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+
+    <!-- FontAwesome -->
+    <link href="~/Content/fontawesome/css/fontawesome.css" rel="stylesheet" />
+    <link href="~/Content/fontawesome/css/brands.css" rel="stylesheet" />
+    <link href="~/Content/fontawesome/css/solid.css" rel="stylesheet" />
+
+    <!-- Owl Carousel -->
+    <!-- Google Tag Manager -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-79T3XZHQ3J"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-79T3XZHQ3J');
+    </script>
+</head>
+<body class="@( ((bool)(ViewData["TvMode"] ?? false)) ? "tv-mode" : "no-tv-mode")">
+
+    @Html.AntiForgeryToken()
+
+    @Html.Partial(
+        "~/Views/Partials/_SideNavbar.cshtml",
+        timeTrackingModel
+        ?? new FifthPress.Models.ViewModels.VM_GlobalTimeTracking { ActiveTimeEntries = new List<FifthPress.Models.ViewModels.VM_ActiveTimeEntry>(), HasPendingQACheck = false }
+    )
+    @Html.Partial("~/Views/Partials/_TopNavbar.cshtml")
+
+    <div class="body-content@( ((bool)(ViewData["TvMode"] ?? false)) ? " tv-mode" : "")">
+        @RenderBody()
+    </div>
+
+    @Html.Partial("~/Views/Partials/_Loader.cshtml")
+    @Html.Partial("~/Views/Partials/_LoginModal.cshtml")
+
+    <!-- Bug Modal -->
+    <div class="modal fade" id="bug_modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <!-- Bug modal content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Request Modal -->
+    <div class="modal fade" id="feature_request_modal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <!-- Feature request modal content -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("~/Views/Partials/_QACheckModal.cshtml", timeTrackingModel?.QAUsers ?? new List<SelectListItem>())
+
+    <!-- ProcessUrl Script -->
+    <script>
+        // Determine the base URL using Razor
+        var baseUrl = '@(isInternalsFifthcolor ? "/FifthPress/" : "/")';
+
+        // Define the ProcessUrl function
+        function ProcessUrl(url) {
+            // If URL already starts with the base path, don't add it again
+            if (url.indexOf(baseUrl) === 0) {
+                return url;
+            }
+            // If URL starts with /, just prepend the base
+            if (url.indexOf('/') === 0) {
+                return baseUrl + url.substring(1);
+            }
+            // Otherwise add base + url
+            return baseUrl + url;
+        }
+
+        @if (isInternalsFifthcolor)
+        {
+            <text>
+            // Adjust href attributes for internal links
+            $(function () {
+                $('a[href]').each(function () {
+                    var $ele = $(this);
+                    var h = $ele.attr('href');
+
+                    if (h !== '#' && h !== 'javascript:void(0)') {
+                        $ele.attr('href', ProcessUrl(h));
+                    }
+                });
+            });
+            </text>
+        }
+
+        @if (timeTrackingModel?.HasPendingQACheck == true)
+            {
+                <text>
+        //for testing purposes, simply show the modal for now
+        $(function () {
+            $('#qa_check_modal').modal('show');
+        });
+                </text>
+            }
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

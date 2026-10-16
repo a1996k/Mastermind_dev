@@ -1,0 +1,108 @@
+﻿.self-approval-icon {
+    color: red;
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+.tt-inverted-row {
+    background: var(--fc-navy);
+    color: white;
+    border-radius: 10px;
+}
+
+.rounded-cont {
+    border-radius: 10px;
+    background: white;
+    padding: 30px;
+}
+
+.service-list-row {
+    border-radius: 10px;
+    background: white;
+}
+
+.service-entry:not(.gen-service-entry) {
+    background: #F3F3F3;
+    margin-top: 10px;
+    border-radius: 10px;
+    padding: 5px;
+}
+
+#duplicate_service_modal .active-service {
+    border-bottom: 1px solid black;
+}
+
+.align-start {
+    align-items: flex-start;
+}
+
+.green-circle {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: green;
+}
+
+.red-circle {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: red;
+}
+
+.start-task-btn,
+.stop-task-btn {
+    white-space: nowrap;
+}
+
+.display-wrapper {
+    background: white;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.i-complete-text,
+.i-incomplete-text {
+    font-family: Poppins;
+    font-size: 14px;
+}
+
+.i-complete-text {
+    color: green;
+}
+
+.i-incomplete-text {
+    color: red;
+}
+
+.expand-icon {
+    transition: transform 0.2s ease;
+    cursor: pointer;
+}
+
+    .expand-icon[aria-expanded="true"] {
+        transform: rotate(180deg);
+    }
+
+.job-parent {
+    cursor: pointer;
+}
+
+.track-time-tgt {
+    cursor: pointer;
+}
+
+.start-general-task-btn,
+.stop-general-task-btn {
+    max-height: 25px;
+    min-width: 65px;
+    margin-left: 5px;
+}
+
+.gen-task-collapser {
+    cursor: pointer;
+}
+
+.fa-caret-up.rotated {
+    transform: rotate(180deg);
+}

@@ -1,0 +1,12 @@
+﻿@model FifthPress.Models.ViewModels.VM_TimeInput
+
+<div class="field-binder-col-flex">
+    <div class="time-input mins-input">
+        <label>Service Time (Formatted)</label>
+        @Html.TextBoxFor(model => model.FormattedServiceTime)
+        <label>Service Time (Decimal)</label>
+        @Html.TextBoxFor(model => model.ServiceTime)
+        <label>Lock Time</label>
+        @Html.CheckBoxFor(model => model.LockTime)
+    </div>
+</div>

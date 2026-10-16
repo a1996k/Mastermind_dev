@@ -1,0 +1,21 @@
+﻿.g-request-form label{
+    font-family: poppins;
+    font-size:16px;
+    font-weight:bold;
+}
+.g-request-form input{
+    font-family: 'DM Sans';
+    font-size: 16px;
+}
+
+.g-request-form .row{
+    padding: 10px 0;
+}
+
+.g-request-form .row:nth-of-type(even) {
+    background-color: transparent;
+}
+
+.g-request-form .row:nth-of-type(odd) {
+    background-color: #f8f8f8;
+}

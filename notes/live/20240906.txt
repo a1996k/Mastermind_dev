@@ -1,0 +1,24 @@
+Meeting notes
+================
+-auto-save on job records
+-confirmation prompt for converting to job
+-job notes in header by order details (quotes)
+-item notes under description for each item (quotes)
+-internal notes header next to internal notes on job ticket 
+
+
+
+
+
+todo
+====
+finishing materials
+invoice (because we can't close jobs until we have one to print)
+artwork provided -> change to "Design needed" (inverse)
+
+
+done
+===
+time tracking hot load
+icons on job list to go to edit job & time tracking
+finishing material select/configure/

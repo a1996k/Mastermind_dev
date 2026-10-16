@@ -1,0 +1,59 @@
+﻿@model List<Constraint>
+
+<div class="container">
+    <div class="row">
+        <div class="col-8">
+            <select>
+            @foreach(Constraint c in Model)
+            {
+                <option value="@Html.DisplayFor(model => c.Id)">@Html.DisplayFor(model => c.ConstraintName) ( @Html.DisplayFor(model => c.Id) | @Html.DisplayFor(model => c.MinValue) | @Html.DisplayFor(model => c.MaxValue) )</option>
+            }
+            </select>
+            <span class="record-id"></span>
+        </div>
+        <div class="col-4">
+            <input type="text" class="in" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12 text-center">
+            <input class="calc" type="button" id="c" value="Calc" />
+        </div>
+    </div>
+    <div class="row res-row">
+        <div class="col-12 text-center">
+            <h1></h1>
+        </div>
+    </div>
+</div>
+
+<script>
+    function U(){
+        $('.record-id').html($('select').val());
+    };
+    function TestConstraint(){
+        var cId = $('select').val();
+        var inpVal = $('.in').val();
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('check-constraint'),
+            data: {
+                'constraintId': cId,
+                'value': inpVal
+            },
+            success: function(data){
+                var res = JSON.parse(data);
+                $('.res-row h1').html('Valid? ' + res);
+            },
+            error: function(data){
+                console.log(data);
+            }
+        });
+    };
+    $(function(){
+        $('select').trigger('change');
+    })
+        .on('change', 'select', U)
+        .on('click', '#c', TestConstraint);
+</script>

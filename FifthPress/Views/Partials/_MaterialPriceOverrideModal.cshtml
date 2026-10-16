@@ -1,0 +1,26 @@
+﻿
+<div class="modal" tabindex="-1" id="mat_price_override_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title">Override Material Price</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#mat_price_override_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="current_record_id" />
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <h3>Current Price: <span class="current-material-price">$0.00</span></h3>
+                            <label class="fs-3"><u>New Price:</u> <b>$ </b><input type="text" class="new-material-price" /></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#mat_price_override_modal">Cancel</button>
+                <button class="btn btn-fc-success submit-mat-price-override-btn" data-modal-to-close="#mat_price_override_modal">Save</button>
+            </div>
+        </div>
+    </div>
+</div>

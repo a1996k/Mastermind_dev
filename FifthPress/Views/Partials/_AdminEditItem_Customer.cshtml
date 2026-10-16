@@ -1,0 +1,15 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<VM_AdminTableItem_Customer>
+
+@foreach (FifthPress.Models.ViewModels.VM_AdminTableItem_Customer c in Model)
+{
+    <tr class="admin-edit-item-customer" data-record-id="@Html.DisplayFor(model => c.Id)">
+
+        <td>
+            <a href="javascript:void(0);">@Html.DisplayFor(model => c.Title)</a>
+        </td>
+        <td>
+            <!-- Actions -->
+        </td>
+    </tr>
+}

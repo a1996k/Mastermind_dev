@@ -1,0 +1,32 @@
+﻿<style>
+    .error {
+        height: 100vh;
+        overflow: hidden;
+    }
+</style>
+
+<div class="error d-flex flex-column justify-content-center">
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-12 d-flex flex-column justify-content-center align-items-center">
+                <h1 class="text-center">Access Denied</h1>
+                <h2 class="text-center">Sorry - you do not have permission to access this resource</h2>
+
+                <span>@ViewData["SpecificErrorMessage"]</span>
+
+                <button type="button" class="btn btn-fc-info home-button">Go Home</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function GoHome(){
+        window.location = ProcessUrl('');
+    };
+
+    $(function(){
+
+    })
+    .on('click', '.home-button', GoHome);
+</script>

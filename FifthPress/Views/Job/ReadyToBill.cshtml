@@ -1,0 +1,135 @@
+﻿@*model List<JobsReadyToBill_Result>
+
+@Styles.Render("~/Content/joblistcss")
+    *@
+@*
+<div class="container fs-3">
+    <h1>Jobs Ready to Bill</h1>
+    <div class="row pt-3" style="background:white">
+        <label for="user_toggle_checkbox" class="p-3">Only Show My Jobs <input type="checkbox" id="user_toggle_checkbox" /></label>
+    </div>
+    <table id="rtb_table" class="fs-3">
+        <thead>
+            <tr>
+                <th>Job Number</th>
+                <th>PO #</th>
+                <th>Client</th>
+                <th>Description</th>
+                <th>Due Date</th>
+                <th>Completed</th>
+                <th>Shipped</th>
+                <th>Project Manager</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var x in Model)
+            {
+                <tr class="job-item-row job-item" data-record-id="@Html.DisplayFor(model => x.Id)" data-pm-id="@Html.DisplayFor(model => x.ProjectManager)">
+                    <td>@Html.DisplayFor(model => x.JobNumber)</td>
+                    <td>@Html.DisplayFor(model => x.PurchaseOrderNumber)</td>
+                    <td>@Html.DisplayFor(model => x.ClientName)</td>
+                    <td>@Html.DisplayFor(model => x.Description)</td>
+                    <td>@(x.DueDate.HasValue ? x.DueDate.Value.ToString("M/d/yyyy") : "")</td>
+                    <td>@(x.CompletedAt.HasValue ? x.CompletedAt.Value.ToString("M/d/yyyy") : "")</td>
+                    <td>@(x.ShippedOn.HasValue ? x.ShippedOn.Value.ToString("M/d/yyyy") : "")</td>
+                    <td>@Html.DisplayFor(model => x.ProjectManagerName)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Context Menu -->
+<div id="job_context_menu" class="job-context-menu">
+    <input type="hidden" id="qa_selected_job_id" />
+
+    <div class="menu-item qa-edit-job fs-2">
+        <i class="fa-solid fa-pen-to-square"></i> <span class="fs-4">Edit</span>
+    </div>
+
+    <div class="menu-item qa-time-tracking fs-2">
+        <i class="fa-regular fa-clock-desk"></i> <span class="fs-4">Time Tracking</span>
+    </div>
+
+    <div class="menu-item qa-job-ticket fs-2">
+        <i class="fa-solid fa-ticket"></i> <span class="fs-4">View Job Ticket</span>
+    </div>
+</div>
+
+
+<script>
+    const $contextMenu = $('#job_context_menu');
+
+    function showContextMenu(event, $jobElement) {
+
+        const offset = $jobElement.offset();
+
+        $contextMenu.css({
+            top: offset.top + $jobElement.height(),
+            left: offset.left
+        }).show();  // Position and show the context menu
+    };
+
+    function QAJobEdit() {
+        //go to job edit
+        let jobId = $('.job-context-menu').find('#qa_selected_job_id').val();
+        window.location = ProcessUrl('Job/Edit') + '/' + jobId
+    };
+
+    function QATimeTracking() {
+        //redirect to time tracking
+        let jobId = $('.job-context-menu').find('#qa_selected_job_id').val();
+        //note: need some sort of header to indicate that an auto-search should be performed
+        window.location = ProcessUrl('time-tracking-hot-load') + '/' + jobId;
+    };
+
+    function QAJobTicket() {
+        let jobId = $('.job-context-menu').find('#qa_selected_job_id').val();
+        window.location = ProcessUrl('GetJobTicket') + '/' + jobId;
+    };
+
+    var rtbTable = $('#rtb_table').dataTable({
+        paging: false,
+        "columnDefs": [
+            {
+                "targets": [4,5,6],
+                "render": function (data, type, row) {
+                    // Adjust the date format to match the format in your table
+                    var date = moment(data, "M/D/YYYY", true);
+
+                    if (type === 'display' || type === 'filter') {
+                        if (!date.isValid()) {
+                            return ''; // Custom message for invalid date
+                        }
+                        return date.format('M/D/YYYY'); // Display format
+                    }
+
+                    // Use ISO format for sorting
+                    return date.isValid() ? date.toISOString() : ''; // ISO format ensures proper sorting
+                }
+            }
+        ]
+    });
+
+    function ToggleJobDisplay() {
+        if ($(this).is(':checked')) {
+            let userId = getCookie('ActiveUser');
+
+            $('tbody tr').hide();
+            $('tbody tr[data-pm-id="' + userId + '"]').show();
+        }
+        else {
+            $('tbody tr').show();
+        }
+    };
+
+    $(function () {
+        $('#user_toggle_checkbox').trigger('click');
+    })
+        .on('click', '#user_toggle_checkbox', ToggleJobDisplay)
+        .on('click', 'tr.job-item', function (event) { showContextMenu(event, $(this)); })
+        .on('click', '.qa-edit-job', QAJobEdit)
+        .on('click', '.qa-time-tracking', QATimeTracking)
+        .on('click', '.qa-job-ticket', QAJobTicket);
+</script>
+    *@

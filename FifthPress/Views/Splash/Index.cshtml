@@ -1,0 +1,45 @@
+﻿<style>
+    .splash-container{
+        padding-top: 250px;
+    }
+</style>
+
+<div class="container splash-container">
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="field-binder-col-flex align-items-center">
+                <h1>MASTERMIND</h1>
+                <h3>Checking Credentials...</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- on load: check for an existing cookie. if user is logged in, redirect to job schedule. -->
+
+<script>
+    $(function () {
+        let dots = 3;
+        let dotInterval = setInterval(function () {
+            
+            let newString = 'Checking Credentials';
+            for (let i = 1; i <= dots; i++) {
+                newString = newString + '.';
+            }
+            dots++;
+            if (dots === 4) {
+                dots = 1;
+            }
+            $('h3').html(newString);
+        }, 500);
+
+        let cke = getCookie('ActiveUser');
+
+        if (typeof cke !== 'undefined') {
+            window.location = ProcessUrl('PrintDashboard');
+        } else {
+            clearInterval(dotInterval);
+            $('h3').html('Please Login');
+        }
+    });
+</script>

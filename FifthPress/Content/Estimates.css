@@ -1,0 +1,77 @@
+﻿table#job_items {
+    margin: 0 auto;
+    margin-top: 30px;
+    display: block;
+    overflow-x: scroll;
+}
+
+.item-quantity,
+.item-sheets{
+    width: 75px;
+}
+
+.item-width,
+.item-height{
+    width: 75px;
+}
+
+#job_items th {
+    text-align: center;
+    font-size: 20px;
+}
+
+/*.catted-wrapper {
+        position: relative;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        height: 100%;
+    }
+
+    .uncatted-wrapper {
+        position: absolute;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        height: 100%;
+        width: 100%;
+        top: 0;
+        left: 0;
+    }
+
+    .nu-viewport {
+        height: 70vh;
+        position: relative;
+    }*/
+
+.nu-viewport {
+    height: 70vh;
+    overflow-y: scroll;
+}
+
+#materials_select_modal h2 {
+    cursor: pointer;
+}
+
+.column-labels > label {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-wrap: nowrap;
+}
+
+.modal table th,
+.modal table td {
+    padding: 5px;
+}
+
+.item-row input{
+    font-size: 15px;
+}
+.item-row label{
+    font-size: 15px;
+    padding-right: 5px;
+}
+
+.product-service-list{
+    list-style-type: none;
+}

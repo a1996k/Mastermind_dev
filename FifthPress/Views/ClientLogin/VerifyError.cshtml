@@ -1,0 +1,34 @@
+@{
+    ViewBag.Title = "Access Error";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Access Error</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-lock fa-4x text-danger"></i>
+                    </div>
+                    <h5 class="mb-3">@ViewBag.ErrorMessage</h5>
+                    <p class="text-muted">If you need access, please request a new login link below.</p>
+                    <a href="@(System.Configuration.ConfigurationManager.AppSettings["ClientViewBaseUrl"])/request-access" class="btn btn-primary btn-lg mt-3">
+                        <i class="fas fa-envelope"></i> Request New Access Link
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .fa-lock {
+        opacity: 0.3;
+    }
+</style>

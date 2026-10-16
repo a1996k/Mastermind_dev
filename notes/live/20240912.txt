@@ -1,0 +1,35 @@
+*24-0295 has been manually adjusted; sheets and calcs are LOCKED
+*shipping address - CustomerName was not being captured from form. updated to capture input
+*fixed material override -> changed textarea value retrieval from .html() -> .val() <-- .html() was being used to get formatting (not sure why it's not working on these inputs but val is so moving on)
+
+
+
+!sql changes on dev!
+-added FeatureRequests table
+-added Bugs table
+-added HostingEnvironment table
+-linked FeatureRequests module -> PermissionsManifest table
+-linked Bugs Environment -> HostingEnvironment table
+-linked Bugs module -> PermissionsManifest
+-deleted checkpoints
+-deleted jobitemservicetasks
+-deleted servicetasks
+
+
+
+!fixes on dev!
+Shipping address on delivery ticket
+
+
+
+outsource as service
+
+
+double ink/collate/staple on job ticket
+
+
+
+
+
+
+

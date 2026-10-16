@@ -1,0 +1,78 @@
+﻿@model ShippingAddress
+
+<style>
+    .sa-container .single-line {
+        width: 100% !important;
+    }
+</style>
+
+<li data-record-id="@Html.DisplayFor(model => model.Id)">
+    @Html.HiddenFor(model => model.Id)
+    @Html.HiddenFor(model => model.Client)
+    <div class="container sa-container">
+        <div class="row justify-content-center">
+            <div class="field-binder-row-flex">
+                <button type="button" class="btn btn-fc-danger delete-sa-btn me-2" data-record-id="@Html.DisplayFor(model => model.Id)">Delete</button>
+                <button type="button" class="btn btn-fc-primary validate-address-btn me-5" data-record-id="@Html.DisplayFor(model => model.Id)">Validate Address</button>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.CustomerName)
+                    @Html.EditorFor(model => model.CustomerName, new { htmlAttributes = new { @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Phone)
+                    @Html.EditorFor(model => model.Phone, new { htmlAttributes = new { @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Email)
+                    @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Attention)
+                    @Html.EditorFor(model => model.Attention, new { htmlAttributes = new { @class = "single-line styled-input" } })
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="field-binder-row-flex">
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Address)
+                    @Html.EditorFor(model => model.Address, new { htmlAttributes = new { @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Address2)
+                    @Html.EditorFor(model => model.Address2, new { htmlAttributes = new { @class = "single-line styled-input" } })
+                </div>
+
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.City)
+                    @Html.EditorFor(model => model.City, new { htmlAttributes = new { @class = "single-line styled-input" } })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.State)
+                    @Html.DropDownListFor(model => model.State, ViewData["State"] as SelectList, htmlAttributes: new { })
+                </div>
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Zip)
+                    @Html.EditorFor(model => model.Zip, new { htmlAttributes = new { @class = "single-line styled-input" } })
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="field-binder-row-flex">
+                <div class="field-binder-col-flex">
+                    @Html.LabelFor(model => model.Notes)
+                    @Html.TextAreaFor(model => model.Notes, htmlAttributes: new { @class = "single-line styled-input", @style = "min-width: 500px" })
+                </div>
+                <div class="field-binder-col-flex">
+                    <label>Default</label>
+                    <input type="radio" name="saRadio" @((Model.IsDefaultForClient ?? false) ? "checked" : "") />
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="field-binder-row-flex">
+                <div class="address-validation-feedback" style="display:none; padding: 10px; margin-top: 10px; border-radius: 4px;"></div>
+            </div>
+        </div>
+    </div>
+</li>

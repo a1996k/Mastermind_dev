@@ -1,0 +1,26 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_ActiveTimeEntry
+
+<script>
+    sidemenuTimerData.push({
+        id: '@Html.DisplayFor(model => model.JobItemServiceId)',
+        startTime: '@Model.StartTime.ToString("yyyy-MM-ddTHH:mm:ssZ")'
+    });
+</script>
+
+@{ 
+    string jnum = String.Format("{0}.{1}", Model.JobNumber, Model.ItemNumber);
+}
+
+<!-- Side Menu Time Ticker -->
+<div class="sm-tt-wrapper d-flex">
+    <div class="sm-tt d-flex flex-column justify-content-evenly">
+        <h2 class="ff-lato fs-14">#@jnum</h2>
+        <h3 class="ff-poppins fs-14">@Html.DisplayFor(model => model.ItemDescription)</h3>
+        <h5 class="ff-poppins pb-3 border-bottom">@Html.DisplayFor(model => model.ServiceTitle)</h5>
+        <div class="field-binder-row-flex pt-3">
+            <i class="fa-solid fa-circle-stop dynamic-service-stop" style="color: #d90000;" data-record-id="@Html.DisplayFor(model => model.RecordId)"></i>
+            <div class="timer-display ms-5" id="td_@Html.DisplayFor(model => model.JobItemServiceId)"></div>
+        </div>
+    </div>
+</div>

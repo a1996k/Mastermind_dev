@@ -1,0 +1,39 @@
+-links on job list
+-time tracking load
+-finishing material testing ready
+-Amy will do some quotes 
+
+
+
+Delivery Ticket (10 minutes)
+===============
+Po Number *
+ordered by *
+job number (similar to job ticket) *
+
+
+
+(Delivery Ticket): Sales rep - Mark Curnes as an example 
+
+
+
+#1257 Item(3) <-- no press which is causing material calculation to fail
+
+per sheet is the out value
+*Master Sheets (Total Sheets)
+^ Overall count of all sheets to be used on job
+*Sheets 
+^ sheets running through press not including scrap
+*Scrap Sheets
+^ number of scrap sheets
+* Run Sheets
+^ The final number to be run through the press
+
+
+
+
+
+**Record Searching working
+**finishing materials working
+**other minor changes
+**Live is ready for publish after amy does a few more finishing material tests

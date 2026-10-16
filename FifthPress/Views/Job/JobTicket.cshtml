@@ -1,0 +1,484 @@
+﻿@using FifthPress.Models.ViewModels;
+@using FifthPress.Models;
+@model VM_JobTicket
+
+@{ bool skipMe = false; }
+
+@Styles.Render("~/Content/jobticket")
+
+<div class="ticket-wrapper container-fluid p-5">
+
+    <div class="ticket-testing">
+    </div>
+
+    @{ int ctr = 1; }
+    @foreach (JobItemGroup jig in Model.ItemGroups.OrderBy(x => x.ParentItem.Ordinal))
+    {
+        string dueDate = Model.Job.DueDate.HasValue ?
+            Model.Job.DueDate.Value.ToLongDateString() :
+            "No Due Date";
+        string inHandDate = Model.Job.InHandDate.HasValue ?
+            Model.Job.InHandDate.Value.ToLongDateString() :
+            "No In Hand Date";
+
+        <div class="full-item">
+            <div class="print-page">
+
+                <header>
+                    <!-- Header -->
+                    <span class="pb-2 mt-3">
+                        <img class="inv-fc-logo" src="~/Content/images/nb-logo.png" />
+                    </span>
+                    <div class="row">
+                        <div class="col-11 print-prev position-relative">
+                            <div class="row justify-content-between mb-3 pb-3 border-j-ticket">
+                                <div class="col-6 d-flex flex-column justify-content-end align-items-start">
+                                    <h4 class="fw-bold ff-dm-sans fs-14">Order #@Html.DisplayFor(model => model.Job.JobNumber)</h4>
+                                    <span class="ff-dm-sans fs-14 preserve-formatting">@Html.DisplayFor(model => model.Job.Description)</span>
+                                </div>
+                                <div class="col-6">
+                                    <div class="field-binder-row-flex justify-content-end">
+                                        <span class="ff-georgia fst-italic fs-14 fw-bold pe-3">Due: </span>
+                                        <span class="ff-dm-sans fw-bold fs-14">@Html.DisplayFor(model => dueDate)</span>
+                                    </div>
+                                    <div class="field-binder-row-flex justify-content-end">
+                                        <span class="ff-georgia fst-italic fs-14 fw-bold pe-3">In Hand: </span>
+                                        <span class="ff-dm-sans fw-bold fs-14">@Html.DisplayFor(model => inHandDate)</span>
+                                    </div>
+                                    <div class="field-binder-row-flex justify-content-end">
+                                        <span class="ff-georgia fst-italic fs-14 fw-bold pe-3">Project Manager: </span>
+                                        <span class="ff-dm-sans fs-14">@Html.DisplayFor(model => model.Job.User.FirstName) @Html.DisplayFor(model => model.Job.User.LastName)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Client info -->
+                            <div class="header-wrapper">
+                                <div class="row header-row">
+                                    @if ((Model.Job.IsPickup ?? true))
+                                    {
+                                        <div class="col-4">
+                                            Bill To
+                                        </div>
+                                        <div class="col-4">
+                                            Ordered By
+                                        </div>
+                                        <div class="col-4">
+                                            Job Details
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-3">
+                                            Bill To
+                                        </div>
+                                        <div class="col-3">
+                                            Ship To
+                                        </div>
+                                        <div class="col-3">
+                                            Ordered By
+                                        </div>
+                                        <div class="col-3">
+                                            Job Details
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="row border-j-ticket mb-3 pb-2">
+
+                                    @if ((Model.Job.IsPickup ?? true))
+                                    {
+                                        @*IF Pickup *@
+                                        <!-- Col 1 Bill To -->
+
+                                        <div class="col-4">
+                                            <div class="field-binder-col-flex bill-to-deets">
+                                                <div>@Html.DisplayFor(model => model.Job.Client1.Title)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Client1.Address)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Client1.AddressAlt)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Client1.City) @Html.DisplayFor(model => model.Job.Client1.USState.Abbreviation) @Html.DisplayFor(model => model.Job.Client1.Zip)</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Col 2/3 Ordered By -->
+                                        <div class="col-4">
+                                            <div class="field-binder-col-flex ordered-by-deets">
+                                                <div>@Html.DisplayFor(model => model.Job.Contact1.First) @Html.DisplayFor(model => model.Job.Contact1.Last)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Contact1.Phone)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Contact1.Cell)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Contact1.Email)</div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Col 3/4 Job Details-->
+                                        <div class="col-4">
+                                            <div class="field-binder-col-flex job-deets">
+                                                <div class="field-binder-row-flex">
+                                                    <span class="fw-bold pe-3">Customer: </span><span>@Html.DisplayFor(model => model.Job.Client1.Title)</span>
+                                                </div>
+                                                <div class="field-binder-row-flex">
+                                                    <span class="fw-bold pe-3">PO: </span><span>@Html.DisplayFor(model => model.Job.PurchaseOrderNumber)</span>
+                                                </div>
+                                                <div class="field-binder-row-flex">
+                                                    <span class="fw-bold pe-3">Via: </span><span>Pickup</span>
+                                                </div>
+                                                <!-- Via -->
+                                                <div class="field-binder-row-flex">
+                                                    <span class="fw-bold pe-1">From Quote </span>
+                                                    <span class="ff-lato">@Html.DisplayFor(model => model.Job.QuoteNumber)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        @*If Ship *@
+                                        <!-- Col 1 Bill To -->
+
+                                        <div class="col-3">
+                                            <div class="field-binder-col-flex bill-to-deets">
+                                                <div>@Html.DisplayFor(model => model.Job.Client1.Title)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Client1.Address)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Client1.AddressAlt)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Client1.City) @Html.DisplayFor(model => model.Job.Client1.USState.Abbreviation) @Html.DisplayFor(model => model.Job.Client1.Zip)</div>
+                                            </div>
+                                        </div>
+                                        <!-- Col 2 Ship To -->
+
+                                        <div class="col-3">
+                                            <div class="field-binder-col-flex shipping-deets">
+                                                @if (Model.Job.BlindShipping ?? false)
+                                                {
+                                                    <div class="fw-bold ff-poppins fs-12">** BLIND SHIPPING **</div>
+                                                }
+                                                @if (!Model.Job.ShippingAddress.HasValue)
+                                                {
+                                                    <div class="ff-poppins fs-12">@Html.DisplayFor(model => model.Job.ShippingOption.Title)</div>
+                                                }
+                                                else
+                                                {
+
+                                                    <!-- Get Shipping Information -->
+                                                    if (!String.IsNullOrEmpty(Model.Job.ShippingAddress1.Attention))
+                                                    {
+                                                        <div>Attn: @Html.DisplayFor(model => model.Job.ShippingAddress1.Attention)</div>
+                                                    }
+                                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.CustomerName)</div>
+                                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.Address)</div>
+                                                    if (!String.IsNullOrEmpty(Model.Job.ShippingAddress1.Address2))
+                                                    {
+                                                        <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.Address2)</div>
+                                                    }
+                                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.City) @Html.DisplayFor(model => model.Job.ShippingAddress1.USState.Abbreviation) @Html.DisplayFor(model => model.Job.ShippingAddress1.Zip)</div>
+                                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.Phone)</div>
+                                                    <div>@Html.DisplayFor(model => model.Job.ShippingAddress1.Email)</div>
+
+                                                }
+                                            </div>
+                                        </div>
+                                        <!-- Col 2/3 Ordered By -->
+                                        <div class="col-3">
+                                            <div class="field-binder-col-flex ordered-by-deets">
+                                                <div>@Html.DisplayFor(model => model.Job.Contact1.First) @Html.DisplayFor(model => model.Job.Contact1.Last)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Contact1.Phone)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Contact1.Cell)</div>
+                                                <div>@Html.DisplayFor(model => model.Job.Contact1.Email)</div>
+                                            </div>
+                                        </div>
+                                        <!-- Col 3/4 Job Details-->
+                                        <div class="col-3">
+                                            <div class="field-binder-col-flex job-deets">
+                                                <div class="field-binder-row-flex">
+                                                    <span class="fw-bold pe-3">Customer: </span><span>@Html.DisplayFor(model => model.Job.Client1.Title)</span>
+                                                </div>
+                                                <div class="field-binder-row-flex">
+                                                    <span class="fw-bold pe-3">PO: </span><span>@Html.DisplayFor(model => model.Job.PurchaseOrderNumber)</span>
+                                                </div>
+                                                <div class="field-binder-row-flex">
+                                                    <span class="fw-bold pe-3">Via: </span><span>@Html.DisplayFor(model => model.Job.ShippingOption.Title)</span>
+                                                </div>
+                                                <!-- Via -->
+                                                <div class="field-binder-row-flex">
+                                                    <span class="fw-bold pe-1">From Quote </span>
+                                                    <span class="ff-lato">@Html.DisplayFor(model => model.Job.QuoteNumber)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-1">
+                            <div class="vert-text">@Html.DisplayFor(model => model.Job.JobNumber)<span class="item-print-count"> @Html.DisplayFor(model => ctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</span> </div>
+                        </div>
+                    </div>
+                </header>
+            </div>
+
+            <div class="row header-row sin-row">
+                <div class="col-12">
+                    <h3> Special Instructions and Notes</h3>
+                    <span class="ff-dm-sans fs-12 fw-normal preserve-formatting">@Html.DisplayFor(model => model.Job.Notes)</span>
+                    <span class="ff-dm-sans fs-12 fw-normal preserve-formatting">@Html.DisplayFor(model => model.Job.InternalNotes)</span>
+                </div>
+            </div>
+
+            <!-- Item list -->
+
+            <div class="pageb-wrapper">
+
+                @{int subctr = 1;}
+                @switch (jig.ParentItem.RowType.ToUpper())
+                {
+                    case "STANDARD":
+
+                        JobItem ji = Model.Job.JobItems.Single(x => x.Id == jig.ParentItem.Id);
+
+                        <div class="row each-row-print print-th-1">
+                            <div class="col-8"></div>
+                            <div class="col-4">
+                                <div class="row text-center">
+                                    <div class="col-4 ff-dm-sans fs-12">Time</div>
+                                    <div class="col-4 ff-dm-sans fs-12">Actual Time</div>
+                                    <div class="col-4 ff-dm-sans fs-12">Quantity</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row fs-4 fc-table-bg align-items-center py-2 each-row-print row-calc-height">
+                            <div class="col-2">
+                                @if (jig.SubItems.Count > 0)
+                                {
+                                    <span class="fw-bold ff-dm-sans fs-12">ITEM @Html.DisplayFor(model => ctr)@Html.Display(".")<text>.</text>@Html.DisplayFor(model => subctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</span>
+                                }
+                                else
+                                {
+                                    <span class="fw-bold ff-dm-sans fs-12">ITEM @Html.DisplayFor(model => ctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</span>
+                                }
+                            </div>
+                            <div class="col-6 d-flex flex-column">
+                                <span class="fw-bold ff-dm-sans fs-12">
+                                    @Html.DisplayFor(model => ji.Quantity)  @Html.DisplayFor(model => ji.Length)@Html.Raw("x")@Html.DisplayFor(model => ji.Width)
+                                    <span class="preserve-formatting">@Html.DisplayFor(model => ji.Description)</span>
+                                </span>
+                            </div>
+                            <div class="col-4">
+                                <div class="row ff-dm-sans fs-12 fw-bold">
+                                    <div class="col-4 text-center"></div>
+                                    <div class="col-4 text-center"></div>
+                                    <div class="col-4 text-center">@Html.DisplayFor(model => ji.Quantity)</div>
+                                </div>
+                            </div>
+                        </div>
+                        if (!String.IsNullOrEmpty(ji.InternalNotes))
+                        {
+                            <div class="row py-3 border-bottom each-row-print row-calc-height">
+                                <div class="col-2"></div>
+                                <div class="col-6 preserve-formatting">@Html.DisplayFor(model => ji.InternalNotes)</div>
+                                <div class="col-4"></div>
+                            </div>
+                        }
+
+                        foreach (ServiceType st in Model.ServiceTypes)
+                        {
+                            int stCounter = 0;
+
+                            foreach (JobItemService jis in ji.JobItemServices.Where(x => x.Service.ServiceCategory.ServiceType1.Title == st.Title).OrderBy(x => x.ApexOrdinal).ToList())
+                            {
+                                skipMe = false;
+                                <div class="row border-bottom each-row-print row-calc-height">
+                                    <div class="col-2">
+                                        @if (stCounter == 0)
+                                        {<span class="type-title ff-dm-sans fw-bold fs-12">@Html.DisplayFor(model => st.Title)</span>}
+                                    </div>
+                                    <div class="col-6">
+                                        @if (jis.Service.Title == "Print" && jis.JobItem.Press.HasValue)
+                                        {
+                                            <span class="service-title">@Html.DisplayFor(model => jis.JobItem.Press1.Title): @Html.DisplayFor(model => jis.JobItem.PressSpeedNumerator) @Html.DisplayFor(model => jis.JobItem.SpeedDenominator.Text)</span>
+                                            if ((ji.DoubleHit ?? false) || (ji.Collate ?? false) || (ji.Staple ?? false))
+                                            {
+
+                                                <div class="field-binder-row-flex">
+                                                    @if (ji.DoubleHit ?? false)
+                                                    {
+                                                        <span class="double-hit fw-bold fs-12 ff-poppins pe-2">Double Ink</span>
+                                                    }
+                                                    @if (ji.Staple ?? false)
+                                                    {
+                                                        <span class="staple fw-bold fs-12 ff-poppins pe-2">Staple</span>
+                                                    }
+                                                    @if (ji.Collate ?? false)
+                                                    {
+                                                        <span class="collate fw-bold fs-12 ff-poppins pe-2">Collate</span>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (jis.Service.Title == "Pull Material")
+                                            {
+                                                <div class="field-binder-col-flex">
+
+                                                    <span class="service-title">@Html.DisplayFor(model => jis.Title)</span>
+
+                                                    <div class="field-binder-row-flex ff-dm-sans fs-12">
+                                                        <span>@Html.DisplayFor(model => jis.JobItem.Material1.Title)</span>
+                                                        <span class="ps-1">@Html.DisplayFor(model => jis.JobItem.MaterialNotes)</span>
+                                                        <span class="ps-1">@Html.DisplayFor(model => jis.JobItem.Material1.ParsedLength) x @Html.DisplayFor(model => jis.JobItem.Material1.ParsedWidth)</span>
+                                                    </div>
+                                                    <span class="ff-dm-sans fw-bold fs-12">
+                                                        Run:
+                                                        @Html.DisplayFor(model => jis.JobItem.RunLength)@Html.Raw("x")@Html.DisplayFor(model => jis.JobItem.RunWidth) (@Html.DisplayFor(model => jis.JobItem.Out) Out, @Html.DisplayFor(model => jis.JobItem.Up) Up)
+                                                    </span>
+                                                    <span class="ff-dm-sans fw-bold fs-12">Finish: @Html.DisplayFor(model => jis.JobItem.Length)@Html.Raw("x")@Html.DisplayFor(model => jis.JobItem.Width) @Html.DisplayFor(model => jis.JobItem.TotalQuantity) Qty</span>
+                                                    <div class="ff-dm-sans fs-12 mt-1">
+                                                        <div><span class="fw-bold">Sheets:</span> @Html.DisplayFor(model => jis.JobItem.Sheets)</div>
+                                                        <div><span class="fw-bold">Scrap Sheets:</span> @Html.DisplayFor(model => jis.JobItem.TotalScrapSheets)</div>
+                                                        <div><span class="fw-bold">Run Sheets:</span> @Html.DisplayFor(model => jis.JobItem.RunSheets)</div>
+                                                        <div><span class="fw-bold">Buy Sheets:</span> @Html.DisplayFor(model => jis.JobItem.BuySheets)</div>
+                                                    </div>
+                                                    <span class="ff-dm-sans fs-12">Front: @Html.DisplayFor(model => jis.JobItem.PressColorProfileFront) @Html.DisplayFor(model => jis.JobItem.PressColorNotesFront)</span>
+                                                    <span class="ff-dm-sans fs-12">Back: @Html.DisplayFor(model => jis.JobItem.PressColorProfileBack) @Html.DisplayFor(model => jis.JobItem.PressColorNotesBack)</span>
+                                                </div>
+
+                                            }
+                                            else if (jis.Service.Title != "Print")
+                                            {
+                                                if (jis.JobItemFinishingMaterial.HasValue)
+                                                {
+                                                    <span class="service-title">@Html.DisplayFor(model => jis.JobItemFinishingMaterial1.Material1.Title)</span>
+                                                    <span class="finishing-count">Quantity: @Html.DisplayFor(model => jis.JobItemFinishingMaterial1.FinalCount)</span>
+                                                }
+                                                else
+                                                {
+                                                    <!-- Formula Configuration display -->
+                                                    <span class="service-title">@Html.DisplayFor(model => jis.Title)</span>
+                                                }
+                                            }
+                                            else
+                                            {
+                                                skipMe = true;
+                                            }
+
+                                            <span class="ff-dm-sans fs-12 d-block p-2 fst-italic">@Html.DisplayFor(model => jis.Notes)</span>
+                                        }
+                                    </div>
+                                    <div class="col-4">
+                                        @if (!skipMe)
+                                        {
+                                            <div class="row fs-3 py-3">
+                                                <div class="col-4 text-center">
+                                                    <span class="time-text">
+                                                        @Html.DisplayFor(model => jis.FormattedServiceTime)
+                                                    </span>
+                                                </div>
+                                                <div class="col-4 text-center">
+                                                    <span class="time-text">
+                                                        @Html.DisplayFor(model => jis.TimeSpentFormatted)
+                                                    </span>
+                                                </div>
+                                                <div class="col-4 text-center">
+                                                    <span class="ff-dm-sans fs-12">
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                                stCounter++;
+                            }
+                        }
+                        if (ji.JobItemFinishingMaterials.Count > 0)
+                        {
+                            @*Finishing Material Display*@
+                            <div class="row fin-mat-row">
+                                <div class="col-12 text-end pt-3">
+                                    <span class="ff-poppins fs-12 fw-bold text-decoration-underline">Required Finishing Materials</span>
+                                    @foreach (JobItemFinishingMaterial jifm in ji.JobItemFinishingMaterials)
+                                    {
+                                        <div class="field-binder-row-flex justify-content-end">
+                                            <span class="ff-dm-sans fs-12 fw-normal">@Html.DisplayFor(model => jifm.Material1.Title)</span>
+                                            <span class="ps-3 ff-dm-sans fs-12 fw-normal">( @Html.DisplayFor(model => jifm.FinalCount) @Html.DisplayFor(model => jifm.ConfigLabel) )</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                        subctr++;
+                        break;
+                    case "OUTSOURCED":
+                        JobOutsourcedItem joi = Model.Job.JobOutsourcedItems.Single(x => x.Id == jig.ParentItem.Id);
+
+                        <div class="row fs-3 pb-3">
+                            <div class="col-lg-2">
+                                <b class="ps-2">ITEM @Html.DisplayFor(model => ctr) of @Html.DisplayFor(model => model.ItemGroups.Count)</b>
+                            </div>
+                            <div class="col-lg-6">
+                                <p class="preserve-formatting">@Html.DisplayFor(model => joi.Description)</p>
+                                <p class="preserve-formatting">@Html.DisplayFor(model => joi.Notes)</p>
+                                @if (joi.Vendor.HasValue)
+                                {
+                                    <span class="ff-poppins fs-16">
+                                        Outsourced To:
+                                        <span class="fw-bold">@Html.DisplayFor(model => joi.Vendor1.Title)</span>
+                                    </span>
+                                }
+                            </div>
+                            <div class="col-lg-4"><!-- Empty --></div>
+                        </div>
+
+                        break;
+                    default:
+                        break;
+                }
+                @{ctr++;}
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    //var printHeight = 930;
+    //var printHeight = 1000;
+    var printHeight = 860;
+    /*var headerHeight = $('.header-wrapper-height').height();
+    var itemHeight = $('.each-row-print').height();
+    var allItemHeight = itemHeight * $('.each-row-print').length;*/
+
+    $('.full-item').each(function () {
+
+        var printHeader = $(this).find('.print-page').clone();
+
+        var tableHeaders = $(this).find('.print-th-1').clone();
+
+        var pageHeight = 0;
+        pageHeight += $(this).find('.print-page').outerHeight();
+        pageHeight += $(this).find('.print-th-1').outerHeight();
+
+        //console.log(pageHeight);
+
+        $(this).find('.row-calc-height').each(function (i) {
+            pageHeight += $(this).outerHeight();
+            if (pageHeight > printHeight) {
+
+                //console.log('Page break: ' + i + ' height: ' + pageHeight);
+
+                $(this).before('<div class="pagebreaker"></div>');
+
+                $(this).before(printHeader);
+                $(this).before(tableHeaders);
+                $(this).before('</div></div>');
+
+                $(this).before('<div class="pageb-wrapper">');
+
+                // end loop
+                return false;
+
+            }
+        });
+
+    });
+
+    //update page title to JobNumber
+    $('title').html('@Model.Job.JobNumber');
+</script>

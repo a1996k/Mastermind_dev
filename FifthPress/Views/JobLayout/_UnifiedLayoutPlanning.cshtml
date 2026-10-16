@@ -1,0 +1,412 @@
+﻿﻿@using FifthPress.Models.ViewModels2.LayoutManager;
+@model VM_UnifiedItemMaterialLayout
+
+@Html.HiddenFor(model => model.Up, htmlAttributes: new { @class = "up-reference" })
+@Html.HiddenFor(model => model.DutchCut, htmlAttributes: new { @class = "dutch-cut" })
+
+<input type="hidden" value="@Model.ItemId" class="jl-item-id" />
+<input type="hidden" value="@Model.ParentType" class="jl-parent-type" />
+
+<style>
+    .layout-controls {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+
+    .basic-controls {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 20px;
+        align-items: end;
+    }
+
+    .basic-control {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .checkbox-controls {
+        display: flex;
+        gap: 30px;
+        margin-bottom: 20px;
+    }
+
+    .checkbox-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .grouped-controls {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .control-section {
+        flex: 1;
+        min-width: 250px;
+    }
+
+    .control-section-title {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 15px;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 5px;
+    }
+
+    .control-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 10px;
+        align-items: end;
+    }
+
+    .control-field {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .link-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .fl-label {
+        font-weight: 500;
+        color: #495057;
+        font-size: 13px;
+    }
+
+    .styled-input {
+        padding: 8px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+        .styled-input:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+</style>
+
+<div class="container">
+    <div class="row py-5">
+        <div class="col-12">
+            <div class="layout-controls">
+                <!-- Basic Controls Row -->
+                <div class="basic-controls">
+                    <div class="basic-control">
+                        <label class="fl-label" for="qty_@Model.MaterialId">Quantity</label>
+                        <input type="number" class="styled-input" id="qty_@Model.MaterialId" name="quantity" value="@Model.Quantity" min="1" />
+                    </div>
+                    <div class="basic-control">
+                        <label class="fl-label" for="up_@Model.MaterialId">Up</label>
+                        <input type="number" class="styled-input" id="up_@Model.MaterialId" name="up" value="@(string.IsNullOrEmpty(Model.Up) ? "1" : Model.Up)" min="1" />
+                    </div>
+                </div>
+
+                <!-- Checkbox Controls Row -->
+                <div class="checkbox-controls">
+                    <div class="checkbox-control">
+                        <input type="checkbox" id="dutch_cut_@Model.MaterialId" class="styled-input" @(Model.DutchCut ? "checked" : "") />
+                        <label for="dutch_cut_@Model.MaterialId" class="fl-label">Dutch Cut</label>
+                    </div>
+                </div>
+
+                <!-- Grouped Controls -->
+                <div class="grouped-controls">
+                    <!-- Side Guides Section -->
+                    <div class="control-section">
+                        <div class="control-section-title">Side Guides</div>
+                        <div class="control-row">
+                            <div class="control-field">
+                                <label for="left_side_guide_@Model.MaterialId" class="fl-label">Left Guide</label>
+                                @Html.EditorFor(model => model.LeftSideGuide, new { htmlAttributes = new { @id = ("left_side_guide_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                            </div>
+                            <div class="control-field">
+                                <label for="right_side_guide_@Model.MaterialId" class="fl-label">Right Guide</label>
+                                @Html.EditorFor(model => model.RightSideGuide, new { htmlAttributes = new { @id = ("right_side_guide_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                            </div>
+                        </div>
+                        <div class="link-control">
+                            <input type="checkbox" id="link_side_guides_@Model.MaterialId" class="styled-input" />
+                            <label for="link_side_guides_@Model.MaterialId" class="fl-label">Link Side Guides</label>
+                        </div>
+                    </div>
+
+                    <!-- Gutters Section -->
+                    <div class="control-section">
+                        <div class="control-section-title">Gutters</div>
+                        <div class="control-row">
+                            <div class="control-field">
+                                <label for="x_gutter_@Model.MaterialId" class="fl-label">X-Gutter</label>
+                                @Html.EditorFor(model => model.XGutter, new { htmlAttributes = new { @id = ("x_gutter_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                            </div>
+                            <div class="control-field">
+                                <label for="y_gutter_@Model.MaterialId" class="fl-label">Y-Gutter</label>
+                                @Html.EditorFor(model => model.YGutter, new { htmlAttributes = new { @id = ("y_gutter_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                            </div>
+                        </div>
+                        <div class="link-control">
+                            <input type="checkbox" id="link_gutters_@Model.MaterialId" class="styled-input" />
+                            <label for="link_gutters_@Model.MaterialId" class="fl-label">Link Gutters</label>
+                        </div>
+                    </div>
+
+                    <!-- Print Areas Section -->
+                    <div class="control-section">
+                        <div class="control-section-title">Print Areas</div>
+                        <div class="control-row">
+                            <div class="control-field">
+                                <label for="gripper_@Model.MaterialId" class="fl-label">Gripper</label>
+                                @Html.EditorFor(model => model.Gripper, new { htmlAttributes = new { @id = ("gripper_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                            </div>
+                            <div class="control-field">
+                                <label for="tail_@Model.MaterialId" class="fl-label">Tail</label>
+                                @Html.EditorFor(model => model.Tail, new { htmlAttributes = new { @id = ("tail_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Layout Display *@
+    <div class="col-lg-12">
+        <div class="row pt-5">
+            <div class="col-lg-12 layout-display">
+                <div class="material mx-auto" id="@Model.MaterialId">
+                </div>
+                <div class="c-material" id="custom_@Model.MaterialId" style="display:none;">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+                @if (Model.StockType != "Roll Stock")
+                {
+                    <div class="text-center">
+                        <span class="me-0 fs-2 text-bg-warning">Sheet Count: <span id="dbg_num_sheets_@Model.MaterialId"></span></span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        let layoutData = {
+            'MaterialLength': '@Model.MaterialLength',
+            'MaterialWidth': '@Model.MaterialWidth',
+            'ItemLength': '@Model.ItemLength',
+            'ItemWidth': '@Model.ItemWidth',
+            'LeftSideGuide': '@Model.LeftSideGuide',
+            'RightSideGuide': '@Model.RightSideGuide',
+            'XGutter': '@Model.XGutter',
+            'YGutter': '@Model.YGutter',
+            'Quantity': '@Model.Quantity',
+            'MaterialId': '@Model.MaterialId',
+            'CssSelector': '@Model.CssSelector',
+            'DutchCut': '@Model.DutchCut',
+            'Gripper': '@Model.Gripper',
+            'Tail': '@Model.Tail',
+            'Up': '@Model.Up',
+            'StockType': '@Model.StockType',
+            'ParentType': '@Model.ParentType'
+        };
+
+        console.log('Layout data XGutter:', layoutData.XGutter);
+        console.log('Layout data YGutter:', layoutData.YGutter);
+
+        // Initialize layout system
+        const layout = new Layout(layoutData);
+        const layoutManager = new LayoutManager(layout);
+
+        // Store layout manager for later access
+        window.layoutManagers = window.layoutManagers || {};
+        window.layoutManagers['@Model.MaterialId'] = layoutManager;
+
+        // Add to global layouts array if it exists
+        if (typeof layouts !== 'undefined') {
+            layouts.push(layoutData);
+        }
+    });
+
+    // Event handlers for controls (removed auto-save)
+    $(document)
+        .on('click', '#link_gutters_@Model.MaterialId', OnOffLinkerGutters)
+        .on('click', '#link_side_guides_@Model.MaterialId', OnOffLinkerSideGuides)
+        .on('change', '#dutch_cut_@Model.MaterialId', function() {
+            const layoutManager = window.layoutManagers['@Model.MaterialId'];
+            if (layoutManager) {
+                layoutManager.toggleDutchCut($(this).is(':checked'));
+                markAsChanged();
+            }
+        })
+        .on('change', '#qty_@Model.MaterialId', function() {
+            const layoutManager = window.layoutManagers['@Model.MaterialId'];
+            if (layoutManager) {
+                layoutManager.updateQuantity($(this).val());
+                markAsChanged();
+            }
+        })
+        .on('change', '#up_@Model.MaterialId', function() {
+            const layoutManager = window.layoutManagers['@Model.MaterialId'];
+            if (layoutManager) {
+                layoutManager.updateUp($(this).val());
+                markAsChanged();
+            }
+        })
+        .on('change input', '[id*="_gutter_"], [id*="_side_guide_"], [id*="gripper_"], [id*="tail_"]', function() {
+            const layoutManager = window.layoutManagers['@Model.MaterialId'];
+            if (layoutManager) {
+                const leftSideGuide = $('#left_side_guide_@Model.MaterialId').val();
+                const rightSideGuide = $('#right_side_guide_@Model.MaterialId').val();
+                const xGutter = $('#x_gutter_@Model.MaterialId').val();
+                const yGutter = $('#y_gutter_@Model.MaterialId').val();
+                const gripper = $('#gripper_@Model.MaterialId').val();
+                const tail = $('#tail_@Model.MaterialId').val();
+                layoutManager.updatePrintSettings(leftSideGuide, rightSideGuide, xGutter, yGutter, gripper, tail);
+                markAsChanged();
+            }
+        });
+
+    // Function to mark that changes have been made
+    function markAsChanged() {
+        window.layoutHasChanges = true;
+        // Optional: Add visual indicator that changes are pending
+        $('.save-btn').removeClass('btn-fc-info').addClass('btn-fc-warning').text('Save Changes *');
+    }
+
+    // Replace the getCurrentLayoutData function in your Razor view with this:
+    function getCurrentLayoutData() {
+        const materialId = '@Model.MaterialId';
+        const itemId = $('.jl-item-id').val(); // Fixed: use actual hidden field
+        const parentType = $('.jl-parent-type').val();
+
+        console.log('Debug getCurrentLayoutData - MaterialId:', materialId, 'ItemId:', itemId, 'ParentType:', parentType);
+
+        // Get material length - for roll stock, use calculated value from layout display
+        // For sheet stock, use the static material length from the model
+        let materialLength = parseFloat('@Model.MaterialLength') || 0;
+
+        // If this is roll stock, get the calculated linear length from the roll info display
+        const rollInfoElement = $('.roll-info').find('div:contains("Total Linear Length:")');
+        if (rollInfoElement.length > 0) {
+            const rollInfoText = rollInfoElement.text();
+            const lengthMatch = rollInfoText.match(/Total Linear Length:\s*([0-9.]+)/);
+            if (lengthMatch && lengthMatch[1]) {
+                materialLength = parseFloat(lengthMatch[1]);
+            }
+        }
+
+        const data = {
+            leftSideGuide: parseFloat($(`#left_side_guide_${materialId}`).val()) || 0,
+            rightSideGuide: parseFloat($(`#right_side_guide_${materialId}`).val()) || 0,
+            xGutter: parseFloat($(`#x_gutter_${materialId}`).val()) || 0,
+            yGutter: parseFloat($(`#y_gutter_${materialId}`).val()) || 0,
+            gripper: parseFloat($(`#gripper_${materialId}`).val()) || 0,
+            tail: parseFloat($(`#tail_${materialId}`).val()) || 0,
+            swapDimensions: false, // Not implemented in unified layout yet
+            dutchCut: $(`#dutch_cut_${materialId}`).is(':checked'),
+            linkSideGuides: $(`#link_side_guides_${materialId}`).is(':checked'),
+            linkGutters: $(`#link_gutters_${materialId}`).is(':checked'),
+            quantity: parseInt($(`#qty_${materialId}`).val()) || 0,
+            up: parseInt($(`#up_${materialId}`).val()) || 0,
+            materialLength: materialLength
+        };
+
+        // CRITICAL: Properly assign the IDs based on parent type
+        if (parentType === 'Job') {
+            data.jobItemId = itemId;
+            data.quoteItemId = null;
+        } else if (parentType === 'Quote' || parentType === 'quote') {
+            data.jobItemId = null;
+            data.quoteItemId = itemId;
+        } else {
+            console.error('Unknown parent type in getCurrentLayoutData:', parentType);
+            console.error('itemId:', itemId, 'parentType:', parentType);
+
+            // Log all available elements for debugging
+            console.log('Available .jl-item-id elements:', $('.jl-item-id').length);
+            console.log('Available .jl-parent-type elements:', $('.jl-parent-type').length);
+            $('.jl-item-id').each(function(i) { console.log('jl-item-id[' + i + ']:', $(this).val()); });
+            $('.jl-parent-type').each(function(i) { console.log('jl-parent-type[' + i + ']:', $(this).val()); });
+        }
+
+        console.log('Final data object:', data);
+        return data;
+    }
+
+    // Updated linker function for gutters
+    function OnOffLinkerGutters() {
+        const checkbox = $(this);
+        const isChecked = checkbox.is(':checked');
+        const materialId = checkbox.attr('id').replace('link_gutters_', '');
+
+        if (isChecked) {
+            // Link the gutters - when one changes, update the other
+            $(`#x_gutter_${materialId}, #y_gutter_${materialId}`).on('input.linked', function () {
+                const value = $(this).val();
+                $(`#x_gutter_${materialId}, #y_gutter_${materialId}`).not(this).val(value);
+
+                // Trigger layout update
+                const layoutManager = window.layoutManagers[materialId];
+                if (layoutManager) {
+                    const leftSideGuide = $(`#left_side_guide_${materialId}`).val();
+                    const rightSideGuide = $(`#right_side_guide_${materialId}`).val();
+                    const gripper = $(`#gripper_${materialId}`).val();
+                    const tail = $(`#tail_${materialId}`).val();
+                    layoutManager.updatePrintSettings(leftSideGuide, rightSideGuide, value, value, gripper, tail);
+                    markAsChanged();
+                }
+            });
+        } else {
+            // Unlink the gutters
+            $(`#x_gutter_${materialId}, #y_gutter_${materialId}`).off('input.linked');
+        }
+    }
+
+    // Updated linker function for side guides
+    function OnOffLinkerSideGuides() {
+        const checkbox = $(this);
+        const isChecked = checkbox.is(':checked');
+        const materialId = checkbox.attr('id').replace('link_side_guides_', '');
+
+        if (isChecked) {
+            // Link the side guides - when one changes, update the other
+            $(`#left_side_guide_${materialId}, #right_side_guide_${materialId}`).on('input.linked', function () {
+                const value = $(this).val();
+                $(`#left_side_guide_${materialId}, #right_side_guide_${materialId}`).not(this).val(value);
+
+                // Trigger layout update
+                const layoutManager = window.layoutManagers[materialId];
+                if (layoutManager) {
+                    const xGutter = $(`#x_gutter_${materialId}`).val();
+                    const yGutter = $(`#y_gutter_${materialId}`).val();
+                    const gripper = $(`#gripper_${materialId}`).val();
+                    const tail = $(`#tail_${materialId}`).val();
+                    layoutManager.updatePrintSettings(value, value, xGutter, yGutter, gripper, tail);
+                    markAsChanged();
+                }
+            });
+        } else {
+            // Unlink the side guides
+            $(`#left_side_guide_${materialId}, #right_side_guide_${materialId}`).off('input.linked');
+        }
+    }
+</script>

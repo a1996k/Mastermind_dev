@@ -1,0 +1,54 @@
+@model bool?
+
+@{
+    bool lockDown = false;
+}
+
+@if (Model.HasValue)
+{
+    lockDown = Model.Value;
+}
+
+@if (lockDown)
+{
+    <div class="modal" tabindex="-1" id="blind_shipping_address_modal" data-bs-keyboard="false" data-bs-backdrop="static">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Blind Shipping Address <b>Required</b> to proceed</h5>
+                    <button type="button" data-bs-dismiss="modal" aria-label="Cancel">X Cancel</button>
+                </div>
+                <div class="modal-body">
+                    <ul id="blind_shipping_address_list">
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-fc-info update-blind-shipping-address-btn" data-modal-to-close="#blind_shipping_address_modal">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="modal" tabindex="-1" id="blind_shipping_address_modal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Please select a Blind Shipping Address</h5>
+                    <button type="button" data-bs-dismiss="modal" data-modal-to-close="#blind_shipping_address_modal" aria-label="Cancel">X Cancel</button>
+                </div>
+                <div class="modal-body">
+                    <div class="nu-viewport">
+                        <ul id="blind_shipping_address_list">
+                        </ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-fc-caution" data-modal-to-close="#blind_shipping_address_modal">Cancel</button>
+                    <button type="button" class="btn btn-fc-primary update-blind-shipping-address-btn" data-modal-to-close="#blind_shipping_address_modal">Update</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

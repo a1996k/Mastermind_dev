@@ -1,0 +1,194 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+      <Schema Namespace="printersplanModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <Function Name="RecordInspectorByDepartment" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="hourlyRate" Type="money" Mode="In" />
+          <Parameter Name="markup" Type="decimal" Mode="In" />
+          <Parameter Name="start" Type="datetime" Mode="In" />
+          <Parameter Name="finish" Type="datetime" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="Department Name" Type="nvarchar" MaxLength="50" />
+                <Property Name="Hours Worked For Department" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="Aggregate Cost For Department" Type="decimal" Precision="38" Scale="8" />
+                <Property Name="Aggregate Price For Department" Type="decimal" Precision="38" Scale="10" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
+        <Function Name="RecordInspectorByService" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="hourlyRate" Type="money" Mode="In" />
+          <Parameter Name="markup" Type="decimal" Mode="In" />
+          <Parameter Name="start" Type="datetime" Mode="In" />
+          <Parameter Name="finish" Type="datetime" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="Service Name" Type="nvarchar" MaxLength="200" />
+                <Property Name="Hours Worked For Service" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="Aggregate Cost For Service" Type="decimal" Precision="38" Scale="8" />
+                <Property Name="Aggregate Price For Service" Type="decimal" Precision="38" Scale="10" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
+        <Function Name="RecordInspectorByServiceCategory" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="hourlyRate" Type="money" Mode="In" />
+          <Parameter Name="markup" Type="decimal" Mode="In" />
+          <Parameter Name="start" Type="datetime" Mode="In" />
+          <Parameter Name="finish" Type="datetime" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="Service Category Name" Type="nvarchar" MaxLength="30" />
+                <Property Name="Hours Worked For Service Category" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="Aggregate Cost For Service Category" Type="decimal" Precision="38" Scale="8" />
+                <Property Name="Aggregate Price For Service Category" Type="decimal" Precision="38" Scale="10" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
+        <Function Name="RecordInspectorTotals" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+          <Parameter Name="hourlyRate" Type="money" Mode="In" />
+          <Parameter Name="markup" Type="decimal" Mode="In" />
+          <Parameter Name="start" Type="datetime" Mode="In" />
+          <Parameter Name="finish" Type="datetime" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="Overall Hours Worked" Type="decimal" Precision="38" Scale="4" />
+                <Property Name="Overall Cost" Type="decimal" Precision="38" Scale="8" />
+                <Property Name="Overall Price" Type="decimal" Precision="38" Scale="10" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
+        <EntityContainer Name="printersplanModelStoreContainer" />
+      </Schema>
+    </edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="printersplanModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <ComplexType Name="RecordInspectorByDepartment_Result">
+          <Property Name="Department_Name" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="Hours_Worked_For_Department" Type="Decimal" Precision="38" Scale="4" />
+          <Property Name="Aggregate_Cost_For_Department" Type="Decimal" Precision="38" Scale="8" />
+          <Property Name="Aggregate_Price_For_Department" Type="Decimal" Precision="38" Scale="10" />
+        </ComplexType>
+        <ComplexType Name="RecordInspectorByService_Result">
+          <Property Name="Service_Name" Type="String" MaxLength="200" FixedLength="false" Unicode="true" />
+          <Property Name="Hours_Worked_For_Service" Type="Decimal" Precision="38" Scale="4" />
+          <Property Name="Aggregate_Cost_For_Service" Type="Decimal" Precision="38" Scale="8" />
+          <Property Name="Aggregate_Price_For_Service" Type="Decimal" Precision="38" Scale="10" />
+        </ComplexType>
+        <ComplexType Name="RecordInspectorByServiceCategory_Result">
+          <Property Name="Service_Category_Name" Type="String" MaxLength="30" FixedLength="false" Unicode="true" />
+          <Property Name="Hours_Worked_For_Service_Category" Type="Decimal" Precision="38" Scale="4" />
+          <Property Name="Aggregate_Cost_For_Service_Category" Type="Decimal" Precision="38" Scale="8" />
+          <Property Name="Aggregate_Price_For_Service_Category" Type="Decimal" Precision="38" Scale="10" />
+        </ComplexType>
+        <ComplexType Name="RecordInspectorTotals_Result">
+          <Property Name="Overall_Hours_Worked" Type="Decimal" Precision="38" Scale="4" />
+          <Property Name="Overall_Cost" Type="Decimal" Precision="38" Scale="8" />
+          <Property Name="Overall_Price" Type="Decimal" Precision="38" Scale="10" />
+        </ComplexType>
+        <EntityContainer Name="printersplanEntities" annotation:LazyLoadingEnabled="true">
+          <FunctionImport Name="RecordInspectorByDepartment" IsComposable="true" ReturnType="Collection(printersplanModel.RecordInspectorByDepartment_Result)">
+            <Parameter Name="hourlyRate" Mode="In" Type="Decimal" />
+            <Parameter Name="markup" Mode="In" Type="Decimal" />
+            <Parameter Name="start" Mode="In" Type="DateTime" />
+            <Parameter Name="finish" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="RecordInspectorByService" IsComposable="true" ReturnType="Collection(printersplanModel.RecordInspectorByService_Result)">
+            <Parameter Name="hourlyRate" Mode="In" Type="Decimal" />
+            <Parameter Name="markup" Mode="In" Type="Decimal" />
+            <Parameter Name="start" Mode="In" Type="DateTime" />
+            <Parameter Name="finish" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="RecordInspectorByServiceCategory" IsComposable="true" ReturnType="Collection(printersplanModel.RecordInspectorByServiceCategory_Result)">
+            <Parameter Name="hourlyRate" Mode="In" Type="Decimal" />
+            <Parameter Name="markup" Mode="In" Type="Decimal" />
+            <Parameter Name="start" Mode="In" Type="DateTime" />
+            <Parameter Name="finish" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="RecordInspectorTotals" IsComposable="true" ReturnType="Collection(printersplanModel.RecordInspectorTotals_Result)">
+            <Parameter Name="hourlyRate" Mode="In" Type="Decimal" />
+            <Parameter Name="markup" Mode="In" Type="Decimal" />
+            <Parameter Name="start" Mode="In" Type="DateTime" />
+            <Parameter Name="finish" Mode="In" Type="DateTime" />
+          </FunctionImport>
+        </EntityContainer>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="printersplanModelStoreContainer" CdmEntityContainer="printersplanEntities">
+          <FunctionImportMapping FunctionName="printersplanModel.Store.RecordInspectorByDepartment" FunctionImportName="RecordInspectorByDepartment">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="printersplanModel.RecordInspectorByDepartment_Result">
+                <ScalarProperty Name="Department_Name" ColumnName="Department Name" />
+                <ScalarProperty Name="Hours_Worked_For_Department" ColumnName="Hours Worked For Department" />
+                <ScalarProperty Name="Aggregate_Cost_For_Department" ColumnName="Aggregate Cost For Department" />
+                <ScalarProperty Name="Aggregate_Price_For_Department" ColumnName="Aggregate Price For Department" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionName="printersplanModel.Store.RecordInspectorByService" FunctionImportName="RecordInspectorByService">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="printersplanModel.RecordInspectorByService_Result">
+                <ScalarProperty Name="Service_Name" ColumnName="Service Name" />
+                <ScalarProperty Name="Hours_Worked_For_Service" ColumnName="Hours Worked For Service" />
+                <ScalarProperty Name="Aggregate_Cost_For_Service" ColumnName="Aggregate Cost For Service" />
+                <ScalarProperty Name="Aggregate_Price_For_Service" ColumnName="Aggregate Price For Service" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionName="printersplanModel.Store.RecordInspectorByServiceCategory" FunctionImportName="RecordInspectorByServiceCategory">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="printersplanModel.RecordInspectorByServiceCategory_Result">
+                <ScalarProperty Name="Service_Category_Name" ColumnName="Service Category Name" />
+                <ScalarProperty Name="Hours_Worked_For_Service_Category" ColumnName="Hours Worked For Service Category" />
+                <ScalarProperty Name="Aggregate_Cost_For_Service_Category" ColumnName="Aggregate Cost For Service Category" />
+                <ScalarProperty Name="Aggregate_Price_For_Service_Category" ColumnName="Aggregate Price For Service Category" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionName="printersplanModel.Store.RecordInspectorTotals" FunctionImportName="RecordInspectorTotals">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="printersplanModel.RecordInspectorTotals_Result">
+                <ScalarProperty Name="Overall_Hours_Worked" ColumnName="Overall Hours Worked" />
+                <ScalarProperty Name="Overall_Cost" ColumnName="Overall Cost" />
+                <ScalarProperty Name="Overall_Price" ColumnName="Overall Price" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="true" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

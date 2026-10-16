@@ -1,0 +1,81 @@
+﻿@model FifthPress.Models.ViewModels.EmailTemplateModels.VM_WeeklyPrintUtilization
+
+@*
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Production Weekly Department Report</title>
+        <style>
+            td.met {
+                color: green !important;
+            }
+
+            td.not-met {
+                color: red !important;
+            }
+
+            @@media screen and (max-width: 600px) {
+                th, td {
+                    padding: 5px;
+                    font-size: 12px;
+                }
+
+                p, table {
+                    font-size: 14px !important;
+                }
+            }
+        </style>
+    </head>
+    <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8;">
+        <div style="max-width: 800px; margin: 20px auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+            <div style="background-color: #4a90e2; color: white; text-align: center; padding: 20px;">
+                <h3 style="margin: 0;">Production Weekly Utilization Report</h3>
+            </div>
+            <div style="padding: 20px;">
+                <p style="font-size: 16px; color: #333;">
+                    Hi Team,<br />
+                    <br />
+                    Attached is the weekly production utilization report, including job times and clock times.<br />
+                    <br />
+                    Please review and reach out if you have any questions.<br />
+                </p>
+                <table style="width: 100%; border-collapse: collapse; font-size: 16px;">
+                    <thead>
+                        <tr style="background-color: #f0f4fa;">
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Employee Name</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Clock Time</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Job Time</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Utilization %</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Target Utilization</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var employee in Model.Employees)
+                        {
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #ddd;">@employee.Name</td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">@employee.ClockTimeString</td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">@employee.JobTimeString</td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;" class="@(employee.MeetsTarget ? "met" : "not-met")">@employee.UtilizationString</td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">@employee.TargetUtilizationString</td>
+                            </tr>
+                        }
+                        <tr style="background-color: #e0e7f4; font-weight: bold;">
+                            <td style="padding: 10px; border: 1px solid #ddd;">Total</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">@Model.TotalClockTimeString</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">@Model.TotalJobTimeString</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">@Model.TotalUtilizationString</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">—</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="background-color: #4a90e2; color: white; text-align: center; padding: 10px;">
+                <p style="margin: 0;">&copy; 2025 FifthColor. All Rights Reserved.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+*@

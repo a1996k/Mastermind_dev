@@ -1,0 +1,898 @@
+﻿@model FifthPress.Models.ViewModels2.PO25.VM_LineItem25
+@{
+    var index = ViewData["Index"] ?? 0;
+}
+
+<div class="line-item-row border rounded p-3 mb-3">
+    @Html.HiddenFor(m => m.PO_LineItemId, new { @Name = $"LineItems[{index}].PO_LineItemId" })
+
+    @{
+        var itemDescriptionName = $"LineItems[{index}].ItemDescription";
+        var materialIdName = $"LineItems[{index}].MaterialId";
+        var itemId = $"itemDescription_{index}";
+        var materialId = $"materialId_{index}";
+    }
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="form-group">
+                @Html.LabelFor(m => m.ItemDescription, "Item Description", new { @class = "control-label" })
+                @Html.TextAreaFor(m => m.ItemDescription, new
+                {
+                    @class = "form-control item-description",
+                    @rows = 2,
+                    @placeholder = "Describe the item or service",
+                    @data_index = index, // used for jQuery selector targeting
+                    @Name = $"LineItems[{index}].ItemDescription"
+                })
+                @Html.Hidden($"LineItems[{index}].MaterialId", Model.MaterialId, new { @class = "material-id" })
+                @Html.ValidationMessageFor(m => m.ItemDescription, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                @Html.LabelFor(m => m.JobTicketNumber, "Job Ticket Number", new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.JobTicketNumber, new
+                {
+                    @class = "form-control job-number-autocomplete",
+                    @placeholder = "Start typing job number...",
+                    @Name = $"LineItems[{index}].JobTicketNumber",
+                    @data_index = index
+                })
+                <input type="hidden" name="LineItems[@index].JobId" class="job-id" value="@(Model.JobId?.ToString() ?? "")" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                @Html.LabelFor(m => m.VendorLink, "Vendor/Link", new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.VendorLink, new
+                {
+                    @class = "form-control",
+                    @placeholder = "Vendor name or product link",
+                    @Name = $"LineItems[{index}].VendorLink"
+                })
+            </div>
+        </div>
+    </div>
+
+    @* ==== BULK/SPECIAL PRICING SECTION ==== *@
+    <div class="row bulk-item-section">
+        <div class="col-md-12">
+            <div class="card border-primary mb-3">
+                <div class="card-body p-2">
+                    <div class="form-check">
+                        @Html.CheckBoxFor(m => m.IsBulkItem, new
+                        {
+                            @class = "form-check-input bulk-item-checkbox",
+                            @Name = $"LineItems[{index}].IsBulkItem",
+                            @id = $"IsBulkItem_{index}"
+                        })
+                        <label class="form-check-label" for="IsBulkItem_@index">
+                            <strong>Special pricing (Per Hundred/Thousand)</strong>
+                            <small class="text-muted">- Check this for items priced per hundred or per thousand units</small>
+                        </label>
+                    </div>
+
+                    <div class="bulk-fields-container" style="@(Model.IsBulkItem ? "" : "display:none;")">
+                        <hr class="my-2" />
+                        <div class="alert alert-info py-2 px-3 mb-2">
+                            <small><i class="fa fa-info-circle"></i> <strong>Special pricing:</strong> Enter the total quantity, select the pricing unit (Per Hundred/Thousand), and enter the cost per that unit. Total will be calculated automatically.</small>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group mb-2">
+                                    <label class="control-label required-field">Quantity</label>
+                                    @Html.TextBoxFor(m => m.Quantity, new
+                                    {
+                                        @class = "form-control quantity-input bulk-quantity-input",
+                                        @type = "number",
+                                        @step = "any",
+                                        @min = "0",
+                                        @placeholder = "1500",
+                                        @Name = $"LineItems[{index}].Quantity"
+                                    })
+                                    <small class="form-text text-muted">Total units ordered</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group mb-2">
+                                    <label class="control-label required-field">Pricing Unit</label>
+                                    @Html.DropDownListFor(m => m.UnitType, new List<SelectListItem>
+                                    {
+                                        new SelectListItem { Value = "Per Unit", Text = "Per Unit", Selected = Model.UnitType == "Per Unit" },
+                                        new SelectListItem { Value = "Per Hundred", Text = "Per Hundred", Selected = Model.UnitType == "Per Hundred" },
+                                        new SelectListItem { Value = "Per Thousand", Text = "Per Thousand", Selected = Model.UnitType == "Per Thousand" },
+                                        new SelectListItem { Value = "Per Foot", Text = "Per Foot", Selected = Model.UnitType == "Per Foot" }
+                                    }, new
+                                    {
+                                        @class = "form-control bulk-unit-type-select",
+                                        @Name = $"LineItems[{index}].UnitType"
+                                    })
+                                    <small class="form-text text-muted">How cost is priced</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group mb-2">
+                                    <label class="control-label required-field">Cost</label>
+                                    @Html.TextBoxFor(m => m.Cost, new
+                                    {
+                                        @class = "form-control cost-input bulk-cost-input",
+                                        @type = "number",
+                                        @step = "0.01",
+                                        @min = "0",
+                                        @placeholder = "762.00",
+                                        @Name = $"LineItems[{index}].Cost"
+                                    })
+                                    <small class="form-text text-muted">Price per pricing unit</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group mb-2">
+                                    <label class="control-label">Line Total</label>
+                                    @{
+                                        var displayDivisor = Model.UnitType == "Per Hundred" ? 100m : (Model.UnitType == "Per Thousand" ? 1000m : 1m);
+                                        var displayBulkTotal = Model.IsBulkItem ? (Model.Quantity / displayDivisor) * Model.Cost : 0;
+                                        var displayFormattedBulkTotal = displayBulkTotal > 0 ? displayBulkTotal.ToString("C") : "$0.00";
+                                    }
+                                    <input type="text"
+                                           class="form-control bulk-total-display bg-light font-weight-bold"
+                                           readonly
+                                           value="@displayFormattedBulkTotal" />
+                                    <small class="form-text text-muted">Qty ÷ Unit × Cost</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                @{
+                                    var summaryDivisor = Model.UnitType == "Per Hundred" ? 100m : (Model.UnitType == "Per Thousand" ? 1000m : 1m);
+                                    var summaryTotal = Model.IsBulkItem ? ((Model.Quantity / summaryDivisor) * Model.Cost).ToString("C") : "$0.00";
+                                }
+                                <div class="alert alert-success py-2 px-3 mb-0 bulk-summary" style="@(Model.IsBulkItem && Model.Quantity > 0 && Model.Cost > 0 ? "" : "display:none;")">
+                                    <small>
+                                        <strong><i class="fa fa-check-circle"></i> Calculation:</strong>
+                                        <span class="bulk-summary-text">@(Model.IsBulkItem ? $"{Model.Quantity:N0} units ÷ {summaryDivisor:N0} × ${Model.Cost:N2} = {summaryTotal}" : "")</span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ==== STANDARD PRICING (for non-bulk items) ==== *@
+    @{
+        // Pre-calculate line total server-side for proper initial display
+        var lineTotal = Model.Cost * Model.Quantity;
+        string formattedLineTotal;
+        if (lineTotal == 0)
+        {
+            formattedLineTotal = "$0.00";
+        }
+        else if (lineTotal < 0.01m)
+        {
+            // Show up to 5 decimal places for very small values, trim trailing zeros
+            formattedLineTotal = "$" + lineTotal.ToString("0.00000").TrimEnd('0').TrimEnd('.');
+            if (!formattedLineTotal.Contains("."))
+            {
+                formattedLineTotal += ".00";
+            }
+        }
+        else
+        {
+            formattedLineTotal = lineTotal.ToString("C");
+        }
+    }
+    <div class="row standard-pricing-section">
+        <div class="col-md-3">
+            <div class="form-group">
+                @Html.LabelFor(m => m.Quantity, "Quantity", new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.Quantity, new
+                {
+                    @class = "form-control quantity-input standard-quantity-input",
+                    @type = "number",
+                    @step = "any",
+                    @min = "0",
+                    @Name = $"LineItems[{index}].Quantity"
+                })
+                @Html.ValidationMessageFor(m => m.Quantity, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                @Html.LabelFor(m => m.UnitType, "Unit Type", new { @class = "control-label" })
+                @Html.DropDownListFor(m => m.UnitType, new List<SelectListItem>
+                {
+                    new SelectListItem { Value = "Units", Text = "Units (pcs)", Selected = Model.UnitType == "Units" || string.IsNullOrEmpty(Model.UnitType) },
+                    new SelectListItem { Value = "Feet", Text = "Length (ft)", Selected = Model.UnitType == "Feet" }
+                }, new
+                {
+                    @class = "form-control unit-type-select",
+                    @Name = $"LineItems[{index}].UnitType"
+                })
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                @Html.LabelFor(m => m.Cost, "Unit Cost", new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.Cost, new
+                {
+                    @class = "form-control cost-input standard-cost-input",
+                    @type = "number",
+                    @step = "0.00001",
+                    @min = "0",
+                    @Name = $"LineItems[{index}].Cost"
+                })
+                @Html.ValidationMessageFor(m => m.Cost, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="control-label">Line Total</label>
+                <input type="text" class="form-control standard-line-total bg-light font-weight-bold" readonly value="@formattedLineTotal" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-3">
+            <div class="form-group">
+                @Html.LabelFor(m => m.DateNeeded, "Date Needed", new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.DateNeeded, new
+                {
+                    @class = "form-control date-needed-input",
+                    @type = "date",
+                    @Name = $"LineItems[{index}].DateNeeded",
+                    @Value = Model.DateNeeded?.ToString("yyyy-MM-dd")
+                })
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                @Html.LabelFor(m => m.DateExpected, "Expected Delivery", new { @class = "control-label" })
+                @Html.TextBoxFor(m => m.DateExpected, new
+                {
+                    @class = "form-control date-expected-input",
+                    @type = "date",
+                    @Name = $"LineItems[{index}].DateExpected",
+                    @Value = Model.DateExpected?.ToString("yyyy-MM-dd")
+                })
+                <div class="form-check mt-1">
+                    <input type="checkbox" class="form-check-input same-as-needed-checkbox" id="sameAsNeeded_@index" />
+                    <label class="form-check-label small text-muted" for="sameAsNeeded_@index">
+                        Same as Date Needed
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="form-group">
+                <label class="control-label">Options</label>
+                <div class="form-check-container">
+                    <div class="form-check form-check-inline">
+                        @Html.CheckBoxFor(m => m.Taxable, new
+                        {
+                            @class = "form-check-input",
+                            @Name = $"LineItems[{index}].Taxable",
+                            @id = $"Taxable_{index}"
+                        })
+                        <label class="form-check-label" for="Taxable_@index">Taxable</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        @Html.CheckBoxFor(m => m.Billable, new
+                        {
+                            @class = "form-check-input billable-checkbox",
+                            @Name = $"LineItems[{index}].Billable",
+                            @id = $"Billable_{index}"
+                        })
+                        <label class="form-check-label" for="Billable_@index">Billable</label>
+                        <small class="text-muted ml-1" data-toggle="tooltip" data-placement="top" title="Billable items are pass-through expenses that don't affect department budget"><i class="fa fa-info-circle"></i></small>
+                    </div>
+                </div>
+                <input type="hidden" name="LineItems[@index].InventoryTracked" value="@(Model.InventoryTracked ? "true" : "false")" />
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-10">
+            <div class="form-group">
+                @Html.LabelFor(m => m.InternalComments, "Internal Comments", new { @class = "control-label" })
+                @Html.TextAreaFor(m => m.InternalComments, new
+                {
+                    @class = "form-control",
+                    @rows = 2,
+                    @placeholder = "Internal notes (not visible to vendor)",
+                    @Name = $"LineItems[{index}].InternalComments"
+                })
+            </div>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+            <div class="form-group w-100">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-line-item w-100">
+                    <i class="fa fa-trash"></i> Remove
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @{
+        // Pre-calculate display values server-side for bottom row
+        decimal bottomDivisor = 1m;
+        if (Model.IsBulkItem && Model.UnitType == "Per Hundred") { bottomDivisor = 100m; }
+        else if (Model.IsBulkItem && Model.UnitType == "Per Thousand") { bottomDivisor = 1000m; }
+
+        decimal displayLineTotal = Model.IsBulkItem
+            ? (Model.Quantity / bottomDivisor) * Model.Cost
+            : lineTotal;
+
+        string formattedLineTotalDisplay = "0.00";
+        if (displayLineTotal > 0)
+        {
+            formattedLineTotalDisplay = displayLineTotal < 0.01m
+                ? displayLineTotal.ToString("0.00000").TrimEnd('0').TrimEnd('.')
+                : displayLineTotal.ToString("F2");
+            if (!formattedLineTotalDisplay.Contains(".")) { formattedLineTotalDisplay += ".00"; }
+        }
+
+        string formattedCostDisplay = "0.00";
+        if (Model.Cost > 0)
+        {
+            formattedCostDisplay = Model.Cost < 0.01m
+                ? Model.Cost.ToString("0.00000").TrimEnd('0').TrimEnd('.')
+                : Model.Cost.ToString("F2");
+            if (!formattedCostDisplay.Contains(".")) { formattedCostDisplay += ".00"; }
+        }
+
+        string formattedQuantityDisplay = Model.Quantity % 1 == 0
+            ? Model.Quantity.ToString("F0")
+            : Model.Quantity.ToString("F2");
+
+        string unitDisplayText = Model.UnitDisplayText ?? "pcs";
+    }
+    <div class="row">
+        <div class="col-md-12">
+            <div class="line-total-display">
+                <strong>
+                    Line Total: $<span class="line-total">@formattedLineTotalDisplay</span>
+                    (<span class="quantity-display">@formattedQuantityDisplay</span> <span class="unit-display">@unitDisplayText</span> × $<span class="cost-display">@formattedCostDisplay</span>)
+                </strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        // Initialize material autocomplete
+        $('.item-description').each(function () {
+            var $textarea = $(this);
+            var index = $textarea.data('index');
+
+            $textarea.autocomplete({
+                source: function (request, response) {
+                    $.getJSON(ProcessUrl('PO25/AutocompleteMaterials'), { term: request.term }, function (data) {
+                        response(data);
+                    });
+                },
+                minLength: 2,
+                select: function (event, ui) {
+                    $textarea.val(ui.item.label);
+                    var $row = $textarea.closest('.line-item-row');
+
+                    // Set the material ID
+                    $row.find('input.material-id').val(ui.item.value);
+
+                    // Auto-set InventoryTracked to true when material is selected
+                    $row.find('input[name*="InventoryTracked"]').val('true');
+
+                    // Get material stock type and update unit type accordingly
+                    if (ui.item.value) {
+                        $.post(ProcessUrl('PO25/GetMaterialStockType'), { materialId: ui.item.value }, function (data) {
+                            if (data.success) {
+                                var $unitTypeSelect = $row.find('.unit-type-select');
+                                var $quantityInput = $row.find('.quantity-input');
+
+                                if (data.stockTypeId === 3) { // Sheets
+                                    $unitTypeSelect.val('Units');
+                                    $quantityInput.attr('step', '1'); // Integer only
+                                } else { // Roll Stock or Cut Vinyl (Feet)
+                                    $unitTypeSelect.val('Feet');
+                                    $quantityInput.attr('step', '0.1'); // Allow decimals
+                                }
+
+                                // Update the display
+                                updateLineDisplay($row);
+                            }
+                        });
+                    }
+
+                    return false;
+                }
+            });
+        });
+
+        // Initialize job number autocomplete
+        $('.job-number-autocomplete').each(function () {
+            var $input = $(this);
+
+            $input.autocomplete({
+                source: function (request, response) {
+                    $.getJSON(ProcessUrl('PO25/AutocompleteJobs'), { term: request.term }, function (data) {
+                        response(data);
+                    });
+                },
+                minLength: 2,
+                select: function (event, ui) {
+                    $input.val(ui.item.value); // Use just the job number as the value
+
+                    var $row = $input.closest('.line-item-row');
+
+                    // Set the JobId in the hidden field
+                    $row.find('input.job-id').val(ui.item.jobId);
+
+                    // Set the Date Needed to the job's MinStartDate (if it exists and is valid)
+                    if (ui.item.minStartDate && ui.item.minStartDate !== null) {
+                        try {
+                            var dateNeeded;
+
+                            // Handle .NET JSON date format: \/Date(1753074000000)\/
+                            if (typeof ui.item.minStartDate === 'string' && ui.item.minStartDate.indexOf('/Date(') !== -1) {
+                                var timestamp = parseInt(ui.item.minStartDate.match(/\d+/)[0]);
+                                dateNeeded = new Date(timestamp);
+                            } else {
+                                dateNeeded = new Date(ui.item.minStartDate);
+                            }
+
+                            // Check if the date is valid
+                            if (!isNaN(dateNeeded.getTime())) {
+                                var formattedDate = dateNeeded.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+                                $row.find('input[name*="DateNeeded"]').val(formattedDate);
+                            }
+                        } catch (e) {
+                            // If date parsing fails, just skip setting the date
+                            console.log('Could not parse MinStartDate:', ui.item.minStartDate);
+                        }
+                    }
+
+                    return false;
+                }
+            });
+        });
+
+        // Update unit type display when dropdown changes
+        if (!window._unitTypeEventsInitialized) {
+            $(document).on('change', '.line-item-row .unit-type-select', function () {
+                var $row = $(this).closest('.line-item-row');
+                var $quantityInput = $row.find('.quantity-input');
+                var unitType = $(this).val();
+
+                if (unitType === 'Feet' || unitType === 'Per Foot') {
+                    $quantityInput.attr('step', '0.1'); // Allow decimals for footage
+                } else {
+                    $quantityInput.attr('step', '1'); // Integer only for units
+                }
+
+                updateLineDisplay($row);
+            });
+            window._unitTypeEventsInitialized = true;
+        }
+
+        function updateLineDisplay($row) {
+            // Select inputs based on bulk checkbox state
+            var isBulk = $row.find('.bulk-item-checkbox').is(':checked');
+            var costVal, quantityVal;
+
+            if (isBulk) {
+                costVal = $row.find('.bulk-cost-input').val();
+                quantityVal = $row.find('.bulk-quantity-input').val();
+            } else {
+                costVal = $row.find('.standard-cost-input').val();
+                quantityVal = $row.find('.standard-quantity-input').val();
+            }
+
+            var cost = costVal ? parseFloat(costVal) : 0;
+            var quantity = quantityVal ? parseFloat(quantityVal) : 0;
+
+            if (isNaN(cost)) cost = 0;
+            if (isNaN(quantity)) quantity = 0;
+
+            var unitType = $row.find('.unit-type-select').val();
+            var unitDisplay;
+            switch (unitType) {
+                case 'Feet':
+                case 'Per Foot':
+                    unitDisplay = 'ft';
+                    break;
+                case 'Per Hundred':
+                    unitDisplay = 'per 100';
+                    break;
+                case 'Per Thousand':
+                    unitDisplay = 'per 1000';
+                    break;
+                default:
+                    unitDisplay = 'pcs';
+            }
+
+            var total = cost * quantity;
+
+            // Format total for display - show more decimals for small values
+            var formattedTotal;
+            if (total === 0) {
+                formattedTotal = '0.00';
+            } else if (total < 0.01) {
+                formattedTotal = total.toFixed(5).replace(/0+$/, '').replace(/\.$/, '');
+            } else {
+                formattedTotal = total.toFixed(2);
+            }
+
+            // Format cost for display - show more decimals for small values
+            var formattedCost;
+            if (cost === 0) {
+                formattedCost = '0.00';
+            } else if (cost < 0.01) {
+                formattedCost = cost.toFixed(5).replace(/0+$/, '').replace(/\.$/, '');
+            } else {
+                formattedCost = cost.toFixed(2);
+            }
+
+            // Format quantity for display
+            var formattedQuantity = quantity % 1 === 0 ? quantity.toFixed(0) : quantity.toFixed(2);
+
+            $row.find('.line-total').text(formattedTotal);
+            $row.find('.quantity-display').text(formattedQuantity);
+            $row.find('.unit-display').text(unitDisplay);
+            $row.find('.cost-display').text(formattedCost);
+        }
+
+        // Calculate line total for this specific row
+        function updateLineTotal($row) {
+            updateLineDisplay($row);
+        }
+
+        // Update line total when cost or quantity changes - bind to document to handle dynamic elements
+        // Use namespaced event to prevent duplicate bindings
+        if (!window._lineItemEventsInitialized) {
+            $(document).on('input', '.line-item-row .cost-input, .line-item-row .quantity-input', function () {
+                var $row = $(this).closest('.line-item-row');
+                updateLineTotal($row);
+                updateStandardLineTotal($row);
+            });
+            window._lineItemEventsInitialized = true;
+        }
+
+        // ==== BULK/SPECIAL PRICING FUNCTIONALITY ====
+
+        // Toggle bulk fields when checkbox is clicked
+        if (!window._bulkCheckboxEventsInitialized) {
+            $(document).on('change', '.line-item-row .bulk-item-checkbox', function () {
+                var $row = $(this).closest('.line-item-row');
+                var $bulkFields = $row.find('.bulk-fields-container');
+                var $standardSection = $row.find('.standard-pricing-section');
+
+                if ($(this).is(':checked')) {
+                    $bulkFields.slideDown(200);
+                    $standardSection.slideUp(200);
+                    // Clear and DISABLE standard fields so they don't submit
+                    $row.find('.standard-quantity-input').val('').prop('disabled', true);
+                    $row.find('.standard-cost-input').val('').prop('disabled', true);
+                    // Enable bulk fields
+                    $row.find('.bulk-quantity-input').prop('disabled', false);
+                    $row.find('.bulk-cost-input').prop('disabled', false);
+                    // Set default unit type if not set
+                    var $unitType = $row.find('.bulk-unit-type-select');
+                    if (!$unitType.val()) {
+                        $unitType.val('Per Thousand');
+                    }
+                    calculateBulkTotal($row);
+                } else {
+                    $bulkFields.slideUp(200);
+                    $standardSection.slideDown(200);
+                    // Clear and DISABLE bulk fields so they don't submit
+                    $row.find('.bulk-summary').hide();
+                    $row.find('.bulk-total-display').val('$0.00');
+                    $row.find('.bulk-quantity-input').prop('disabled', true);
+                    $row.find('.bulk-cost-input').prop('disabled', true);
+                    // Enable standard fields
+                    $row.find('.standard-quantity-input').prop('disabled', false);
+                    $row.find('.standard-cost-input').prop('disabled', false);
+                    // Reset unit type to standard
+                    $row.find('.unit-type-select').val('Units');
+                }
+            });
+            window._bulkCheckboxEventsInitialized = true;
+        }
+
+        // Calculate total for bulk/special pricing items
+        // Formula: (Quantity ÷ Divisor) × Cost
+        // Per Unit/Per Foot: divisor = 1
+        // Per Hundred: divisor = 100
+        // Per Thousand: divisor = 1000
+        function calculateBulkTotal($row) {
+            var isBulk = $row.find('.bulk-item-checkbox').is(':checked');
+            if (!isBulk) return;
+
+            var quantity = parseFloat($row.find('.bulk-quantity-input').val()) || 0;
+            var cost = parseFloat($row.find('.bulk-cost-input').val()) || 0;
+            var unitType = $row.find('.bulk-unit-type-select').val() || 'Per Unit';
+
+            // Determine divisor based on unit type
+            var divisor = 1;
+            var unitLabel = 'unit';
+            switch (unitType) {
+                case 'Per Hundred':
+                    divisor = 100;
+                    unitLabel = 'hundred';
+                    break;
+                case 'Per Thousand':
+                    divisor = 1000;
+                    unitLabel = 'thousand';
+                    break;
+                case 'Per Foot':
+                    divisor = 1;
+                    unitLabel = 'foot';
+                    break;
+                default: // Per Unit
+                    divisor = 1;
+                    unitLabel = 'unit';
+            }
+
+            // Calculate total: (qty / divisor) * cost
+            var total = (quantity / divisor) * cost;
+            $row.find('.bulk-total-display').val('$' + total.toFixed(2));
+
+            // Update summary
+            if (quantity > 0 && cost > 0) {
+                var summaryText = quantity.toLocaleString() + ' units ÷ ' + divisor.toLocaleString() + ' × $' + cost.toFixed(2) + ' = $' + total.toFixed(2);
+                $row.find('.bulk-summary-text').text(summaryText);
+                $row.find('.bulk-summary').slideDown(200);
+            } else {
+                $row.find('.bulk-summary').hide();
+            }
+
+            // Update the line total display at the bottom
+            updateBulkLineDisplay($row, quantity, cost, total, unitType);
+        }
+
+        // Update the bottom line total display for bulk items
+        function updateBulkLineDisplay($row, quantity, cost, total, unitType) {
+            var formattedTotal = total === 0 ? '0.00' : total.toFixed(2);
+            var formattedCost = cost === 0 ? '0.00' : cost.toFixed(2);
+            var formattedQuantity = quantity % 1 === 0 ? quantity.toFixed(0) : quantity.toFixed(2);
+
+            var unitDisplay = 'pcs';
+            switch (unitType) {
+                case 'Per Foot': unitDisplay = 'ft'; break;
+                case 'Per Hundred': unitDisplay = 'per 100'; break;
+                case 'Per Thousand': unitDisplay = 'per 1000'; break;
+                default: unitDisplay = 'pcs';
+            }
+
+            $row.find('.line-total').text(formattedTotal);
+            $row.find('.quantity-display').text(formattedQuantity);
+            $row.find('.unit-display').text(unitDisplay);
+            $row.find('.cost-display').text(formattedCost);
+        }
+
+        // Listen for changes to bulk fields
+        if (!window._bulkFieldsEventsInitialized) {
+            $(document).on('input change', '.line-item-row .bulk-cost-input, .line-item-row .bulk-quantity-input, .line-item-row .bulk-unit-type-select', function () {
+                var $row = $(this).closest('.line-item-row');
+                calculateBulkTotal($row);
+            });
+            window._bulkFieldsEventsInitialized = true;
+        }
+
+        // Update standard line total
+        function updateStandardLineTotal($row) {
+            var costVal = $row.find('.standard-cost-input').val();
+            var quantityVal = $row.find('.standard-quantity-input').val();
+
+            // Parse values, handling very small decimals
+            var cost = costVal ? parseFloat(costVal) : 0;
+            var quantity = quantityVal ? parseFloat(quantityVal) : 0;
+
+            // Handle NaN
+            if (isNaN(cost)) cost = 0;
+            if (isNaN(quantity)) quantity = 0;
+
+            var total = cost * quantity;
+
+            // Format total - show more decimals for small values
+            var formattedTotal;
+            if (total === 0) {
+                formattedTotal = '$0.00';
+            } else if (total < 0.01) {
+                formattedTotal = '$' + total.toFixed(5).replace(/\.?0+$/, '');
+            } else {
+                formattedTotal = '$' + total.toFixed(2);
+            }
+
+            $row.find('.standard-line-total').val(formattedTotal);
+        }
+
+        // Listen for changes to standard fields
+        if (!window._standardFieldsEventsInitialized) {
+            $(document).on('input', '.line-item-row .standard-cost-input, .line-item-row .standard-quantity-input', function () {
+                var $row = $(this).closest('.line-item-row');
+                updateStandardLineTotal($row);
+                updateLineTotal($row);
+            });
+            window._standardFieldsEventsInitialized = true;
+        }
+
+        // ==== SAME AS DATE NEEDED CHECKBOX FUNCTIONALITY ====
+
+        // When "Same as Date Needed" checkbox is clicked
+        if (!window._sameAsNeededEventsInitialized) {
+            $(document).on('change', '.line-item-row .same-as-needed-checkbox', function () {
+                var $row = $(this).closest('.line-item-row');
+                var $dateNeeded = $row.find('.date-needed-input');
+                var $dateExpected = $row.find('.date-expected-input');
+
+                if ($(this).is(':checked')) {
+                    // Copy date needed to date expected
+                    $dateExpected.val($dateNeeded.val());
+                    $dateExpected.prop('readonly', true);
+                    $dateExpected.addClass('bg-light');
+                } else {
+                    // Allow manual editing again
+                    $dateExpected.prop('readonly', false);
+                    $dateExpected.removeClass('bg-light');
+                }
+            });
+
+            // When Date Needed changes, update Date Expected if checkbox is checked
+            $(document).on('change', '.line-item-row .date-needed-input', function () {
+                var $row = $(this).closest('.line-item-row');
+                var $checkbox = $row.find('.same-as-needed-checkbox');
+                var $dateExpected = $row.find('.date-expected-input');
+
+                if ($checkbox.is(':checked')) {
+                    $dateExpected.val($(this).val());
+                }
+            });
+            window._sameAsNeededEventsInitialized = true;
+        }
+
+        // Function to check if dates match and set checkbox state
+        function syncSameAsNeededCheckbox($row) {
+            var $dateNeeded = $row.find('.date-needed-input');
+            var $dateExpected = $row.find('.date-expected-input');
+            var $checkbox = $row.find('.same-as-needed-checkbox');
+
+            var dateNeededVal = $dateNeeded.val();
+            var dateExpectedVal = $dateExpected.val();
+
+            // Check if both dates have values and they match
+            if (dateNeededVal && dateExpectedVal && dateNeededVal === dateExpectedVal) {
+                $checkbox.prop('checked', true);
+                $dateExpected.prop('readonly', true);
+                $dateExpected.addClass('bg-light');
+            } else {
+                $checkbox.prop('checked', false);
+                $dateExpected.prop('readonly', false);
+                $dateExpected.removeClass('bg-light');
+            }
+        }
+
+        // Initial setup for this line item
+        var $currentRow = $('.line-item-row').last();
+
+        // Ensure UnitType has a default value if empty
+        var $unitTypeSelect = $currentRow.find('.unit-type-select');
+        if (!$unitTypeSelect.val() || $unitTypeSelect.val() === '') {
+            $unitTypeSelect.val('Units');
+        }
+
+        // Show/hide sections based on bulk checkbox state on load
+        // IMPORTANT: Also disable unused inputs so :enabled selector works correctly
+        var isBulkItem = $currentRow.find('.bulk-item-checkbox').is(':checked');
+
+        if (isBulkItem) {
+            $currentRow.find('.bulk-fields-container').show();
+            $currentRow.find('.standard-pricing-section').hide();
+            // Disable standard inputs, enable bulk inputs
+            $currentRow.find('.standard-quantity-input, .standard-cost-input').prop('disabled', true);
+            $currentRow.find('.bulk-quantity-input, .bulk-cost-input').prop('disabled', false);
+            calculateBulkTotal($currentRow);
+        } else {
+            $currentRow.find('.bulk-fields-container').hide();
+            $currentRow.find('.standard-pricing-section').show();
+            // Disable bulk inputs, enable standard inputs
+            $currentRow.find('.bulk-quantity-input, .bulk-cost-input').prop('disabled', true);
+            $currentRow.find('.standard-quantity-input, .standard-cost-input').prop('disabled', false);
+        }
+
+        // Initial calculation - read directly from the appropriate inputs
+        (function initializeLineTotal() {
+            var cost, quantity;
+
+            if (isBulkItem) {
+                cost = parseFloat($currentRow.find('.bulk-cost-input').val()) || 0;
+                quantity = parseFloat($currentRow.find('.bulk-quantity-input').val()) || 0;
+            } else {
+                cost = parseFloat($currentRow.find('.standard-cost-input').val()) || 0;
+                quantity = parseFloat($currentRow.find('.standard-quantity-input').val()) || 0;
+            }
+
+            var total = cost * quantity;
+
+            // Format values for display
+            var formattedTotal = total === 0 ? '0.00' : (total < 0.01 ? total.toFixed(5).replace(/0+$/, '').replace(/\.$/, '') : total.toFixed(2));
+            var formattedCost = cost === 0 ? '0.00' : (cost < 0.01 ? cost.toFixed(5).replace(/0+$/, '').replace(/\.$/, '') : cost.toFixed(2));
+            var formattedQuantity = quantity % 1 === 0 ? quantity.toFixed(0) : quantity.toFixed(2);
+
+            // Update displays
+            $currentRow.find('.line-total').text(formattedTotal);
+            $currentRow.find('.cost-display').text(formattedCost);
+            $currentRow.find('.quantity-display').text(formattedQuantity);
+            $currentRow.find('.standard-line-total').val('$' + formattedTotal);
+
+            // Update unit display
+            var unitType = $currentRow.find('.unit-type-select').val();
+            var unitDisplay = 'pcs';
+            if (unitType === 'Feet' || unitType === 'Per Foot') unitDisplay = 'ft';
+            else if (unitType === 'Per Hundred') unitDisplay = 'per 100';
+            else if (unitType === 'Per Thousand') unitDisplay = 'per 1000';
+            $currentRow.find('.unit-display').text(unitDisplay);
+        })();
+
+        // Check if dates match on load and set checkbox accordingly
+        syncSameAsNeededCheckbox($currentRow);
+
+    });
+</script>
+
+<style>
+    .line-item-row {
+        background-color: #f8f9fa;
+        position: relative;
+    }
+
+    .line-total-display {
+        text-align: right;
+        background-color: #e9ecef;
+        padding: 8px;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+
+    .form-check-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .form-check-inline {
+        margin-right: 1rem;
+    }
+
+    .remove-line-item {
+        min-height: 38px;
+    }
+
+    .required-field::after {
+        content: " *";
+        color: #dc3545;
+        font-weight: bold;
+    }
+
+    .bulk-fields-container .form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
+    .standard-pricing-section {
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #dee2e6;
+    }
+</style>

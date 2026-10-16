@@ -1,0 +1,95 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<VM_ConstraintTableRecord>
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <table id="constraint_table">
+                <thead>
+                    <tr>
+                        <th>Constraint Name</th> <!-- The friendly name of the constraint -->
+                        <th>Constraint Type</th> <!-- The Type of constraint (Range, etc.) -->
+                        <th>Lower Bounds</th> <!-- Minimum -->
+                        <th>Upper Bounds</th> <!-- Maximum -->
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var v in Model)
+                    {
+                        <tr class="get-constraint" data-modal-to-open="#constraint_modal" data-record-id="@Html.DisplayFor(model => v.ConstraintRecordId)">
+                            <td>@Html.DisplayFor(model => v.ConstraintName)</td>
+                            <td>@Html.DisplayFor(model => v.ConstraintType)</td>
+                            <td>@Html.DisplayFor(model => v.LowerBounds)</td>
+                            <td>@Html.DisplayFor(model => v.UpperBounds)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal edit-modal" tabindex="-1" id="constraint_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Constraint</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#constraint_modal" aria-label="Cancel">X Close</button>
+            </div>
+            <div class="modal-body">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var cst;
+
+    //transpose this into administration.js
+    function FormSubmitOverride(evt){
+        evt.preventDefault();
+        var $f = $('form');
+        
+        let formUrl = $f.attr('action');
+        let formObj = $f.serialize();
+
+        let minEntry, maxEntry;
+
+        //if range-entry is visible, grab both values. otherwise get the value-entry value and set it for min/max
+        if($('.range-entry').is(':visible')){
+            minEntry = $('.range-entry .min').val();
+            maxEntry = $('.range-entry .max').val();
+        }else{
+            minEntry = $('.value-entry input').val();
+            maxEntry = $('.value-entry input').val();
+        }
+
+        let cType = $('#Constraint_ConstraintType').val();
+        let cValueType = $('#Constraint_ValueType').val();
+        
+        formObj = (formObj + '&Constraint.MinValue=' + minEntry + '&Constraint.MaxValue=' + maxEntry); 
+        formObj = JSON.parse('{"' + decodeURI(formObj.replace(/&/g, "\",\"").replace(/=/g, "\":\"").replace(/Constraint./g, "") + '"}'));
+
+    //add after otherwise the global replace above mutilates the key name
+        formObj.ConstraintType = cType;
+        formObj.ValueType = cValueType;
+    //get the constraint name and add it as well (same reason as above)
+        formObj.ConstraintName = $('#Constraint_ConstraintName').val();
+    
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl(formUrl),
+            data: {
+                'constraint': formObj
+            }
+        });
+    };
+    
+    $(function(){
+        cst = $('#constraint_table').DataTable({'paging': false});
+    })
+        .on('click', '.get-constraint', GetConstraint)
+        .on('change', '#Constraint_ConstraintType', CheckConstraintType)
+        .on('submit', 'form', FormSubmitOverride);
+</script>

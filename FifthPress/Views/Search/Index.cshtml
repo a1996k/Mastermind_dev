@@ -1,0 +1,233 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_RecordSearch3
+
+@Styles.Render("~/Content/daterangepicker")
+@Styles.Render("~/Content/recordsearch")
+
+<div class="container-fluid ps-5 pb-5 pe-5">
+    <h1>Record Lookup</h1>
+    <div class="row">
+        <div class="col-12 text-end mb-3">
+            <button type="button" class="btn btn-sm reset-search r-white-action-btn">Clear Search <i class="fa-light fa-rotate-right refresh-icon"></i></button>
+        </div>
+        <div class="col-4">
+            <div class="search-filter-wrapper">
+                <div class="row mb-5">
+                    <label class="ff-dm-sans fs-12" for="job_quote">Search For</label>
+                    <div class="col-6 field-binder-col-flex align-items-stretch justify-content-center">
+                        <input type="text" id="job_quote" name="JobQuote" class="styled-input fs-18 pt-1" placeholder="Job/Quote #" />
+                    </div>
+                    <div class="col-6 field-binder-col-flex">
+                        <div class="field-binder-row-flex justify-content-between p-1">
+                            <input type="radio" id="job_ref" name="searchType" value="Jobs" checked>
+                            <label class="ff-poppins fw-bolder fs-12 ps-3" for="job_ref">Jobs</label>
+                        </div>
+                        <div class="field-binder-row-flex justify-content-between p-1">
+                            <input type="radio" id="quote_ref" name="searchType" value="Quotes">
+                            <label class="ff-poppins fw-bolder fs-12 ps-3" for="quote_ref">Quotes</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <h3 class="ff-poppins fs-14 fw-bolder">Clients</h3>
+                    <div class="col-2 field-binder-col-flex align-items-center justify-content-center">
+                        <input type="radio" id="client_sl_radio" name="clientSLRadio" checked />
+                    </div>
+                    <div class="col-10 field-binder-col-flex align-items-center">
+                        <!-- Client select -->
+                        @Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.ClientSelect)
+                    </div>
+                </div>
+                <div class="row py-5">
+                    <div class="col-12">
+                        <span class="fw-bolder ff-poppins fs-16">OR</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-2 field-binder-col-flex align-items-center">
+                        <input type="radio" id="client_pn_radio" name="clientSLRadio" />
+                    </div>
+                    <div class="col-10 field-binder-col-flex">
+                        <label class="ff-dm-sans fw-bold fs-16">Partial Name</label>
+                        <input type="text" id="partial_client_name" placeholder="Placeholder" class="styled-input fs-12 w-100" name="PartialName" disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="search-filter-wrapper">
+                <div class="field-binder-col-flex h-100 justify-content-between">
+                    <div class="col-12">
+                        <div class="field-binder-col-flex">
+                            <h3 class="fs-16 fw-bolder ff-poppins">JOB STATUS</h3>
+                            <div class="row w-100">
+                                <div class="col-6 field-binder-col-flex">
+                                    <div class="field-binder-row-flex py-1">
+                                        <input type="checkbox" id="entered_today" name="JobStatus" value="Entered Today">
+                                        <label for="entered_today" class="ff-dm-sans fs-14 ps-3">Entered Today</label>
+                                    </div>
+                                    <div class="field-binder-row-flex py-1">
+                                        <input type="checkbox" id="waiting_on_art" name="JobStatus" value="Waiting on Art">
+                                        <label for="waiting_on_art" class="ff-dm-sans fs-14 ps-3">Waiting on Art</label>
+                                    </div>
+                                    <div class="field-binder-row-flex py-1">
+                                        <input type="checkbox" id="in_progress" name="JobStatus" value="In Progress">
+                                        <label for="in_progress" class="ff-dm-sans fs-14 ps-3">In Progress</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 field-binder-col-flex">
+                                    <div class="field-binder-row-flex py-1">
+                                        <input type="checkbox" id="ready_to_ship" name="JobStatus" value="Ready to Ship">
+                                        <label for="ready_to_ship" class="ff-dm-sans fs-14 ps-3">Ready to Ship</label>
+                                    </div>
+                                    <div class="field-binder-row-flex py-1">
+                                        <input type="checkbox" id="at_prebill" name="JobStatus" value="At Prebilling">
+                                        <label for="at_prebill" class="ff-dm-sans fs-14 ps-3">At Prebilling</label>
+                                    </div>
+                                    <div class="field-binder-row-flex py-1">
+                                        <input type="checkbox" id="ready_to_bill" name="JobStatus" value="Ready to Bill">
+                                        <label for="ready_to_bill" class="ff-dm-sans fs-14 ps-3">Ready to Bill</label>
+                                    </div>
+                                    <div class="field-binder-row-flex py-1">
+                                        <input type="checkbox" id="is_history" name="JobStatus" value="History">
+                                        <label for="is_history" class="ff-dm-sans fs-14 ps-3">History</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 field-binder-col-flex mb-5">
+                        <h3 class="fs-16 fw-bolder ff-poppins">ASSIGNED TO...</h3>
+                        @Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.UserSelect)
+                        <div class="field-binder-row-flex mt-3">
+                            <input type="checkbox" id="only_my_jobs" name="OnlyMyJobs" value="My Jobs" />
+                            <label for="only_my_jobs" class="ff-dm-sans fs-14 ps-3">Only show my jobs</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="search-filter-wrapper">
+                <div class="row">
+                    <div class="field-binder-row-flex justify-content-between">
+                        <h3 class="fs-16 fw-bolder ff-poppins">DATE RANGE</h3>
+                        <div class="field-binder-row-flex">
+                            <input type="checkbox" class="enable-date-filter" id="enable_df" />
+                            <label for="enable_df" class="ff-poppins fs-12 ps-3">Enable Date Filter</label>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <input type="text" id="range_filter" name="rangeFilter" class="styled-input w-100" disabled />
+                    </div>
+                    <div class="col">
+                        <div class="field-binder-col-flex">
+                            <div class="field-binder-row-flex">
+                                <input type="radio" id="created_dateref" name="dateReference" value="Created" checked disabled>
+                                <label for="created_dateref" class="ff-poppins fw-bolder fs-12 ps-3">Created</label>
+                            </div>
+                            <div class="field-binder-row-flex">
+                                <input type="radio" id="completed_dateref" name="dateReference" value="Completed" disabled>
+                                <label for="completed_dateref" class="ff-poppins fw-bolder fs-12 ps-3">Completed</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row py-5">
+                    <div class="field-binder-col-flex">
+                        <span class="ff-dm-sans fw-bold fs-16">Dimensions</span>
+                        <div class="field-binder-row-flex mins-input">
+                            <input type="number" id="length" name="Length" class="styled-input fs-12" placeholder="Length">
+                            <input type="number" id="width" name="Width" class="styled-input fs-12" placeholder="Width">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12">
+                        <span class="ff-dm-sans fw-bold fs-16">Keywords</span>
+                    </div>
+                    <div class="col-4">
+                        <div class="field-binder-col-flex">
+                            <div class="field-binder-row-flex py-1">
+                                <input type="radio" name="AndOrRadio" id="and_option" disabled />
+                                <label for="and_option" class="ff-dm-sans fw-bold fs-14">And</label>
+                            </div>
+                            <div class="field-binder-row-flex py-1">
+                                <input type="radio" name="AndOrRadio" id="or_option" checked disabled />
+                                <label for="or_option" class="ff-dm-sans fw-bold fs-14">Or</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-8">
+                        <div class="field-binder-col-flex align-items-end">
+                            <ul class="search-terms">
+                            </ul>
+                            <div class="field-binder-row-flex">
+                                <button type="button" class="btn btn-secondary fs-12 add-search-term r-navy-action-btn">+ Add Keyword</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="field-binder-row-flex justify-content-center mt-5">
+        <button class="btn btn-lg r-red-action-btn submit-search-btn" type="submit">Search</button>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-striped" id="results_table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>Job #</th>
+                        <th>Client Name</th>
+                        <th>Dimensions</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Date Created</th>
+                        <th>Date Completed</th>
+                        <th>Project Manager</th>
+                        <th>Menu</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Context Menu -->
+<div id="job_context_menu" class="job-context-menu" style="display:none">
+    <input type="hidden" id="qa_selected_job_id" />
+
+    <a href="#" class="menu-item qa-quick-view" data-url-template="Job/View/{jobId}">
+        <i class="fa-solid fa-eye"></i> <span>Quick View</span>
+    </a>
+
+    <a href="#" class="menu-item qa-edit-job" data-url-template="Job/Edit/{jobId}">
+        <i class="fa-solid fa-pen-to-square"></i> <span>Edit</span>
+    </a>
+
+    <a href="#" class="menu-item qa-duplicate-quote" data-url-template="Quote/Duplicate/{quoteId}">
+        <i class="fa-solid fa-copy"></i> <span>Duplicate Quote</span>
+    </a>
+
+    <a href="#" class="menu-item qa-time-tracking" data-url-template="time-tracking/{jobId}/{itemId}">
+        <i class="fa-regular fa-clock-desk"></i> <span>Time Tracking</span>
+    </a>
+
+    <a href="#" class="menu-item qa-job-ticket" data-url-template="GetJobTicket/{jobId}" target="_blank">
+        <i class="fa-solid fa-ticket"></i> <span>View Job Ticket</span>
+    </a>
+
+    <a href="#" class="menu-item qa-cost-sheet" data-url-template="job-cost-sheet/{jobId}" target="_blank">
+        <i class="fa-solid fa-file-invoice-dollar"></i> <span>Get Cost Sheet</span>
+    </a>
+</div>
+
+@Scripts.Render("~/bundles/daterangepicker")
+
+@Scripts.Render("~/bundles/recordsearch")

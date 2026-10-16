@@ -1,0 +1,243 @@
+﻿@model List<Job>
+
+<style>
+    .f-target h3 {
+        font-family: Poppins;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .f-target table th {
+        font-family: Poppins;
+        font-size: 12px;
+    }
+
+    .f-target table td {
+        font-family: 'DM Sans';
+        font-size: 12px;
+    }
+
+    .shipment-card {
+        background: var(--fc-tan);
+        padding: 10px;
+        display: inline-block;
+        border-radius: 10px;
+    }
+
+    .modal-body .shipment-card:not(:first-child) {
+        margin-left: 20px;
+    }
+</style>
+
+<input type="hidden" id="cur_jid" />
+
+<div class="container f-target">
+    <div class="row">
+        <div class="col-6 ready-to-ship">
+            <h3>Jobs Ready To Be Shipped</h3>
+            <table class="table table-bordered table-striped" id="rtsTable">
+                <thead>
+                    <tr>
+                        <th>Job Number</th>
+                        <th>Customer</th>
+                        <th>Due Date</th>
+                        <th>Completed Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in Model.Where(x => x.IsPickup == false))
+                    {
+                        <tr data-record-id="@Html.DisplayFor(model => job.Id)">
+                            <td>@job.JobNumber</td>
+                            <td>@job.Client1.Title</td>
+                            <td>@job.DueDate.Value.ToLongDateString()</td>
+                            <td>@job.Complete.Value.ToLongDateString()</td>
+                            <td><button type="button" class="btn btn-sm btn-success mark-as-shipped">Mark as Shipped</button></td>
+                        </tr>
+                    }
+            </table>
+        </div>
+        <div class="col-6 ready-to-pickup">
+            <h3>Jobs Ready To Be Pickup</h3>
+            <table class="table table-bordered table-striped" id="rtpTable">
+                <thead>
+                    <tr>
+                        <th>Job Number</th>
+                        <th>Customer</th>
+                        <th>Due Date</th>
+                        <th>Completed Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var job in Model.Where(x => x.IsPickup == true))
+                    {
+                        <tr data-record-id="@Html.DisplayFor(model => job.Id)">
+                            <td>@job.JobNumber</td>
+                            <td>@job.Client1.Title</td>
+                            <td>@job.DueDate.Value.ToLongDateString()</td>
+                            <td>@job.Complete.Value.ToLongDateString()</td>
+                            <td><button type="button" class="btn btn-sm btn-success mark-as-picked-up">Mark as Picked Up</button></td>
+                        </tr>
+                    }
+            </table>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_ShippingAddressSelectModal.cshtml", true)
+
+@Html.Partial("~/Views/Shipping/_ShippedOrdersModal.cshtml")
+
+<script>
+    let rts, rtp;
+    function RemoveRowAndReinitShipTable(jobId) {
+        // Destroy the existing DataTable instance
+        rts.destroy();
+
+        // Remove the row from the table
+        $('#rtsTable tr[data-record-id="' + jobId + '"]').remove();
+
+        // Re-initialize the DataTable
+        rts = $('#rtsTable').DataTable();
+    }
+    function RemoveRowAndReinitPickupTable(jobId) {
+        // Destroy the existing DataTable instance
+        rtp.destroy();
+
+        // Remove the row from the table
+        $('#rtpTable tr[data-record-id="' + jobId + '"]').remove();
+
+        // Re-initialize the DataTable
+        rtp = $('#rtpTable').DataTable();
+    }
+    function SetShippingAddress() {
+        let jobId = $('#cur_jid').val();
+        let addressId = $('#shipping_address_modal #shipping_address_list li input[type="radio"]:checked').parents('li').attr('data-record-id');
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('set-address-on-job'),
+            data: {
+                jobId,
+                addressId
+            },
+            success: function (data) {
+                //move on to shipping detail entry
+                $('#shipping_address_modal').modal('hide');
+                $('#shipped_orders_modal').modal('show');
+            },
+            error: function () {
+                alert('Error setting address; please contact developer.');
+            }
+        });
+    };
+
+    function LoadShippingAddresses() {
+        var jobId = $('#cur_jid').val();
+
+        $.ajax({
+            type: 'GET',
+            url: ProcessUrl('get-shipping-addresses2') + '/' + jobId,
+            success: function (data) {
+                try {
+                    let res = JSON.parse(data);
+                    $('#shipping_address_modal #shipping_address_list').html(res);
+                } catch (e) { }
+            }
+        });
+    };
+
+    function MarkAsShippedCheck() {
+        let $btn = $(this);
+        let jobId = $btn.parents('tr').attr('data-record-id');
+        $('#cur_jid').val(jobId);
+
+        $.ajax({
+            type: 'GET',
+            url: ProcessUrl('ship-address-check') + '/' + jobId,
+            success: function (hasAddress) {
+                //if !hasAddress, show the modal requiring a shipping address
+                if (!hasAddress) {
+                    $('#shipping_address_modal').modal('show');
+                } else {
+                    //otherwise, show the modal for freight info
+                    $('#shipped_orders_modal').modal('show');
+                }
+            },
+            error: function () {
+                alert('There was an error checking for a shipping address');
+            }
+        });
+    };
+
+    function MarkAsShipped() {
+        //let $btn = $(this);
+        //let jobId = $btn.parents('tr').attr('data-record-id');
+        let jobId = $('#cur_jid').val();
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('mark-job-as-shipped'),
+            data: {
+                jobId
+            },
+            success: function () {
+                $('#shipped_orders_modal').modal('hide');
+                alert('Job marked as shipped');
+                RemoveRowAndReinitShipTable(jobId);
+            },
+            error: function () {
+                alert('Error!');
+            }
+        });
+    };
+
+    function MarkAsPickedUp() {
+        let $btn = $(this);
+        let jobId = $btn.parents('tr').attr('data-record-id');
+
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('mark-job-as-shipped'),
+            data: {
+                jobId
+            },
+            success: function () {
+                //$('#shipped_orders_modal').modal('hide');
+                alert('Job marked as picked up');
+                RemoveRowAndReinitPickupTable(jobId);
+            },
+            error: function () {
+                alert('Error!');
+            }
+        });
+    };
+
+    function UpdateShippingAddressCheck() {
+        //ensure at least one address is selected
+        let checkedCt = $('#shipping_address_list li input[type="radio"]:checked').length;
+
+        if (checkedCt === 1) {
+            let selectedAddressId = $('#shipping_address_list li input[type="radio"]:checked').parents('li').attr('data-record-id');
+
+            //set the job shipping address, then proceed onto the shipping modal (freight, %markup, tracking, notes) <-- list, for now
+            SetShippingAddress();
+        } else {
+            alert('Unknown error; checkedCt = ' + checkedCt);
+        }
+    };
+
+    $(function () {
+        rts = $('#rtsTable').DataTable();
+        rtp = $('#rtpTable').DataTable();
+    })
+        .on('click', '.mark-as-shipped', MarkAsShippedCheck)
+        .on('click', '.mark-as-picked-up', MarkAsPickedUp)
+        .on('show.bs.modal', '#shipping_address_modal', LoadShippingAddresses)
+        .on('click', '.update-shipping-address-btn', UpdateShippingAddressCheck)
+        .on('click', '#shipped_orders_modal .modal-footer .mark-job-as-shipped', MarkAsShipped);
+</script>
+
+@Scripts.Render("~/bundles/ordershipping")

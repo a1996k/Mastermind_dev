@@ -1,0 +1,1006 @@
+@model FifthPress.Models.ViewModels2.PO25.VM_CreatePO25
+@{
+    ViewBag.Title = "Create Purchase Order";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>@(Model.PO_OrderId > 0 ? "Edit Purchase Order #" + Model.PO_OrderId : "Create New Purchase Order")</h2>
+
+            @using (Html.BeginForm("Create", "PO25", FormMethod.Post, new { @class = "form-horizontal", role = "form", id = "createPOForm" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(m => m.PO_OrderId)
+                @Html.HiddenFor(m => m.UsesDepartmentSplits)
+
+                <div class="row">
+                    <!-- LEFT COLUMN: Order Details & Line Items -->
+                    <div class="col-lg-8">
+                        <!-- Order Header -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5 class="mb-0"><i class="fa fa-file-text-o"></i> Order Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.VendorId, "Vendor", new { @class = "control-label" })
+                                            <div class="input-group">
+                                                @Html.DropDownListFor(m => m.VendorId, Model.Vendors, "-- Select Vendor --", new { @class = "form-control", id = "VendorDropdown" })
+                                                <div class="input-group-append">
+                                                    <button type="button" class="btn btn-outline-success" id="addVendorBtn" title="Add New Vendor">
+                                                        <i class="fa fa-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            @Html.ValidationMessageFor(m => m.VendorId, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6" id="departmentDropdownRow">
+                                        <div class="form-group">
+                                            @Html.LabelFor(m => m.DepartmentId, "Department", new { @class = "control-label" })
+                                            @if (Model.Departments != null && Model.Departments.Count() > 1)
+                                            {
+                                                @Html.DropDownListFor(m => m.DepartmentId, Model.Departments, "-- Select Department --", new { @class = "form-control", id = "DepartmentDropdown" })
+                                            }
+                                            else
+                                            {
+                                                @Html.DropDownListFor(m => m.DepartmentId, Model.Departments, new { @class = "form-control", id = "DepartmentDropdown" })
+                                            }
+                                            @Html.ValidationMessageFor(m => m.DepartmentId, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if (Model.CompanyBudgets != null && Model.CompanyBudgets.Any())
+                                {
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check mt-2">
+                                                @Html.CheckBoxFor(m => m.IsCompanyWide, new { @class = "form-check-input", id = "IsCompanyWide" })
+                                                @Html.LabelFor(m => m.IsCompanyWide, "Use Company-Wide Budget", new { @class = "form-check-label" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6" id="companyBudgetRow" style="display: none;">
+                                            <div class="form-group">
+                                                @Html.DropDownListFor(m => m.CompanyBudgetId, Model.CompanyBudgets, "-- Select Company Budget --", new { @class = "form-control", id = "CompanyBudgetDropdown" })
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Line Items -->
+                        <div class="card mb-3">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0"><i class="fa fa-list"></i> Line Items</h5>
+                                <button type="button" class="btn btn-success btn-sm" id="addLineItemBtn">
+                                    <i class="fa fa-plus"></i> Add Item
+                                </button>
+                            </div>
+                            <div class="card-body p-2">
+                                <div id="lineItemsContainer">
+                                    @if (Model.LineItems != null && Model.LineItems.Any())
+                                    {
+                                        for (int i = 0; i < Model.LineItems.Count; i++)
+                                        {
+                                            @Html.Partial("~/Views/PO25/_LineItemRow.cshtml", Model.LineItems[i], new ViewDataDictionary { { "Index", i } })
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @Html.Partial("~/Views/PO25/_LineItemRow.cshtml", new FifthPress.Models.ViewModels2.PO25.VM_LineItem25(), new ViewDataDictionary { { "Index", 0 } })
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Advanced Options (Collapsible) -->
+                        <div class="card mb-3" id="departmentSplitCard">
+                            <div class="card-header py-2" id="splitCardHeader" style="cursor: pointer;">
+                                <h6 class="mb-0">
+                                    <i class="fa fa-chevron-right" id="splitToggleIcon"></i>
+                                    Advanced Options
+                                    <small class="text-muted">(Multi-Department Splitting)</small>
+                                </h6>
+                            </div>
+                            <div id="splitContent" style="display: none;">
+                                <div class="card-body">
+                                    <p class="text-muted mb-2">Split this order across multiple departments by percentage. Percentages must total 100%.</p>
+                                    <input type="hidden" name="SplitType" id="SplitType" value="@(Model.SplitType ?? "None")" />
+
+                                    <div id="orderSplitsContainer"></div>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-2">
+                                        <button type="button" class="btn btn-outline-success btn-sm" id="addOrderSplitBtn">
+                                            <i class="fa fa-plus"></i> Add Department
+                                        </button>
+                                        <span class="badge badge-secondary" id="splitTotalBadge">Total: 0%</span>
+                                    </div>
+                                    <div id="splitValidationMessage" class="alert alert-danger mt-2 py-2" style="display: none;"></div>
+                                    <div id="splitBudgetPreview" class="mt-3" style="display: none;">
+                                        <h6>Budget Impact by Department:</h6>
+                                        <div id="splitBudgetDetails"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Summary & Actions -->
+                    <div class="col-lg-4 sticky-sidebar-col">
+                        <div class="sticky-sidebar">
+                        <!-- Budget Status -->
+                        <div class="card mb-3" id="departmentBudgetRow">
+                            <div class="card-header py-2">
+                                <h6 class="mb-0"><i class="fa fa-pie-chart"></i> Budget Status</h6>
+                            </div>
+                            <div class="card-body py-2">
+                                <div id="budgetInfo" style="display: none;">
+                                    <div id="budgetDetails"></div>
+                                </div>
+                                <div id="budgetPlaceholder" class="text-muted small">
+                                    <i class="fa fa-info-circle"></i> Budget impact will display when items are added
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.CompanyBudgets != null && Model.CompanyBudgets.Any())
+                        {
+                            <div class="card mb-3" id="companyBudgetInfoCard" style="display: none;">
+                                <div class="card-header py-2">
+                                    <h6 class="mb-0"><i class="fa fa-building"></i> Company Budget Status</h6>
+                                </div>
+                                <div class="card-body py-2">
+                                    <div id="companyBudgetInfo" style="display: none;">
+                                        <div id="companyBudgetDetails"></div>
+                                    </div>
+                                    <div id="companyBudgetPlaceholder" class="text-muted small">
+                                        <i class="fa fa-info-circle"></i> Select a company budget to see impact
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Freight & Tax -->
+                        <div class="card mb-3">
+                            <div class="card-header py-2">
+                                <h6 class="mb-0"><i class="fa fa-truck"></i> Freight & Tax</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-group mb-2">
+                                    <label class="small mb-1">Freight Amount</label>
+                                    @Html.TextBoxFor(m => m.FreightAmount, new { @class = "form-control form-control-sm freight-input", @type = "number", @step = "0.01", @min = "0", @placeholder = "0.00" })
+                                </div>
+                                <div class="form-group mb-2">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <label class="small mb-1">Tax</label>
+                                        <div class="form-check form-check-inline mb-0">
+                                            @Html.CheckBoxFor(m => m.IsTaxPercentage, new { @class = "form-check-input", @id = "IsTaxPercentage" })
+                                            <label class="form-check-label small" for="IsTaxPercentage">Use %</label>
+                                        </div>
+                                    </div>
+                                    <div id="taxRateGroup">
+                                        <div class="input-group input-group-sm">
+                                            @Html.TextBoxFor(m => m.TaxRate, new { @class = "form-control tax-rate-input", @type = "number", @step = "0.01", @min = "0", @max = "100", @placeholder = "0.00" })
+                                            <div class="input-group-append">
+                                                <span class="input-group-text">%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="taxAmountGroup" style="display:none;">
+                                        @Html.TextBoxFor(m => m.TaxAmount, new { @class = "form-control form-control-sm tax-amount-input", @type = "number", @step = "0.01", @min = "0", @placeholder = "0.00" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="card mb-3">
+                            <div class="card-header py-2">
+                                <h6 class="mb-0"><i class="fa fa-calculator"></i> Order Summary</h6>
+                            </div>
+                            <div class="card-body py-2">
+                                <table class="table table-sm table-borderless mb-0">
+                                    <tr>
+                                        <td class="text-muted">Subtotal</td>
+                                        <td class="text-right" id="subtotalAmount">$0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Freight</td>
+                                        <td class="text-right" id="freightAmountDisplay">$0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Tax</td>
+                                        <td class="text-right" id="taxAmountDisplay">$0.00</td>
+                                    </tr>
+                                    <tr class="border-top">
+                                        <td><strong>Total</strong></td>
+                                        <td class="text-right"><strong id="totalAmount">$0.00</strong></td>
+                                    </tr>
+                                </table>
+                                <hr class="my-2" />
+                                <table class="table table-sm table-borderless mb-0">
+                                    <tr>
+                                        <td class="text-muted small">Billable</td>
+                                        <td class="text-right small" id="billableAmount">$0.00</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted small">Non-Billable</td>
+                                        <td class="text-right small" id="nonBillableAmount">$0.00</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Submit Actions -->
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="form-check mb-3">
+                                    @Html.CheckBoxFor(m => m.IsDraft, new { @class = "form-check-input", id = "IsDraftCheckbox" })
+                                    @Html.LabelFor(m => m.IsDraft, "Save as Draft", new { @class = "form-check-label" })
+                                    <small class="form-text text-muted">Uncheck to submit for approval</small>
+                                </div>
+
+                                @if ((ViewBag.CanOverrideBudget as bool?) == true)
+                                {
+                                    <div class="form-check mb-3" id="overrideSection" style="display: none;">
+                                        <input type="checkbox" class="form-check-input" name="OverrideRequested" value="true" id="OverrideRequested" />
+                                        <label class="form-check-label small text-warning" for="OverrideRequested">
+                                            <i class="fa fa-exclamation-triangle"></i> Override budget limit
+                                        </label>
+                                    </div>
+                                }
+
+                                <div class="d-flex justify-content-between">
+                                    @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-outline-secondary" })
+                                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                                        <i class="fa fa-save"></i> <span id="submitBtnText">Save Draft</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        </div> <!-- End sticky-sidebar -->
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .sticky-sidebar-col {
+        align-self: flex-start;
+    }
+    .sticky-sidebar.is-sticky {
+        position: fixed;
+        top: 100px;
+        width: inherit;
+        max-width: inherit;
+    }
+</style>
+
+<script>
+$(document).ready(function () {
+    var lineItemIndex = @(Model.LineItems?.Count ?? 1);
+
+    // Initialize tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+
+    // Re-initialize tooltips when new line items are added
+    $(document).on('DOMNodeInserted', '.line-item-row', function() {
+        $(this).find('[data-toggle="tooltip"]').tooltip();
+    });
+
+    // Add new line item
+    $('#addLineItemBtn').click(function () {
+        $.post(ProcessUrl('PO25/AddLineItem'), function (data) {
+            var newIndex = lineItemIndex++;
+            var newRow = data;
+            newRow = newRow.replace(/LineItems\[0\]/g, 'LineItems[' + newIndex + ']');
+            newRow = newRow.replace(/\_0\_/g, '_' + newIndex + '_');
+            $('#lineItemsContainer').append(newRow);
+            updateTotals();
+        });
+    });
+
+    // Remove line item
+    $(document).on('click', '.remove-line-item', function () {
+        if ($('.line-item-row').length > 1) {
+            $(this).closest('.line-item-row').remove();
+            updateTotals();
+        } else {
+            alert('At least one line item is required.');
+        }
+    });
+
+    // Update totals when values change
+    $(document).on('input', '.cost-input, .quantity-input', function () {
+        updateTotals();
+        updateBudgetInfo();
+        if (typeof updateSplitTotal === 'function') updateSplitTotal();
+    });
+
+    $(document).on('change', '.billable-checkbox', function () {
+        updateTotals();
+        if ($('#IsCompanyWide').is(':checked')) {
+            updateCompanyBudgetInfo();
+        } else {
+            updateBudgetInfo();
+        }
+    });
+
+    // Update totals when bulk pricing unit type changes
+    $(document).on('change', '.bulk-unit-type-select', function () {
+        updateTotals();
+        if ($('#IsCompanyWide').is(':checked')) {
+            updateCompanyBudgetInfo();
+        } else {
+            updateBudgetInfo();
+        }
+        if (typeof updateSplitTotal === 'function') updateSplitTotal();
+    });
+
+    // Update totals when bulk checkbox is toggled
+    $(document).on('change', '.bulk-item-checkbox', function () {
+        updateTotals();
+        if ($('#IsCompanyWide').is(':checked')) {
+            updateCompanyBudgetInfo();
+        } else {
+            updateBudgetInfo();
+        }
+        if (typeof updateSplitTotal === 'function') updateSplitTotal();
+    });
+
+    $('#DepartmentDropdown').change(function () {
+        updateBudgetInfo();
+    });
+
+    $(document).on('input', '.freight-input, .tax-rate-input, .tax-amount-input', function () {
+        updateTotals();
+        updateBudgetInfo();
+    });
+
+    // Toggle tax input type
+    $('#IsTaxPercentage').change(function () {
+        if ($(this).is(':checked')) {
+            $('#taxRateGroup').show();
+            $('#taxAmountGroup').hide();
+            $('.tax-amount-input').val('');
+        } else {
+            $('#taxRateGroup').hide();
+            $('#taxAmountGroup').show();
+            $('.tax-rate-input').val('');
+        }
+        updateTotals();
+    });
+
+    // Initial state for tax fields
+    if ($('#IsTaxPercentage').is(':checked')) {
+        $('#taxRateGroup').show();
+        $('#taxAmountGroup').hide();
+    } else {
+        $('#taxRateGroup').hide();
+        $('#taxAmountGroup').show();
+    }
+
+    // Update submit button text based on draft checkbox
+    $('#IsDraftCheckbox').change(function () {
+        $('#submitBtnText').text($(this).is(':checked') ? 'Save Draft' : 'Submit for Approval');
+    });
+
+    function updateTotals() {
+        var subtotal = 0;
+        var billable = 0;
+        var nonBillable = 0;
+
+        $('.line-item-row').each(function () {
+            var $row = $(this);
+            var isBulk = $row.find('.bulk-item-checkbox').is(':checked');
+            var costVal, quantityVal;
+
+            // Select the appropriate inputs based on bulk checkbox state
+            if (isBulk) {
+                costVal = $row.find('.bulk-cost-input').val();
+                quantityVal = $row.find('.bulk-quantity-input').val();
+            } else {
+                costVal = $row.find('.standard-cost-input').val();
+                quantityVal = $row.find('.standard-quantity-input').val();
+            }
+
+            var cost = costVal ? parseFloat(costVal) : 0;
+            var quantity = quantityVal ? parseFloat(quantityVal) : 0;
+
+            if (isNaN(cost)) cost = 0;
+            if (isNaN(quantity)) quantity = 0;
+
+            var isBillable = $row.find('.billable-checkbox').is(':checked');
+
+            // Calculate line total with bulk pricing divisor
+            var lineTotal = cost * quantity;
+            if (isBulk) {
+                var unitType = $row.find('.bulk-unit-type-select').val();
+                if (unitType === 'Per Hundred') {
+                    lineTotal = (quantity / 100) * cost;
+                } else if (unitType === 'Per Thousand') {
+                    lineTotal = (quantity / 1000) * cost;
+                }
+            }
+
+            subtotal += lineTotal;
+            if (isBillable) {
+                billable += lineTotal;
+            } else {
+                nonBillable += lineTotal;
+            }
+        });
+
+        var freight = parseFloat($('.freight-input').val()) || 0;
+        var isTaxPercentage = $('#IsTaxPercentage').is(':checked');
+        var taxAmount = 0;
+
+        if (isTaxPercentage) {
+            var taxRate = parseFloat($('.tax-rate-input').val()) || 0;
+            taxAmount = subtotal * (taxRate / 100);
+        } else {
+            taxAmount = parseFloat($('.tax-amount-input').val()) || 0;
+        }
+
+        var total = subtotal + freight + taxAmount;
+
+        $('#subtotalAmount').text('$' + subtotal.toFixed(2));
+        $('#freightAmountDisplay').text('$' + freight.toFixed(2));
+        $('#taxAmountDisplay').text('$' + taxAmount.toFixed(2));
+        $('#totalAmount').text('$' + total.toFixed(2));
+        $('#billableAmount').text('$' + billable.toFixed(2));
+        $('#nonBillableAmount').text('$' + nonBillable.toFixed(2));
+    }
+
+    function calculateNonBillableTotal() {
+        var nonBillableAmount = 0;
+        $('.line-item-row').each(function () {
+            var $row = $(this);
+            var isBulk = $row.find('.bulk-item-checkbox').is(':checked');
+            var costVal, quantityVal;
+
+            if (isBulk) {
+                costVal = $row.find('.bulk-cost-input').val();
+                quantityVal = $row.find('.bulk-quantity-input').val();
+            } else {
+                costVal = $row.find('.standard-cost-input').val();
+                quantityVal = $row.find('.standard-quantity-input').val();
+            }
+
+            var cost = costVal ? parseFloat(costVal) : 0;
+            var quantity = quantityVal ? parseFloat(quantityVal) : 0;
+
+            if (isNaN(cost)) cost = 0;
+            if (isNaN(quantity)) quantity = 0;
+
+            var isBillable = $row.find('.billable-checkbox').is(':checked');
+            if (!isBillable) {
+                // Calculate with bulk pricing divisor
+                var lineTotal = cost * quantity;
+                if (isBulk) {
+                    var unitType = $row.find('.bulk-unit-type-select').val();
+                    if (unitType === 'Per Hundred') {
+                        lineTotal = (quantity / 100) * cost;
+                    } else if (unitType === 'Per Thousand') {
+                        lineTotal = (quantity / 1000) * cost;
+                    }
+                }
+                nonBillableAmount += lineTotal;
+            }
+        });
+        return nonBillableAmount;
+    }
+
+    function updateBudgetInfo() {
+        var hasSplits = $('.order-split-row').length > 0;
+        var splitTotal = 0;
+        $('.split-percentage-input').each(function () {
+            splitTotal += parseFloat($(this).val()) || 0;
+        });
+
+        // If splits are enabled and valid (100%), use split budget display
+        if (hasSplits && Math.abs(splitTotal - 100) < 0.1) {
+            updateSplitBudgetInfo();
+            return;
+        }
+
+        // Single department budget display
+        var departmentId = $('#DepartmentDropdown').val();
+        var nonBillableAmount = calculateNonBillableTotal();
+
+        if (departmentId && nonBillableAmount > 0) {
+            $('#budgetPlaceholder').hide();
+            $.post('@Url.Action("GetBudgetImpact")', {
+                departmentId: departmentId,
+                amount: nonBillableAmount,
+                billable: false
+            }, function (data) {
+                if (data.success) {
+                    var warningClass = data.warningLevel === 'Critical' ? 'text-danger' :
+                                       data.warningLevel === 'Warning' ? 'text-warning' : 'text-success';
+
+                    $('#budgetInfo').show().html(
+                        '<div class="' + warningClass + '">' +
+                        '<strong>' + data.departmentName + '</strong><br>' +
+                        '<small>This order: <strong>$' + data.poAmount.toFixed(2) + '</strong></small><br>' +
+                        '<strong>$' + data.budgetRemaining.toFixed(2) + '</strong> remaining<br>' +
+                        '<small>' + data.percentUsed.toFixed(1) + '% used after this order</small>' +
+                        (data.willExceedBudget ? '<br><strong class="text-danger"><i class="fa fa-exclamation-triangle"></i> Exceeds budget</strong>' : '') +
+                        '</div>'
+                    );
+
+                    if (data.willExceedBudget) {
+                        $('#overrideSection').show();
+                    } else {
+                        $('#overrideSection').hide();
+                    }
+                } else {
+                    $('#budgetInfo').show().html('<div class="text-muted"><small>' + data.message + '</small></div>');
+                }
+            });
+        } else {
+            $('#budgetInfo').hide();
+            $('#budgetPlaceholder').show();
+            $('#overrideSection').hide();
+        }
+    }
+
+    function updateSplitBudgetInfo() {
+        var nonBillableAmount = calculateNonBillableTotal();
+        if (nonBillableAmount <= 0) {
+            $('#budgetInfo').hide();
+            $('#budgetPlaceholder').show();
+            $('#overrideSection').hide();
+            return;
+        }
+
+        // Build splits array
+        var splits = [];
+        $('.order-split-row').each(function () {
+            var deptId = parseInt($(this).find('.split-department-select').val()) || 0;
+            var pct = parseFloat($(this).find('.split-percentage-input').val()) || 0;
+            if (deptId > 0 && pct > 0) {
+                splits.push({
+                    DepartmentId: deptId,
+                    Amount: nonBillableAmount * (pct / 100)
+                });
+            }
+        });
+
+        if (splits.length === 0) {
+            $('#budgetInfo').hide();
+            $('#budgetPlaceholder').show();
+            return;
+        }
+
+        $('#budgetPlaceholder').hide();
+        $.post('@Url.Action("GetSplitBudgetImpact")', {
+            splits: JSON.stringify(splits)
+        }, function (data) {
+            if (data.success && data.departments && data.departments.length > 0) {
+                var html = '<div class="small">';
+                $.each(data.departments, function (i, dept) {
+                    var warningClass = dept.warningLevel === 'Critical' ? 'text-danger' :
+                                       dept.warningLevel === 'Warning' ? 'text-warning' : 'text-success';
+                    html += '<div class="mb-2 pb-2 ' + (i < data.departments.length - 1 ? 'border-bottom' : '') + '">';
+                    html += '<strong>' + dept.departmentName + '</strong><br>';
+                    html += '<small>This order: <strong>$' + dept.poAmount.toFixed(2) + '</strong></small><br>';
+                    if (dept.success) {
+                        html += '<span class="' + warningClass + '">';
+                        html += '<strong>$' + dept.budgetRemaining.toFixed(2) + '</strong> remaining<br>';
+                        html += '<small>' + dept.percentUsed.toFixed(1) + '% used after this order</small>';
+                        if (dept.willExceedBudget) {
+                            html += '<br><strong class="text-danger"><i class="fa fa-exclamation-triangle"></i> Exceeds budget</strong>';
+                        }
+                        html += '</span>';
+                    } else {
+                        html += '<span class="text-muted">' + dept.message + '</span>';
+                    }
+                    html += '</div>';
+                });
+                html += '</div>';
+                $('#budgetInfo').show().html(html);
+
+                if (data.anyExceedsBudget) {
+                    $('#overrideSection').show();
+                } else {
+                    $('#overrideSection').hide();
+                }
+            } else {
+                $('#budgetInfo').hide();
+                $('#budgetPlaceholder').show();
+            }
+        });
+    }
+
+    // Initial calculations
+    updateTotals();
+    updateBudgetInfo();
+
+    // ========== STICKY SIDEBAR ==========
+    var $sidebar = $('.sticky-sidebar');
+    var $sidebarCol = $('.sticky-sidebar-col');
+    if ($sidebar.length && $sidebarCol.length) {
+        var sidebarTop = $sidebarCol.offset().top;
+        var sidebarWidth = $sidebarCol.width();
+
+        $(window).on('scroll resize', function() {
+            var scrollTop = $(window).scrollTop();
+            sidebarWidth = $sidebarCol.width();
+
+            if (scrollTop > sidebarTop - 100) {
+                $sidebar.addClass('is-sticky').css('width', sidebarWidth + 'px');
+            } else {
+                $sidebar.removeClass('is-sticky').css('width', '');
+            }
+        });
+    }
+
+    // ========== COMPANY-WIDE BUDGET FUNCTIONALITY ==========
+    var hasCompanyBudgets = @((Model.CompanyBudgets != null && Model.CompanyBudgets.Any()).ToString().ToLower());
+    if (hasCompanyBudgets) {
+        $('#IsCompanyWide').change(function() {
+            if ($(this).is(':checked')) {
+                $('#companyBudgetRow').slideDown(200);
+                $('#departmentDropdownRow').hide();
+                $('#departmentBudgetRow').hide();
+                $('#companyBudgetInfoCard').show();
+                $('#departmentSplitCard').hide();
+                $('#DepartmentDropdown').val(''); // Clear department selection
+                updateCompanyBudgetInfo();
+            } else {
+                $('#companyBudgetRow').slideUp(200);
+                $('#departmentDropdownRow').show();
+                $('#departmentBudgetRow').show();
+                $('#companyBudgetInfoCard').hide();
+                $('#departmentSplitCard').show();
+                updateBudgetInfo();
+            }
+        });
+
+        if ($('#IsCompanyWide').is(':checked')) {
+            $('#companyBudgetRow').show();
+            $('#departmentDropdownRow').hide();
+            $('#departmentBudgetRow').hide();
+            $('#companyBudgetInfoCard').show();
+            $('#departmentSplitCard').hide();
+            updateCompanyBudgetInfo();
+        }
+
+        $('#CompanyBudgetDropdown').change(function() {
+            updateCompanyBudgetInfo();
+        });
+
+        $(document).on('input', '.cost-input, .quantity-input', function() {
+            if ($('#IsCompanyWide').is(':checked')) {
+                updateCompanyBudgetInfo();
+            }
+        });
+    }
+
+    function updateCompanyBudgetInfo() {
+        var budgetId = $('#CompanyBudgetDropdown').val();
+        if (!budgetId) {
+            $('#companyBudgetInfo').hide();
+            $('#companyBudgetPlaceholder').show();
+            return;
+        }
+
+        // Only count non-billable items against company budget
+        var nonBillableAmount = calculateNonBillableTotal();
+
+        if (nonBillableAmount <= 0) {
+            $('#companyBudgetInfo').hide();
+            $('#companyBudgetPlaceholder').show();
+            return;
+        }
+
+        $('#companyBudgetPlaceholder').hide();
+        $.post('@Url.Action("GetCompanyBudgetImpact")', {
+            budgetId: budgetId,
+            amount: nonBillableAmount
+        }, function (data) {
+            if (data.success) {
+                var warningClass = data.warningLevel === 'Critical' ? 'text-danger' :
+                                   data.warningLevel === 'Warning' ? 'text-warning' : 'text-success';
+
+                $('#companyBudgetInfo').show().html(
+                    '<div class="' + warningClass + '">' +
+                    '<strong>' + data.budgetName + '</strong><br>' +
+                    '<small>This order: <strong>$' + data.poAmount.toFixed(2) + '</strong></small><br>' +
+                    '<strong>$' + data.budgetRemaining.toFixed(2) + '</strong> remaining<br>' +
+                    '<small>' + data.percentUsed.toFixed(1) + '% used after this order</small>' +
+                    (data.willExceedBudget ? '<br><strong class="text-danger"><i class="fa fa-exclamation-triangle"></i> Exceeds budget</strong>' : '') +
+                    '</div>'
+                );
+            } else {
+                $('#companyBudgetInfo').hide();
+                $('#companyBudgetPlaceholder').show();
+            }
+        });
+    }
+
+    // ========== DEPARTMENT SPLIT FUNCTIONALITY ==========
+    var departmentsData = @Html.Raw(Json.Encode(Model.Departments));
+    var splitIndex = 0;
+
+    $('#splitCardHeader').click(function () {
+        $('#splitContent').slideToggle(200);
+        $('#splitToggleIcon').toggleClass('fa-chevron-right fa-chevron-down');
+    });
+
+    function updateSplitType() {
+        var hasSplits = $('.order-split-row').length > 0;
+        $('#SplitType').val(hasSplits ? 'OrderLevel' : 'None');
+        $('#UsesDepartmentSplits').val(hasSplits);
+    }
+
+    $('#addOrderSplitBtn').click(function () {
+        var splitRow = createOrderSplitRow(splitIndex++);
+        $('#orderSplitsContainer').append(splitRow);
+        updateSplitTotal();
+        updateSplitType();
+        updateBudgetInfo();
+    });
+
+    function createOrderSplitRow(idx) {
+        var deptOptions = '<option value="">-- Select --</option>';
+        if (departmentsData) {
+            $.each(departmentsData, function (i, dept) {
+                deptOptions += '<option value="' + dept.Value + '">' + dept.Text + '</option>';
+            });
+        }
+
+        return $('<div class="row order-split-row mb-2 align-items-center" data-split-index="' + idx + '">' +
+            '<div class="col-5">' +
+            '<select class="form-control form-control-sm split-department-select" name="OrderSplits[' + idx + '].DepartmentId">' + deptOptions + '</select>' +
+            '</div>' +
+            '<div class="col-4">' +
+            '<div class="input-group input-group-sm">' +
+            '<input type="number" class="form-control split-percentage-input" name="OrderSplits[' + idx + '].SplitPercentage" step="0.1" min="0" max="100" placeholder="0" />' +
+            '<div class="input-group-append"><span class="input-group-text">%</span></div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="col-2 text-muted small split-amount-preview">$0</div>' +
+            '<div class="col-1">' +
+            '<button type="button" class="btn btn-outline-danger btn-sm remove-order-split"><i class="fa fa-times"></i></button>' +
+            '</div>' +
+            '</div>');
+    }
+
+    $(document).on('click', '.remove-order-split', function () {
+        $(this).closest('.order-split-row').remove();
+        updateSplitTotal();
+        updateSplitType();
+        updateBudgetInfo();
+    });
+
+    $(document).on('input', '.split-percentage-input', function () {
+        updateSplitTotal();
+        updateBudgetInfo();
+    });
+
+    $(document).on('change', '.split-department-select', function () {
+        updateBudgetInfo();
+    });
+
+    function updateSplitTotal() {
+        var total = 0;
+        $('.split-percentage-input').each(function () {
+            total += parseFloat($(this).val()) || 0;
+        });
+
+        var $badge = $('#splitTotalBadge');
+        $badge.text('Total: ' + total.toFixed(0) + '%');
+
+        if (Math.abs(total - 100) < 0.1) {
+            $badge.removeClass('badge-warning badge-danger badge-secondary').addClass('badge-success');
+            $('#splitValidationMessage').hide();
+        } else if (total > 100) {
+            $badge.removeClass('badge-warning badge-success badge-secondary').addClass('badge-danger');
+            $('#splitValidationMessage').text('Total exceeds 100%').show();
+        } else if (total > 0) {
+            $badge.removeClass('badge-success badge-danger badge-secondary').addClass('badge-warning');
+            $('#splitValidationMessage').text('Total must equal 100%').show();
+        } else {
+            $badge.removeClass('badge-success badge-danger badge-warning').addClass('badge-secondary');
+            $('#splitValidationMessage').hide();
+        }
+
+        // Update amount previews
+        var nonBillableTotal = 0;
+        $('.line-item-row').each(function () {
+            var $row = $(this);
+            var isBulk = $row.find('.bulk-item-checkbox').is(':checked');
+            var cost, quantity;
+
+            if (isBulk) {
+                cost = parseFloat($row.find('.bulk-cost-input').val()) || 0;
+                quantity = parseFloat($row.find('.bulk-quantity-input').val()) || 0;
+            } else {
+                cost = parseFloat($row.find('.standard-cost-input').val()) || 0;
+                quantity = parseFloat($row.find('.standard-quantity-input').val()) || 0;
+            }
+
+            var isBillable = $row.find('.billable-checkbox').is(':checked');
+            if (!isBillable) {
+                // Calculate with bulk pricing divisor
+                var lineTotal = cost * quantity;
+                if (isBulk) {
+                    var unitType = $row.find('.bulk-unit-type-select').val();
+                    if (unitType === 'Per Hundred') {
+                        lineTotal = (quantity / 100) * cost;
+                    } else if (unitType === 'Per Thousand') {
+                        lineTotal = (quantity / 1000) * cost;
+                    }
+                }
+                nonBillableTotal += lineTotal;
+            }
+        });
+
+        $('.order-split-row').each(function () {
+            var pct = parseFloat($(this).find('.split-percentage-input').val()) || 0;
+            var amount = nonBillableTotal * (pct / 100);
+            $(this).find('.split-amount-preview').text('$' + amount.toFixed(0));
+        });
+    }
+
+    // ========== VENDOR MODAL ==========
+    $('#addVendorBtn').click(function() {
+        if ($('#vendorState option').length === 1) {
+            $.ajax({
+                url: '@Url.Action("GetStates", "Vendors")',
+                type: 'GET',
+                success: function(states) {
+                    $.each(states, function(index, state) {
+                        $('#vendorState').append($('<option></option>').attr('value', state.Value).text(state.Text));
+                    });
+                }
+            });
+        }
+        $('#addVendorModal').modal('show');
+    });
+
+    $('#saveVendorBtn').click(function() {
+        var vendorData = {
+            Title: $('#vendorTitle').val(),
+            ContactName: $('#vendorContactName').val(),
+            Phone: $('#vendorPhone').val(),
+            Address: $('#vendorAddress').val(),
+            City: $('#vendorCity').val(),
+            State: $('#vendorState').val(),
+            Zip: $('#vendorZip').val(),
+            Email: $('#vendorEmail').val(),
+            WebAddress: $('#vendorWebAddress').val(),
+            Notes: $('#vendorNotes').val()
+        };
+
+        if (!vendorData.Title) {
+            alert('Vendor name is required.');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("AddVendor", "Vendors")',
+            type: 'POST',
+            data: vendorData,
+            success: function(response) {
+                if (response.success) {
+                    var newOption = new Option(response.vendor.title, response.vendor.id, true, true);
+                    $('#VendorDropdown').append(newOption).trigger('change');
+                    $('#addVendorModal').modal('hide');
+                    $('#addVendorForm')[0].reset();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('An error occurred while adding the vendor.');
+            }
+        });
+    });
+
+    // Before form submit, disable unused inputs to prevent duplicate submission
+    $('#createPOForm').on('submit', function() {
+        $('.line-item-row').each(function() {
+            var $row = $(this);
+            var isBulk = $row.find('.bulk-item-checkbox').is(':checked');
+
+            if (isBulk) {
+                // Disable standard inputs, enable bulk inputs
+                $row.find('.standard-quantity-input, .standard-cost-input').prop('disabled', true);
+                $row.find('.bulk-quantity-input, .bulk-cost-input').prop('disabled', false);
+            } else {
+                // Disable bulk inputs, enable standard inputs
+                $row.find('.bulk-quantity-input, .bulk-cost-input').prop('disabled', true);
+                $row.find('.standard-quantity-input, .standard-cost-input').prop('disabled', false);
+            }
+        });
+        return true;
+    });
+});
+</script>
+
+<!-- Add Vendor Modal -->
+<div class="modal fade" id="addVendorModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Vendor</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <form id="addVendorForm">
+                    <div class="form-group">
+                        <label>Vendor Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="vendorTitle" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Contact Name</label>
+                                <input type="text" class="form-control" id="vendorContactName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" class="form-control" id="vendorPhone">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" id="vendorEmail">
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" class="form-control" id="vendorAddress">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <label>City</label>
+                                <input type="text" class="form-control" id="vendorCity">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>State</label>
+                                <select class="form-control" id="vendorState">
+                                    <option value="">--</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>Zip</label>
+                                <input type="text" class="form-control" id="vendorZip">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Website</label>
+                        <input type="url" class="form-control" id="vendorWebAddress" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label>Notes</label>
+                        <textarea class="form-control" id="vendorNotes" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveVendorBtn"><i class="fa fa-save"></i> Save</button>
+            </div>
+        </div>
+    </div>
+</div>

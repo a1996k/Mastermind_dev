@@ -1,0 +1,51 @@
+﻿<div class="container p-5" id="bug_report_container">
+    <div class="field-binder-row-flex pb-3">
+        <div class="field-binder-col-flex w-100">
+            <label>Description</label>
+            <textarea class="bug-desc"></textarea>
+        </div>
+    </div>
+    <div class="field-binder-row-flex justify-content-between pb-3">
+        <div class="field-binder-col-flex">
+            <label>Severity (1 = Low, 3 = High)</label>
+            <select name="severity" class="bug-severity">
+                <option value="1" selected>Low</option>
+                <option value="2">Medium</option>
+                <option value="3">High</option>
+            </select>
+        </div>
+        <div class="field-binder-col-flex">
+            <label>Priority(1 = Low, 3 = High)</label>
+            <select name="priority" class="bug-priority">
+                <option value="1" selected>Low</option>
+                <option value="2">Medium</option>
+                <option value="3">High</option>
+            </select>
+        </div>
+        <div class="field-binder-col-flex">
+            <label>Environment</label>
+            <select name="environment" class="bug-environment">
+                <option value="1" selected>Staging</option>
+                <option value="2">Live</option>
+            </select>
+        </div>
+    </div>
+    <div class="field-binder-row-flex justify-content-between pb-3">
+        <div class="field-binder-col-flex w-25">
+            <label>Steps to Reproduce</label>
+            <textarea class="bug-str"></textarea>
+        </div>
+        <div class="field-binder-col-flex w-25">
+            <label>Expected Behavior</label>
+            <textarea class="bug-eb"></textarea>
+        </div>
+        <div class="field-binder-col-flex w-25">
+            <label>Actual Behavior</label>
+            <textarea class="bug-ab"></textarea>
+        </div>
+    </div>
+    <div class="field-binder-row-flex">
+        <button type="button" class="btn btn-sm btn-fc-info submit-bug-btn">Submit</button>
+        <button type="button" class="btn btn-sm btn-fc-danger" data-modal-to-close="#">Cancel</button>
+    </div>
+</div>

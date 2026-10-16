@@ -1,0 +1,109 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Material
+
+<form method="post" action="material/save" enctype="multipart/form-data" data-item-type="Material">
+    @Html.HiddenFor(model => model.Material.Id)
+    @Html.HiddenFor(model => model.Material.Inventory)
+    <input type="hidden" id="finishingCategoryIds" value="@ViewData["FinishingCategoryIds"]" />
+    <input type="hidden" id="existingFinishingFormula" value="@ViewData["ExistingFinishingFormula"]" />
+    <div class="field-binder-flexxy">
+        @Html.LabelFor(model => model.Material.Title)
+        @Html.EditorFor(model => model.Material.Title, new { htmlAttributes = new { @data_changed = false } })
+    </div>
+    <div class="field-binder-flexxy">
+        @Html.LabelFor(model => model.Material.FriendlyName)
+        @Html.EditorFor(model => model.Material.FriendlyName)
+    </div>
+    <div class="field-binder-flexxy">
+        @Html.LabelFor(model => model.Material.MaterialCategory_Id)
+        @Html.DropDownListFor(model => model.Material.MaterialCategory_Id, ViewData["Material.MaterialCategory_Id"] as SelectList, htmlAttributes: new { @id = "MaterialCategory_Id", @onchange = "checkFinishingCategory()" })
+    </div>
+    <div class="field-binder-flexxy" id="finishingFormulaContainer" style="display: none;">
+        <label for="FinishingMaterialFormula">Finishing Formula</label>
+        <select name="FinishingMaterialFormula" id="FinishingMaterialFormula">
+            <option value="">-- Select Formula --</option>
+            @{
+                var formulaItems = ViewData["Material.FinishingMaterialFormula"] as IEnumerable<SelectListItem>;
+                if (formulaItems != null)
+                {
+                    foreach (var item in formulaItems)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                }
+            }
+        </select>
+    </div>
+    <div class="d-flex flex-row flex-wrap justify-content-between">
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Material.StockType)
+            @Html.DropDownListFor(model => model.Material.StockType, ViewData["Material.StockType"] as SelectList, htmlAttributes: new { })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Material.NumberOfParts)
+            @Html.EditorFor(model => model.Material.NumberOfParts)
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Material.Notes)
+            @Html.TextAreaFor(model => model.Material.Notes)
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Material.Size)
+            @Html.EditorFor(model => model.Material.Size, new { htmlAttribues = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Material.Caliper)
+            @Html.EditorFor(model => model.Material.Caliper, new { htmlAttribues = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Material.Cost)
+            @Html.EditorFor(model => model.Material.Cost, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Material.CostType)
+            @Html.DropDownListFor(model => model.Material.CostType, ViewData["Material.CostType"] as SelectList, htmlAttributes: new { })
+        </div>
+        <div class="field-binder-flexxy">
+            @Html.LabelFor(model => model.Material.QuickCategory)
+            @Html.CheckBox("Material.QuickCategory", Model.Material.QuickCategory ?? false) <!-- Instantiate to false -->
+        </div>
+    </div>
+    <div class="mt-3 mt-lg-0">
+        <input type="submit" data-modal-to-close="#" value="Save" />
+        <button type="button" data-modal-to-close="#">Cancel</button>
+    </div>
+</form>
+
+<script>
+    function checkFinishingCategory() {
+        var categoryDropdown = document.getElementById('MaterialCategory_Id');
+        var finishingContainer = document.getElementById('finishingFormulaContainer');
+        var finishingCategoryIdsStr = document.getElementById('finishingCategoryIds').value;
+
+        if (!finishingCategoryIdsStr || !categoryDropdown || !finishingContainer) return;
+
+        var finishingCategoryIds = finishingCategoryIdsStr.split(',').map(function(id) { return id.trim(); });
+        var selectedCategory = categoryDropdown.value;
+
+        if (finishingCategoryIds.indexOf(selectedCategory) !== -1) {
+            finishingContainer.style.display = 'block';
+        } else {
+            finishingContainer.style.display = 'none';
+        }
+    }
+
+    // Run immediately — this view is loaded via AJAX into an already-loaded page,
+    // so DOMContentLoaded has already fired and would never trigger.
+    (function() {
+        checkFinishingCategory();
+
+        // Set the existing formula value if editing
+        var existingFormula = document.getElementById('existingFinishingFormula').value;
+        if (existingFormula) {
+            var formulaDropdown = document.getElementById('FinishingMaterialFormula');
+            if (formulaDropdown) {
+                formulaDropdown.value = existingFormula;
+            }
+        }
+    })();
+</script>

@@ -1,0 +1,184 @@
+@using FifthPress.Models.ViewModels
+@model VM_CompletedJobsAccuracyFilter
+@{
+    ViewBag.Title = "Completed Jobs - Estimated vs Actual";
+}
+
+<style>
+    .cj-cont { font-size: 1.6rem; }
+    .cj-cont label { font-weight: bold; }
+    #completedJobsTable th, #completedJobsTable td { padding: 0.75rem; }
+    #completedJobsTable tfoot th { font-weight: bold; background: #f5f5f5; }
+    .num { text-align: right; white-space: nowrap; }
+    /* Let long descriptions wrap and cap their width so the numeric columns stay visible */
+    #completedJobsTable td.desc-col, #completedJobsTable th.desc-col {
+        white-space: normal;
+        max-width: 420px;
+        word-break: break-word;
+    }
+</style>
+
+<div id="loadingOverlay" style="
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(255,255,255,0.7); z-index: 9999; text-align: center;
+    padding-top: 20%; font-size: 1.5rem; font-weight: bold; color: #333;">
+    Loading report...
+</div>
+
+<div class="container-fluid p-3 cj-cont">
+    <h2>Completed Jobs &ndash; Estimated vs Actual</h2>
+    <p class="text-muted">Jobs completed within the selected date range. Leave clients unselected to include all.</p>
+
+    <div class="row mb-3">
+        <div class="col-md-5">
+            <label for="clientSelect">Select Client(s):</label>
+            <select id="clientSelect" class="form-control" multiple style="min-height: 200px;">
+                @if (Model.Clients != null && Model.Clients.Any())
+                {
+                    foreach (var client in Model.Clients)
+                    {
+                        int id;
+                        if (int.TryParse(client.Value, out id) && !string.IsNullOrWhiteSpace(client.Text))
+                        {
+                            <option value="@id">@Html.Encode(client.Text)</option>
+                        }
+                    }
+                }
+                else
+                {
+                    <option disabled>No clients available</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="startDate">Start Date:</label>
+            <input type="date" id="startDate" class="form-control"
+                   value="@(Model.StartDate?.ToString("yyyy-MM-dd") ?? "")" />
+
+            <label for="endDate" style="margin-top: 15px;">End Date:</label>
+            <input type="date" id="endDate" class="form-control"
+                   value="@(Model.EndDate?.ToString("yyyy-MM-dd") ?? "")" />
+
+            <button id="runReport" class="btn btn-fc-info" style="margin-top: 20px;">Run Report</button>
+        </div>
+    </div>
+
+    <hr />
+
+    <table id="completedJobsTable" class="table table-bordered table-striped display" style="width:100%">
+        <thead>
+            <tr>
+                <th>Job Number</th>
+                <th>Customer</th>
+                <th class="desc-col">Description</th>
+                <th class="num">Item Count</th>
+                <th class="num">Est. Hours</th>
+                <th class="num">Actual Hours</th>
+                <th class="num">Over/Under Hours</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+            <tr>
+                <th colspan="3">Totals</th>
+                <th class="num"></th>
+                <th class="num"></th>
+                <th class="num"></th>
+                <th class="num"></th>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script>
+    function exportFilename() {
+        return 'CompletedJobsEstVsActual_' + new Date().toISOString().slice(0, 10);
+    }
+
+    function num2(d) {
+        if (d === null || d === '' || typeof d === 'undefined') return '0.00';
+        return parseFloat(d).toFixed(2);
+    }
+
+    function sumColumn(api, idx) {
+        return api.column(idx, { search: 'applied' }).data().reduce(function (a, b) {
+            return a + (parseFloat(b) || 0);
+        }, 0);
+    }
+
+    var table = null;
+
+    function loadReport() {
+        var clientIds = $('#clientSelect').val() || [];
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+
+        if (!startDate || !endDate) {
+            alert('Please choose a start and end date.');
+            return;
+        }
+
+        $('#loadingOverlay').show();
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("GetCompletedJobsAccuracy", "Reports")',
+            data: { clientIds: clientIds, start: startDate, end: endDate },
+            traditional: true,
+            success: function (res) {
+                var rows = (res && res.data) ? res.data : [];
+
+                if (table) { table.clear().destroy(); }
+
+                table = $('#completedJobsTable').DataTable({
+                    data: rows,
+                    columns: [
+                        {
+                            title: 'Job Number', data: 'JobNumber',
+                            render: function (data, type, row) {
+                                // Link only when displaying; keep raw value for sort/CSV export.
+                                if (type === 'display' && row.JobId) {
+                                    return '<a href="/Job/Edit/' + row.JobId + '" target="_blank">' + data + '</a>';
+                                }
+                                return data;
+                            }
+                        },
+                        { title: 'Customer', data: 'CustomerName', defaultContent: '' },
+                        { title: 'Description', data: 'JobDescription', defaultContent: '', className: 'desc-col' },
+                        { title: 'Item Count', data: 'ItemCount', className: 'num' },
+                        { title: 'Est. Hours', data: 'TotalEstimatedHours', className: 'num', render: num2 },
+                        { title: 'Actual Hours', data: 'TotalActualHours', className: 'num', render: num2 },
+                        { title: 'Over/Under Hours', data: 'OverUnderHours', className: 'num', render: num2 }
+                    ],
+                    order: [[0, 'asc']],
+                    pageLength: 50,
+                    autoWidth: false,
+                    dom: 'Bfrtip',
+                    buttons: [
+                        { extend: 'csv', text: 'Export CSV', filename: exportFilename() }
+                    ],
+                    footerCallback: function () {
+                        var api = this.api();
+                        var $f = $(api.table().footer());
+                        $f.find('th').eq(1).html(sumColumn(api, 3).toLocaleString());
+                        $f.find('th').eq(2).html(num2(sumColumn(api, 4)));
+                        $f.find('th').eq(3).html(num2(sumColumn(api, 5)));
+                        $f.find('th').eq(4).html(num2(sumColumn(api, 6)));
+                    }
+                });
+
+                $('#loadingOverlay').hide();
+            },
+            error: function () {
+                alert('Error loading report.');
+                $('#loadingOverlay').hide();
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $('#runReport').on('click', loadReport);
+    });
+</script>

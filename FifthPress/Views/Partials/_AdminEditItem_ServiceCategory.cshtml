@@ -1,0 +1,18 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<VM_AdminTableItem_ServiceCategory>
+
+@foreach (FifthPress.Models.ViewModels.VM_AdminTableItem_ServiceCategory sc in Model)
+{
+<tr class="admin-edit-item-servicecategory">
+
+    <td>
+        <a href="javascript:void(0);">@Html.DisplayFor(model => sc.Title)</a>
+    </td>
+    <td>
+        @Html.DisplayFor(model => sc.ServiceCount)
+    </td>
+    <td>
+        <!-- Actions -->
+    </td>
+</tr>
+}

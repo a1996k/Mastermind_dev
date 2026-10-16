@@ -1,0 +1,83 @@
+﻿@model Vendor
+
+<div class="modal dynamic-vendor-modal" tabindex="-1" id="dynamic_vendor_modal">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">New Vendor</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#dynamic_vendor_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-12">
+
+                            @using (Html.BeginForm("DynamicVendorAddition", "Vendors", FormMethod.Post, htmlAttributes: new { @class = "gy-3", @id = "vendor_adder" }))
+                            {
+                                <div class="field-binder-row-flex justify-content-between flex-wrap">
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Title)
+                                        @Html.EditorFor(model => model.Title, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.ContactName)
+                                        @Html.EditorFor(model => model.ContactName, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Phone)
+                                        @Html.EditorFor(model => model.Phone, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Phone2)
+                                        @Html.EditorFor(model => model.Phone2, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Address)
+                                        @Html.EditorFor(model => model.Address, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Address2)
+                                        @Html.EditorFor(model => model.Address2, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.City)
+                                        @Html.EditorFor(model => model.City, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.State)
+                                        @Html.DropDownList("State", ViewData["State"] as SelectList, htmlAttributes: new { @class = "styled-input" })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Zip)
+                                        @Html.EditorFor(model => model.Zip, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Country)
+                                        @Html.EditorFor(model => model.Country, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.Notes)
+                                        @Html.EditorFor(model => model.Notes, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.WebAddress)
+                                        @Html.EditorFor(model => model.WebAddress, new { htmlAttributes = new { @class = "styled-input" } })
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        @Html.LabelFor(model => model.VendorID)
+                                        @Html.EditorFor(model => model.VendorID, new { htmlAttributes = new { @class = "styled-input" } })
+                                        <p class="text-danger fs-3">Note: This is the VendorID from Printer's Plan</p>
+                                    </div>
+                                    <div class="field-binder-col-flex">
+                                        <input type="button" class="btn r-red-action-btn save-dynamic-vendor" value="Save" data-modal-to-close="#dynamic_vendor_modal" />
+                                        <input type="button" class="btn btn-fc-caution" value="Cancel" data-modal-to-close="#dynamic_vendor_modal" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

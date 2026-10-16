@@ -1,0 +1,60 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Press
+
+<div class="fs-3 config-wrapper">
+    <div class="vc-wrapper" data-modal-to-open="#constraint_list">
+        <i class="fa-solid fa-lock view-constraints" id="vc"></i>
+        <label>Constraints</label>
+    </div>
+    <div class="ps-wrapper" data-modal-to-open="#speed_list">
+        <i class="fa-solid fa-rabbit-running"></i>
+        <label>Speeds</label>
+    </div>
+    <div class="fs-5 btn-group stock-type-group mt-3" data-press-id="@Html.DisplayFor(model => model.SheetConfig.Press.Id)">
+        @foreach(MaterialStockType st in Model.StockTypes)
+            {
+                <button type="button" class="btn btn-fc-info @st.Title.Replace(" ","-").ToLower() @if ((st.UI_Default ?? false)) {<text>active-choice</text>}" data-record-id="@Html.DisplayFor(model => st.Id)">@Html.DisplayFor(model => st.Title)</button>
+            }
+    </div>
+</div>
+
+<div class="edit-zone">
+    @Html.Partial("~/Views/Press/_PressSheetConfig.cshtml", Model.SheetConfig)
+</div>
+
+<div class="modal" tabindex="-1" id="constraint_list">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Constraints</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#constraint_list" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-primary new-constraint" value="Add Constraint" />
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal" tabindex="-1" id="speed_list">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Speeds</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#speed_list" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+
+            </div>
+            <div class="modal-footer">
+                <input type="button" class="btn btn-primary new-speed" value="Add Speed Option" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_GeneralServiceSelectModal.cshtml", Model.Services)

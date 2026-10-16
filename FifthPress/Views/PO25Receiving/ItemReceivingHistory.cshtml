@@ -1,0 +1,46 @@
+﻿@using FifthPress.Models.ViewModels2.PO25;
+@model VM_ReceivingHistory25
+
+@{
+    ViewBag.Title = "Receiving History";
+}
+
+<div class="container mt-4">
+    <h3>Receiving History for: @Model.ItemDescription</h3>
+    <p><strong>Quantity Ordered:</strong> @Model.QuantityOrdered</p>
+
+    @if (Model.Receipts != null && Model.Receipts.Any())
+    {
+        <table class="table table-bordered table-striped mt-3">
+            <thead>
+                <tr>
+                    <th>Date Received</th>
+                    <th>Quantity</th>
+                    <th>Received By</th>
+                    <th>Storage Location</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var receipt in Model.Receipts)
+                {
+                    <tr>
+                        <td>@receipt.DateReceived.ToString("MMM dd, yyyy HH:mm")</td>
+                        <td>@receipt.QuantityReceived</td>
+                        <td>@receipt.ReceivedByName</td>
+                        <td>@(string.IsNullOrEmpty(receipt.StorageLocation) ? "-" : receipt.StorageLocation)</td>
+                        <td>@(string.IsNullOrEmpty(receipt.Notes) ? "-" : receipt.Notes)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p class="text-muted">No receipts recorded for this item yet.</p>
+    }
+
+    <a href="@Url.Action("Details", "PO25", new { id = ViewBag.POId })" class="btn btn-secondary mt-3">
+        <i class="fas fa-arrow-left"></i> Back to PO
+    </a>
+</div>

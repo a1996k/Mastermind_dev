@@ -1,0 +1,103 @@
+@{
+    ViewBag.Title = "Request Access";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3><i class="fas fa-key"></i> Request Portal Access</h3>
+                </div>
+                <div class="card-body">
+                    <p class="lead">Enter your email address to receive a new login link.</p>
+                    <p class="text-muted">We'll send you a secure magic link that expires in 4 hours.</p>
+
+                    <form id="requestAccessForm">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email"
+                                       class="form-control"
+                                       id="email"
+                                       name="email"
+                                       placeholder="your.email@example.com"
+                                       required>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-danger" id="error-message" style="display: none;"></div>
+                        <div class="alert alert-success" id="success-message" style="display: none;"></div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                                <i class="fas fa-paper-plane"></i> Send Me a Link
+                            </button>
+                        </div>
+                    </form>
+
+                    <hr class="my-4">
+                    <p class="text-center text-muted small">
+                        <i class="fas fa-info-circle"></i> Having trouble? Contact your administrator for assistance.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+    }
+    .card-header {
+        border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+    }
+    .lead {
+        font-size: 1.1rem;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#requestAccessForm').on('submit', function (e) {
+            e.preventDefault();
+
+            const email = $('#email').val();
+
+            // Hide previous messages
+            $('#error-message').hide();
+            $('#success-message').hide();
+
+            // Show loading state
+            $('#submit-btn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Sending...');
+
+            $.ajax({
+                url: ProcessUrl('ClientLogin/RequestAccess'),
+                type: 'POST',
+                data: {
+                    email: email,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#success-message').html('<i class="fas fa-check-circle"></i> ' + response.message).show();
+                        $('#email').val('');
+                        $('#submit-btn').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> Send Me a Link');
+                    } else {
+                        $('#error-message').html('<i class="fas fa-exclamation-circle"></i> ' + response.message).show();
+                        $('#submit-btn').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> Send Me a Link');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $('#error-message').html('<i class="fas fa-exclamation-circle"></i> An error occurred: ' + error).show();
+                    $('#submit-btn').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> Send Me a Link');
+                }
+            });
+        });
+    });
+</script>

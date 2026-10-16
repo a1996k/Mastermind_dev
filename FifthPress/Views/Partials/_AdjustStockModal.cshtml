@@ -1,0 +1,50 @@
+﻿﻿
+<div class="modal" tabindex="-1" id="adjust_stock_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title">Adjust Stock</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#adjust_stock_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <label class="fs-3"><u>New Stock: </u> <input type="number" class="new-amount" /></label>
+                        </div>
+                        <div class="col-12 text-center">
+                            <label class="fs-3"><u>Min Level: </u> <input type="number" class="new-min-level" /></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#adjust_stock_modal">Cancel</button>
+                <button class="btn btn-fc-success adjust-stock-confirm-btn" data-modal-to-close="#adjust_stock_modal">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function PassesAdjustStockValidation(toCheck) {
+        return toCheck > -1;
+    };
+
+    function AdjustStockForMaterial() {
+
+        let enteredVal = $('.new-amount').val();
+        let mLevelVal = $('.new-min-level').val();
+
+        let entered = enteredVal !== '' ? Number(enteredVal) : null;
+        let mLevel = mLevelVal !== '' ? Number(mLevelVal) : null;
+
+        if ((entered === null || PassesAdjustStockValidation(entered)) &&
+            (mLevel === null || PassesAdjustStockValidation(mLevel))) {
+            UpdateMaterialInventory('adjust-stock', $('#ac_helper').val(), entered, mLevel);
+        }
+    };
+
+    $(function () { })
+        .on('click', '.adjust-stock-confirm-btn', AdjustStockForMaterial);
+</script>

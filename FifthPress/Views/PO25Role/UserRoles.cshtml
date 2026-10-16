@@ -1,0 +1,143 @@
+@model FifthPress.Models.ViewModels2.PO25.VM_UserRoleManagement25
+@{
+    ViewBag.Title = "Manage Roles";
+}
+
+<h2>Manage Roles for @Model.UserName</h2>
+<p class="text-muted">@Model.Email</p>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+}
+
+<h4>Current Roles</h4>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Assigned</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var role in Model.CurrentRoles)
+        {
+            <tr>
+                <td>@role.RoleName</td>
+                <td>@(string.IsNullOrEmpty(role.DepartmentName) ? "System-wide" : role.DepartmentName)</td>
+                <td>@role.AssignedDate.ToShortDateString()</td>
+                <td>
+                    <form class="remove-role-form d-inline" data-user-id="@Model.UserId" data-role-id="@role.RoleId" data-department-id="@role.DepartmentId">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h4 class="mt-4">Assign New Role</h4>
+
+<form id="assign-role-form" data-user-id="@Model.UserId">
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        <label for="roleId">Role</label>
+        @Html.DropDownList("roleId",
+            new SelectList(Model.AvailableRoles, "RoleId", "RoleName"),
+            "Select role...",
+            new { @class = "form-control", required = "required" })
+    </div>
+
+    <div class="form-group">
+        <label for="departmentId">Department (if applicable)</label>
+        @Html.DropDownList("departmentId", Model.Departments, new { @class = "form-control" })
+    </div>
+
+    <button type="submit" class="btn btn-primary">Assign Role</button>
+    @Html.ActionLink("Back to List", "Index", null, new { @class = "btn btn-secondary ml-2" })
+</form>
+
+<script>
+$(document).ready(function() {
+    // Handle role removal
+    $('.remove-role-form').on('submit', function(e) {
+        e.preventDefault();
+
+        var form = $(this);
+        var userId = form.data('user-id');
+        var roleId = form.data('role-id');
+        var departmentId = form.data('department-id');
+        var token = form.find('input[name="__RequestVerificationToken"]').val();
+
+        // Disable the button to prevent double-clicks
+        var button = form.find('button');
+        button.prop('disabled', true).text('Removing...');
+
+        $.ajax({
+            url: '@Url.Action("RemoveRole", "PO25Role")',
+            type: 'POST',
+            data: {
+                userId: userId,
+                roleId: roleId,
+                departmentId: departmentId,
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                // Refresh the page to show updated roles
+                location.reload();
+            },
+            error: function(xhr, status, error) {
+                alert('Error removing role: ' + error);
+                // Re-enable the button
+                button.prop('disabled', false).text('Remove');
+            }
+        });
+    });
+
+    // Handle role assignment
+    $('#assign-role-form').on('submit', function(e) {
+        e.preventDefault();
+
+        var form = $(this);
+        var userId = form.data('user-id');
+        var roleId = form.find('#roleId').val();
+        var departmentId = form.find('#departmentId').val();
+        var token = form.find('input[name="__RequestVerificationToken"]').val();
+
+        // Validate required fields
+        if (!roleId) {
+            alert('Please select a role.');
+            return;
+        }
+
+        // Disable the button to prevent double-clicks
+        var button = form.find('button[type="submit"]');
+        button.prop('disabled', true).text('Assigning...');
+
+        $.ajax({
+            url: '@Url.Action("AssignRole", "PO25Role")',
+            type: 'POST',
+            data: {
+                userId: userId,
+                roleId: roleId,
+                departmentId: departmentId,
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                // Refresh the page to show updated roles
+                location.reload();
+            },
+            error: function(xhr, status, error) {
+                alert('Error assigning role: ' + error);
+                // Re-enable the button and reset form
+                button.prop('disabled', false).text('Assign Role');
+            }
+        });
+    });
+});
+</script>

@@ -1,0 +1,158 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_PressRollStockConfig
+
+<form method="post" action="press/save" enctype="multipart/form-data" data-item-type="Press">
+    @Html.HiddenFor(model => model.Press.Id)
+    @Html.HiddenFor(model => model.Press.Deleted)
+    @Html.HiddenFor(model => model.Press.StockType)
+    @Html.HiddenFor(model => model.Press.ActiveStockType)
+    @Html.HiddenFor(model => model.Press.FromPress)
+    @Html.HiddenFor(model => model.Press.ProductionDepartment)
+
+    <div class="field-binder-row-flex justify-content-lg-between">
+        <div class="field-binder-col-flex">
+            @Html.LabelFor(model => model.Press.Title)
+            @Html.EditorFor(model => model.Press.Title, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex">
+            @Html.LabelFor(model => model.Press.FriendlyName)
+            @Html.EditorFor(model => model.Press.FriendlyName, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex">
+            @Html.LabelFor(model => model.Press.Category)
+            @Html.DropDownListFor(model => model.Press.Category, ViewData["Press.Category"] as SelectList, "")
+        </div>
+    </div>
+    <div class="field-binder-row-flex justify-content-lg-between">
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.MakeReady)
+            <div class="field-binder-row-flex mins-input">
+                @Html.EditorFor(model => model.Press.MakeReady, new { htmlAttributes = new { @type = "text", @data_changed = false } })
+                <sub>Mins.</sub>
+            </div>
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.WashUp)
+            <div class="field-binder-row-flex mins-input">
+                @Html.EditorFor(model => model.Press.WashUp, new { htmlAttributes = new { @type = "text", @data_changed = false } })
+                <sub>Mins.</sub>
+            </div>
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.ScrapSheetsPerColor)
+            @Html.EditorFor(model => model.Press.ScrapSheetsPerColor, new { htmlAttributes = new { @type = "text", @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.ScrapSheetsPerJob)
+            @Html.EditorFor(model => model.Press.ScrapSheetsPerJob, new { htmlAttributes = new { @type = "text", @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.MakeReadyByColor)
+            @Html.EditorFor(model => model.Press.MakeReadyByColor, new { htmlAttributes = new { @type = "text", @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.WashUpByColor)
+            @Html.EditorFor(model => model.Press.WashUpByColor, new { htmlAttributes = new { @type = "text", @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.ScrapLevel)
+            <div class="field-binder-row-flex mins-input">
+                @Html.EditorFor(model => model.Press.ScrapLevel, new { htmlAttributes = new { @type = "text", @data_changed = false } })
+                <sub>%</sub>
+            </div>
+        </div>
+    </div>
+    <div class="field-binder-row-flex justify-content-lg-between">
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.Gripper)
+            @Html.EditorFor(model => model.Press.Gripper, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.Tail)
+            @Html.EditorFor(model => model.Press.Tail, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.SideGuides)
+            @Html.EditorFor(model => model.Press.SideGuides, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.MarginTop)
+            @Html.EditorFor(model => model.Press.MarginTop, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.MarginRight)
+            @Html.EditorFor(model => model.Press.MarginRight, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.MarginBottom)
+            @Html.EditorFor(model => model.Press.MarginBottom, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-col-flex mins-input justify-content-lg-between">
+            @Html.LabelFor(model => model.Press.MarginLeft)
+            @Html.EditorFor(model => model.Press.MarginLeft, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+    </div>
+    <div class="field-binder-row-flex justify-content-lg-between">
+        <div class="field-binder-col-flex justify-content-lg-start mins-input-2">
+            @Html.LabelFor(model => model.Press.InkCostNumerator)
+            <div class="field-binder-row-flex">
+                <sub>$</sub>
+                @Html.EditorFor(model => model.Press.InkCostNumerator, new { htmlAttributes = new { @type = "number", @step = ".01", @data_changed = false } })
+                <sub>/</sub>
+                @Html.EditorFor(model => model.Press.InkCostDenominator, new { htmlAttributes = new { @type = "number", @data_changed = false } })
+                @Html.DropDownListFor(model => model.Press.InkCostDenominatorUnit, ViewData["Press.InkCostDenominatorUnit"] as SelectList, "")
+            </div>
+        </div>
+        <div class="field-binder-col-flex justify-content-lg-start mins-input">
+            @Html.LabelFor(model => model.Press.LaborCostPerHour)
+            @Html.EditorFor(model => model.Press.LaborCostPerHour, new { htmlAttributes = new { @type = "text", @data_changed = false } })
+        </div>
+    </div>
+    <div class="field-binder-row-flex mt-5">
+        <input type="submit" class="btn btn-fc-info" value="Save" data-modal-to-close="#edit_press_modal" />
+        <input type="button" class="btn btn-fc-caution" value="Cancel" data-modal-to-close="#edit_press_modal" />
+    </div>
+</form>
+
+<div class="field-binder-row-flex justify-content-evenly mt-5 align-items-start fs-3">
+    <div>
+        <h3>Helper Services</h3>
+        <ul class="helper-services">
+            @foreach (PressHelperService phs in Model.Press.PressHelperServices.ToList())
+            {
+                <li class="service-entry d-flex flex-row justify-content-between" data-service-id="@Html.DisplayFor(model => phs.Service)" data-record-id="@Html.DisplayFor(model => phs.Id)">
+                    @Html.HiddenFor(model => phs.Id)
+                    @Html.HiddenFor(model => phs.Service)
+                    @Html.HiddenFor(model => phs.Press)
+                    <span class="title">@Html.DisplayFor(model => phs.Service1.Title)</span>
+                    <span class="remove-link">
+                        <i class="fa-solid fa-minus" style="color: #8f0000;"></i>
+                    </span>
+                </li>
+            }
+            <li class="add-helper-service" data-modal-to-open="#general_service_modal">
+                <i class="fa-solid fa-plus" style="color: #006607;"></i>
+            </li>
+        </ul>
+    </div>
+    <div>
+        <h3>Default Services</h3>
+        <ul class="default-services">
+            @foreach (DefaultPressService pls in Model.Press.DefaultPressServices.OrderBy(x => x.Ordinal).ToList())
+            {
+                <li class="service-entry d-flex flex-row justify-content-between" data-service-id="@pls.Service1.Id" data-record-id="@pls.Id">
+                    @Html.HiddenFor(model => pls.Id)
+                    @Html.HiddenFor(model => pls.Service)
+                    @Html.HiddenFor(model => pls.Press)
+                    <span class="title">@pls.Service1.Title</span>
+                    <span class="remove-link">
+                        <i class="fa-solid fa-minus" style="color: #8f0000;"></i>
+                    </span>
+                </li>
+            }
+            <li class="add-default-service" data-modal-to-open="#general_service_modal">
+                <i class="fa-solid fa-plus" style="color: #006607;"></i>
+            </li>
+        </ul>
+    </div>
+</div>

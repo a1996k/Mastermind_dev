@@ -1,0 +1,36 @@
+﻿@using FifthPress.Models.ViewModels.JobItemLabel;
+@model VM_JobItemFiles
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <button type="button" class="btn btn-lg btn-fc-info view-job-ticket" data-url="@Html.DisplayFor(model => model.JobTicketUrl)">View Job Ticket</button>
+            <p class="ff-poppins fw-bold fs-16">Select a file to download</p>
+            <ul class="file-list">
+                @foreach (JobDocument jd in Model.JobDocuments.ToList())
+                {
+                    <li>
+                        <button type="button" class="btn btn-sm btn-fc-primary download-file" data-record-id="@Html.DisplayFor(model => jd.Id)">
+                            @Html.DisplayFor(model => jd.FileName)
+                        </button>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.download-file').on('click', function () {
+            let documentId = $(this).attr('data-record-id');
+
+            window.open(ProcessUrl('download-proof') + '/' + documentId, "_blank");
+        });
+
+        $('.view-job-ticket').on('click', function () {
+            let url = $(this).attr('data-url');
+            window.open(url, "_blank");
+        });
+    });
+</script>

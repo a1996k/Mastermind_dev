@@ -1,0 +1,13 @@
+﻿@using FifthPress.Models.ViewModels;
+@model List<VM_SidebarCat>
+
+<div class="container">
+    <div class="sidebar-wrapper">
+        <ul>
+            @foreach(VM_SidebarCat vm in Model)
+            {
+                <li data-record-id="@vm.Id" data-record-type="@vm.Type">@vm.Title</li>
+            }
+        </ul>
+    </div>
+</div>

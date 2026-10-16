@@ -1,0 +1,116 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_JobItemMaterialLayout
+
+@Html.HiddenFor(model => model.Up, htmlAttributes: new { @class = "up-reference" })
+@Html.HiddenFor(model => model.UpValueLocked, htmlAttributes: new { @class = "up-val-locked" })
+
+<input type="hidden" value="@Model.ItemId" class="ji-id" />
+
+<div class="container">
+    <div class="row py-5">
+        <div class="col-12">
+            <div class="field-binder-row-flex with-row-gap flex-wrap justify-content-center">
+                <div class="field-binder-row-flex w-100 justify-content-evenly">
+                    <div class="field-binder-col-flex mins-input">
+                        <label class="fl-label" for="qty_@Model.MaterialId">Quantity</label>
+                        <input type="number" class="ms-3 styled-input" id="qty_@Model.MaterialId" name="quantity" value="@Model.Quantity" min="1" />
+                    </div>
+                    <div class="field-binder-col-flex mins-input">
+                        <label class="fl-label" for="up_@Model.MaterialId">Up</label>
+                        <input type="number" class="ms-3 styled-input" id="up_@Model.MaterialId" name="up" value="1" min="1" />
+                    </div>
+                    <div class="field-binder-col-flex mins-input">
+                        <label for="marginy_@Model.MaterialId" class="fl-label">Margin Top</label>
+                        @Html.EditorFor(model => model.MarginYT, new { htmlAttributes = new { @id = ("marginyt_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                    </div>
+                    <div class="field-binder-col-flex mins-input">
+                        <label for="marginx_@Model.MaterialId" class="fl-label">Margin Right</label>
+                        @Html.EditorFor(model => model.MarginXR, new { htmlAttributes = new { @id = ("marginxr_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                    </div>
+                    <div class="field-binder-col-flex mins-input">
+                        <label for="marginy_@Model.MaterialId" class="fl-label">Margin Bottom</label>
+                        @Html.EditorFor(model => model.MarginYB, new { htmlAttributes = new { @id = ("marginyb_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                    </div>
+                    <div class="field-binder-col-flex mins-input">
+                        <label for="marginx_@Model.MaterialId" class="fl-label">Margin Left</label>
+                        @Html.EditorFor(model => model.MarginXL, new { htmlAttributes = new { @id = ("marginxl_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                    </div>
+                    <div class="field-binder-row-flex ms-2 align-items-center justify-content-center">
+                        <input type="checkbox" id="link_margins_@Model.MaterialId" class="ms-3 styled-input" data-margin-x-id="#marginx_@Model.MaterialId" data-margin-y-id="#marginy_@Model.MaterialId" />
+                        <label for="link_margins_@Model.MaterialId" class="fl-label">Link Margins</label>
+                    </div>
+                    <div class="field-binder-col-flex mins-input">
+                        <label for="sideGuides_@Model.MaterialId" class="fl-label">Side Guides</label>
+                        @Html.EditorFor(model => model.SideGuides, new { htmlAttributes = new { @id = ("sideGuides_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                    </div>
+                    <div class="field-binder-col-flex mins-input">
+                        <label for="gripper_@Model.MaterialId" class="fl-label">Gripper</label>
+                        @Html.EditorFor(model => model.Gripper, new { htmlAttributes = new { @id = ("gripper_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                    </div>
+                    <div class="field-binder-col-flex mins-input">
+                        <label for="tail_@Model.MaterialId" class="fl-label">Tail</label>
+                        @Html.EditorFor(model => model.Tail, new { htmlAttributes = new { @id = ("tail_" + Model.MaterialId), @type = "text", @class = "styled-input" } })
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-12">
+        <div class="row pt-5">
+            <div class="col-lg-12 layout-display">
+                <div class="material mx-auto" id="@Model.MaterialId">
+                </div>
+                <div class="c-material" id="custom_@Model.MaterialId" style="display:none;">
+                    <span>CUSTOM LAYOUT</span>
+                </div>
+                @if (Model.StockType != "Roll Stock")
+                {
+                    <div class="text-center">
+                        <span class="me-0 fs-2 text-bg-warning">Sheet Count: <span id="dbg_num_sheets_@Model.MaterialId"></span></span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(function () {
+        let l = {
+            'MaterialLength': '@Model.MaterialLength',
+            'MaterialWidth': '@Model.MaterialWidth',
+            'ItemLength': '@Model.ItemLength',
+            'ItemWidth': '@Model.ItemWidth',
+            'MarginXL': '@Model.MarginXL',
+            'MarginXR': '@Model.MarginXR',
+            'MarginYT': '@Model.MarginYT',
+            'MarginYB': '@Model.MarginYB',
+            'Quantity': '@Model.Quantity',
+            'MaterialId': '@Model.MaterialId',
+            'CssSelector': '@Model.CssSelector',
+            'SideGuides': '@Model.SideGuides',
+            'Gripper': '@Model.Gripper',
+            'Tail': '@Model.Tail',
+            'Up': '@Model.Up',
+            'StockType': '@Model.StockType'
+        };
+        //let lSwap = Object.assign({}, l);
+        //lSwap.ItemLength = l.ItemWidth;
+        //lSwap.ItemWidth = l.ItemLength;
+
+        layouts.push(l);
+        //swappedLayouts.push(lSwap);
+
+        //if (l.SwapOverride) {
+        //    new LayoutManager(
+        //        new Layout(lSwap)
+        //    );
+        //} else {
+            new LayoutManager(
+                new Layout(l)
+            );
+        //}
+    })
+        .on('click', '#link_margins_@Model.MaterialId', OnOffLinker);
+</script>

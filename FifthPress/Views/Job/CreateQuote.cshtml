@@ -1,0 +1,206 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_QuoteWrapper
+
+@{
+    ViewBag.Title = "Create Quote";
+}
+
+@{
+    var type = typeof(QuoteItem);
+    var properties = type.GetProperties();
+}
+
+@foreach (var property in properties)
+{
+    var constrainableAttribute = property.GetCustomAttributes(typeof(AdditionalMetadataAttribute), false)
+                                          .FirstOrDefault() as AdditionalMetadataAttribute;
+    if (constrainableAttribute != null && constrainableAttribute.Name == "Constrainable")
+    {
+        <p>Constrainable: @constrainableAttribute.Value</p>
+    }
+}
+
+@Scripts.Render("~/bundles/ccalc")
+
+<script>
+    var oinvnivosn = ('@Model.RequiresValidator' === 'True');
+</script>
+
+<input type="hidden" id="sp_adder_helper" />
+<input type="hidden" id="cut_config_helper" />
+
+<select class="d-none" id="print_speed_ref_sl">
+    <option value="1">Sheets/Hr.</option>
+    <option value="2">Rolls/Hr.</option>
+    <option value="3">Sq.Ft./Hr.</option>
+    <option value="4">Ft./Hr.</option>
+    <option value="5">None</option>
+</select>
+
+
+<div class="create-wrapper container">
+    <div class="step d-none" data-step-num="1">
+        <a class="btn btn-fc-danger gb-btn2" href="/?initNav">Back</a>
+        <h2>Create Quote From...</h2>
+        <div class="quick-buttons-flex">
+            <div class="quick-buttons-menu">
+                <button type="button" class="btn quick-button get-quotes" data-go-to="2">Existing</button>
+                <button type="button" class="btn quick-button blank-quote" data-go-to="3">Scratch</button>
+            </div>
+        </div>
+    </div>
+    <div class="step d-none" data-step-num="2">
+        <div class="quote-wrapper"></div>
+
+        <button class="btn btn-fc-danger gb-btn" data-go-to="1">Back</button>
+
+        <h3>New Quote From Existing</h3>
+
+        <table class="table-borderless" id="quote_select_table">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <div class="step d-none" data-step-num="3">
+        <button class="btn btn-fc-danger gb-btn mb-3" data-go-to="1">Back</button>
+        <h3>New Quote</h3>
+        <button type="button" class="btn btn-lg btn-fc-info view-quote-ticket-btn">View Ticket</button>
+        <button type="button" class="btn btn-lg btn-fc-caution view-customer-quote-btn" data-modal-to-open="#printable_quote_options">Printable Quote</button>
+
+        <div class="container">
+            @using (Html.BeginForm("UpdateQuote", "Job", FormMethod.Post, htmlAttributes: new { @class = "gy-3", @id = "quote_builder" }))
+            {
+
+                @Html.HiddenFor(model => model.VM_Quote.Quote.Id)
+                @Html.HiddenFor(model => model.VM_Quote.Quote.Deleted)
+                @Html.HiddenFor(model => model.VM_Quote.Quote.Client)
+                @Html.HiddenFor(model => model.VM_Quote.Quote.Contact)
+                <input type="hidden" id="mat_id_list" value="" /> <!-- space seperated --> <!-- Not currently used -->
+
+                <div class="row">
+                    <div class="col-lg-4">
+                        @Html.LabelFor(model => model.VM_Quote.Quote.Client)
+                        <input type="text" id="client_autocomplete" />
+                    </div>
+                    <div class="col-lg-4">
+                        @Html.LabelFor(model => model.VM_Quote.Quote.JobNumber)
+                        @Html.EditorFor(model => model.VM_Quote.Quote.JobNumber, new { htmlAttributes = new { @data_changed = false, @placeholder = "Autopopulate?" } })
+                    </div>
+                    <div class="col-lg-4">
+                        <label for="VM_Quote_Quote_ClientPONumber">Client PO #</label>
+                        @Html.EditorFor(model => model.VM_Quote.Quote.ClientPONumber, new { htmlAttributes = new { @data_changed = false } })
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.LabelFor(model => model.VM_Quote.Quote.Description)
+                            @Html.EditorFor(model => model.VM_Quote.Quote.Description, new { htmlAttributes = new { @data_changed = false } })
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.LabelFor(model => model.VM_Quote.Quote.Notes)
+                            @Html.EditorFor(model => model.VM_Quote.Quote.Notes, new { htmlAttributes = new { @data_changed = false } })
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="field-binder-col-flex align-items-stretch">
+                            @Html.LabelFor(model => model.VM_Quote.Quote.InternalNotes)
+                            @Html.EditorFor(model => model.VM_Quote.Quote.InternalNotes, new { htmlAttributes = new { @data_changed = false } })
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-list-wrapper" style="display:none">
+                    <div class="row contact-list-row">
+                        <div class="col-lg-12">
+                            <!-- Contact list here -->
+                            <ul class="contact-list">
+                            </ul>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-fc-info show-hide-contacts">Hide</button>
+                </div>
+                <div class="row flex-column flex-lg-row">
+                    <div class="d-inline-block">
+                        <div class="btn-group">
+                            <div class="d-inline-block">
+                                <input type="radio" name="pickup_ship" id="rad_pickup" @if ((Model.VM_Quote.Quote.IsPickup ?? false)) { @("checked") ; } />
+                                <label for="rad_pickup">Pickup</label>
+                            </div>
+                            <div class="d-inline-block">
+                                <input type="radio" name="pickup_ship" id="rad_ship" @if (!(Model.VM_Quote.Quote.IsPickup ?? false)) { @("checked") ; } />
+                                <label for="rad_ship">Ship</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row ship-select-row">
+                    <div class="col">
+                        @Html.DropDownListFor(model => model.VM_Quote.Quote.ShippingMethod, ViewData["VM_Quote.Quote.ShippingMethod"] as SelectList, htmlAttributes: new { })
+                        <button type="button" class="btn btn-sm btn-fc-info select-address-btn" data-modal-to-open="#shipping_address_modal">Select Shipping Address</button>
+                        <!-- make a readonly display for the currently selected shipping address -->
+                    </div>
+                </div>
+                <div class="fixed-bg">
+                    <input type="submit" value="Next (Arrange Services)" class="btn btn-fc-info" />
+                    <button type="button" class="btn btn-fc-caution save-record">Save</button>
+                </div>
+            }
+            <div class="row slide-i-left mt-3">
+                <div class="col-12" id="job_items" style="display: none">
+                    <!-- Empty because this is where the selected products/services are placed -->
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12 pt-3 text-center">
+                    <input type="button" class="btn btn-fc-caution add-item-btn" value="Add Item" />
+                    <input type="button" class="btn btn-fc-caution add-outsourced-item-btn" value="Add Outsourced Item" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_ClientEditor.cshtml")
+
+@Html.Partial("~/Views/Partials/_PricingBreakdownModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_CostComparisonModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_PressSpeedSelectModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_ServiceNotesModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_DocumentListModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_AddDocumentModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_DeleteDocumentModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_MaterialPriceOverrideModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_CuttingServiceModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_CuttingServiceConfigModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_SheetOverrideModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_FinishingMaterialConfigurationModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_ShippingAddressSelectModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_PrintableQuoteOptionModal.cshtml")
+
+@Html.Partial("~/Views/Partials/_DynamicVendorAdditionModal.cshtml", new Vendor())
+
+@Html.Partial("~/Views/Partials/_DynamicMaterialAdditionModal.cshtml", new Material())
+
+<script>
+    //temporary
+    $(function () {
+        $('.blank-quote').trigger('click');
+    });
+</script>
+
+@Scripts.Render("~/bundles/quotes")

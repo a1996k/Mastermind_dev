@@ -1,0 +1,206 @@
+﻿@page {
+    size: 8.5in 11in;
+    margin-top: .5in;
+    margin-bottom: .5in;
+    margin-left: 0in;
+    margin-right: 0in;
+}
+
+.pagebreaker{
+    page-break-after: always;
+}
+
+.full-item + .full-item{
+    page-break-before: always;
+}
+
+.vert-text {
+    transform: rotate(90deg);
+    display: flex;
+    justify-content: end;
+    align-items: center;
+    font-weight: bold;
+    right: 0;
+    white-space: nowrap;
+    height: 100%;
+    position: relative;
+    top: 10px;
+}
+
+@media print{
+    .vert-text{
+        top: 20px;
+    }
+}
+
+.major-padding {
+    padding-bottom: 100px;
+}
+
+.ticket-wrapper {
+    width: 100%;
+    background-color: #fff;
+    border-radius: 40px;
+}
+
+.body-content {
+    padding: 100px 30px;
+}
+
+body {
+    padding-left: 0 !important;
+}
+
+.s-item-row {
+    background-color: #c7c4c4;
+}
+
+.table, th, td {
+    border: 1px solid black;
+}
+
+.job-ticket-header h4 {
+    font-family: poppins;
+    font-size: 30px;
+    font-weight: bold;
+}
+
+.ticket-wrapper > .row:not(.header-row) {
+    border-bottom: 2px solid #c7c4c4;
+    padding-top: 15px;
+}
+
+.na {
+    font-style: italic;
+}
+
+    .na:after {
+        content: 'n/a';
+    }
+
+.service-title.pull-mat {
+    text-decoration: underline;
+}
+
+
+.type-title {
+    text-transform: uppercase;
+}
+
+.service-title {
+    font-family: 'DM Sans';
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.vert-text{
+    font-size: 24px;
+    font-family: 'Lato';
+    font-weight: bold;
+}
+
+.header-wrapper {
+    padding-top: 10px;
+}
+
+.border-j-ticket p {
+    font-size: 14px;
+    margin-bottom: 0px;
+}
+
+:root {
+    font-size: 10px;
+}
+
+.border-j-ticket p {
+    font-size: 14px;
+    margin-bottom: 0px;
+}
+
+.print-area * {
+    transform: scale(x);
+}
+
+.navbar, .sidenav, .closebtn, .openbtn {
+    display: none !important;
+}
+
+
+.header-row {
+    font-family: Georgia;
+    font-weight: 700;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.ticket-wrapper {
+    position: relative;
+}
+
+/*.ticket-testing {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    background: red;
+    width: 670px;
+    height: 910px;
+}*/
+
+.time-text {
+    font-size: 12px;
+    font-family: 'Lato';
+}
+
+.body-content, .ticket-wrapper {
+    background: white;
+}
+
+.ticket-wrapper {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.s-item-row,
+.os-item-row {
+    page-break-inside: avoid;
+}
+
+.body-content {
+    padding: 0;
+}
+
+body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+.user-notes {
+    background-color: #c7c4c4;
+    padding: 7px 17px;
+    color: #000;
+    font-weight: bold;
+    display: inline;
+    border-radius: 20px;
+}
+
+.bill-to-deets,
+.shipping-deets,
+.ordered-by-deets,
+.job-deets{
+    font-family: 'DM Sans';
+    font-size:12px;
+}
+
+.inv-fc-logo {
+    width: 120px;
+    max-width: 80%;
+    margin-bottom: 10px
+}
+
+.sin-row h3{
+    font-family: Georgia;
+    font-weight:bold;
+    font-style:italic;
+    font-size:14px;
+}

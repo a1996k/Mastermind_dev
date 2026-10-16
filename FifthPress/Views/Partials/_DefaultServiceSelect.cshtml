@@ -1,0 +1,55 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_DefaultServiceSelect
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-3">
+
+            @foreach (var department in Model.ServicesByDepartment)
+            {
+                string uniqueCollapseId = String.Format("{0}{1}{2}", department.Key.ToLower().Replace(" ", "_").Replace(",", ""), department.First().Category_DB_Id, department.First().Department_DB_Id);
+
+                <div class="service-header-wrapper d-block py-3 collapsed" data-bs-toggle="collapse" data-bs-target="@uniqueCollapseId" data-cat-id="@department.Key" data-dep-id="@department.Key">
+                    <span class="service-select-header">@department.Key</span>
+                    <i class="fa-solid fa-caret-up"></i>
+                </div>
+
+                foreach (var category in department.ToList())
+                {
+                    <div class="service-item-wrapper d-block py-3 collapsed" data-bs-toggle="collapse" data-cat-id="@category.Category_DB_Id" data-dep-id="@category.Department_DB_Id">
+                        <span class="service-select-header">@category.Category_Title</span>
+                        <i class="fa-solid fa-caret-up"></i>
+                    </div>
+
+                    foreach(var service in Model.ServicesByCategory.Where(x => x.Key == category.Category_Title))
+                    {
+                        foreach(AllService a in service.ToList())
+                        {
+                            <p>@a.Service_Title</p>
+                        }
+                    }
+                }
+            }
+        </div>
+        <div class="col-lg-9">
+            <!-- Selected services -->
+        </div>
+    </div>
+</div>
+
+<style>
+    .service-select-header {
+        font-size: 1.3em;
+        font-weight: 700;
+        padding: 15px 0;
+        cursor: pointer;
+    }
+
+    .service-header-wrapper:not(.collapsed) > i {
+        transform: rotate(0);
+    }
+
+    .service-header-wrapper.collapsed > i {
+        transform: rotate(180deg);
+    }
+</style>

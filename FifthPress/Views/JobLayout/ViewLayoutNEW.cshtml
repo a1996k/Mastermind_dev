@@ -1,0 +1,238 @@
+﻿﻿@using FifthPress.Models.ViewModels2.LayoutManager;
+@model VM_UnifiedLayoutPlanning
+
+@{
+    int parentId = 0;
+    if (Model.ParentType == "Job")
+    {
+        var job = Model.ParentObject as Job;
+        parentId = job?.Id ?? 0;
+    }
+    else
+    {
+        var quote = Model.ParentObject as Quote;
+        parentId = quote?.Id ?? 0;
+    }
+}
+
+<div class="container">
+    <div class="d-flex justify-content-center">
+        <button type="button" class="btn btn-fc-danger d-inline-block mx-2 back-btn">Cancel Changes</button>
+        <button type="button" class="btn btn-fc-info d-inline-block mx-2 save-btn">Save Changes</button>
+    </div>
+
+    @Html.Partial("~/Views/JobLayout/_UnifiedLayoutPlanning.cshtml", Model.VM_ItemMaterialLayouts.First())
+</div>
+
+<div class="container-fluid pt-5">
+</div>
+
+<script>
+    $(document).ready(function () {
+        function updateSaveButtonState() {
+            if (window.layoutHasChanges) {
+                $('.save-btn').removeClass('btn-fc-info').addClass('btn-fc-warning').text('Save Changes *');
+            } else {
+                $('.save-btn').removeClass('btn-fc-warning').addClass('btn-fc-info').text('Save Changes');
+            }
+        }
+        function updateMaterialRunSizeDisplay(newLength) {
+            const parentId = $('#sp_adder_helper').val();
+            const parentType = $('.jl-parent-type').val();
+
+            // Find the hidden input for MaterialRunSize
+            let hiddenInput;
+            if (parentType === 'Job') {
+                hiddenInput = $('.job-item-row[data-record-id="' + parentId + '"] input[name="JobItem.MaterialRunSize"]');
+            } else if (parentType === 'Quote' || parentType === 'quote') {
+                hiddenInput = $('.quote-item-row[data-record-id="' + parentId + '"] input[name="QuoteItem.MaterialRunSize"]');
+            }
+
+            if (hiddenInput && hiddenInput.length > 0) {
+                // Get current value (e.g., "936x54")
+                const currentValue = hiddenInput.val() || "0x0";
+                console.log('currentValue = ' + currentValue);
+                const parts = currentValue.split('x');
+                console.log('parts = ' + parts);
+                // Replace length (first part) with new length
+                parts[0] = newLength.toString();
+                const newValue = parts.join('x');
+
+                // Update the hidden input
+                hiddenInput.val(newValue);
+
+                // Update the display value in .stock-row .run-size
+                const $itemRow = $('.item-row[data-record-id="' + parentId + '"]');
+                $itemRow.find('.stock-row .run-size').text(newValue);
+
+                console.log('Updated MaterialRunSize from', currentValue, 'to', newValue);
+            } else {
+                console.warn('Could not find MaterialRunSize hidden input for parentType:', parentType);
+            }
+        }
+        function saveLayoutSettings() {
+            // Debug the current state first
+            //debugLayoutData();
+
+            // Get the current layout data
+            const layoutData = getCurrentLayoutData();
+
+            // Validate that we have the required IDs
+            if (!layoutData.jobItemId && !layoutData.quoteItemId) {
+                console.error('ERROR: Both jobItemId and quoteItemId are null!');
+                showMessage('Error: Could not determine item type. Please refresh and try again.', 'error');
+                return;
+            }
+
+            if (layoutData.jobItemId && layoutData.quoteItemId) {
+                console.error('ERROR: Both jobItemId and quoteItemId are set!');
+                showMessage('Error: Invalid item type configuration. Please refresh and try again.', 'error');
+                return;
+            }
+
+            console.log('Sending save request with data:', layoutData);
+
+            // Show saving indicator
+            $('.save-btn').prop('disabled', true).text('Saving...');
+
+            $.ajax({
+                url: ProcessUrl('JobLayout/SaveLayoutSettings'),
+                type: 'POST',
+                data: layoutData,
+                success: function (response) {
+                    console.log('Save response:', response);
+
+                    if (response.success) {
+                        // Mark as saved
+                        window.layoutHasChanges = false;
+                        $('.save-btn').removeClass('btn-fc-warning').addClass('btn-fc-info').prop('disabled', false).text('Save Changes');
+
+                        // Also save main item data (quantity, up)
+                        saveMainItemData(layoutData);
+
+                        // Update MaterialRunSize display and hidden input
+                        updateMaterialRunSizeDisplay(layoutData.materialLength);
+
+                        showMessage('Layout settings saved successfully', 'success');
+
+                        if (response.dutchCutEnabled) {
+                            $('.item-row[data-record-id="' + $('.jl-item-id').val() + '"] .dutch-cut-display').show();
+                        } else {
+                            $('.item-row[data-record-id="' + $('.jl-item-id').val() + '"] .dutch-cut-display').hide();
+                        }
+
+                        $('#layout_modal').modal('hide');
+                    } else {
+                        $('.save-btn').prop('disabled', false).text('Save Changes');
+                        showMessage('Error: ' + response.message, 'error');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Save AJAX error:', xhr.responseText);
+                    $('.save-btn').prop('disabled', false).text('Save Changes');
+                    showMessage('Error saving layout settings: ' + error, 'error');
+                }
+            });
+        }
+
+        // Save button click handler — .off() first to guarantee a single binding
+        // even if this view is rendered into the modal more than once per page session
+        $('.save-btn').off('click').on('click', saveLayoutSettings);
+
+        // Cancel button click handler
+        $('.back-btn').on('click', function () {
+            if (window.layoutHasChanges) {
+                if (!confirm('You have unsaved changes. Are you sure you want to cancel?')) {
+                    return;
+                }
+            }
+
+            $('#layout_modal').modal('hide');
+        });
+
+        function saveMainItemData(layoutData) {
+            console.log('saveMainItemData called with layoutData:', layoutData);
+
+            const parentId = $('.jl-item-id').val();  // Fixed: was .jl-parent-id
+            const parentType = $('.jl-parent-type').val();
+
+            console.log('parentId:', parentId);
+            console.log('parentType:', parentType);
+
+            if (!parentId) {
+                console.error('ERROR: parentId is null/undefined/empty!');
+                return;
+            }
+
+            const mainItemData = {
+                quantity: parseInt($(`#qty_material_0`).val()) || 1,
+                up: parseInt($(`#up_material_0`).val()) || 1,
+                parentType: parentType,
+                parentId: parseInt(parentId)
+            };
+
+            console.log('Sending main item data:', mainItemData);
+
+            $.ajax({
+                url: ProcessUrl('JobLayout/SaveMainItemData'),
+                type: 'POST',
+                data: mainItemData,
+                success: function (response) {
+                    console.log('AJAX SUCCESS - Main item save response:', response);
+
+                    if (response.success) {
+                        console.log('Main item data saved successfully');
+
+                        //update up value, up value locked and quantity value on item editor
+                        let $ele = $('.item-row[data-record-id="' + parentId + '"]');
+                        $ele.find('.up-value-locked').prop('checked', response.upLocked);
+                        $ele.find('.calced-up-val').html(response.upValue);
+                        try {
+                            $ele.find('input[name="QuoteItem.Up"]').val(response.upValue);
+                        } catch (e) {
+                            $ele.find('input[name="JobItem.Up"]').val(response.upValue);
+                        }
+                        try {
+                            $ele.find('input.item-quantity').val(response.qty);
+                        } catch (e) {
+                            $ele.find('input.item-quantity').val(response.qty);
+                        }
+                    } else {
+                        console.error('Main item save failed:', response.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX ERROR - Error saving main item data:', error);
+                    console.error('Response text:', xhr.responseText);
+                }
+            });
+        }
+
+        function showMessage(message, type) {
+            // Implement based on your existing message system
+            // Could be a toast, alert, or inline message
+            const messageClass = type === 'success' ? 'alert-success' : 'alert-danger';
+            const messageHtml = `<div class="alert ${messageClass} alert-dismissible fade show" role="alert">
+                                    ${message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>`;
+
+            $('#messageContainer').html(messageHtml);
+
+            // Auto-hide success messages after 3 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    $('.alert-success').fadeOut();
+                }, 3000);
+            }
+        }
+        // Warn user about unsaved changes when leaving page
+        window.addEventListener('beforeunload', function (e) {
+            if (window.layoutHasChanges) {
+                e.preventDefault();
+                e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                return 'You have unsaved changes. Are you sure you want to leave?';
+            }
+        });
+    });
+</script>

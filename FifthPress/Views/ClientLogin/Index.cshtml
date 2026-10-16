@@ -1,0 +1,209 @@
+@model List<FifthPress.ClientLogin>
+
+@{
+    ViewBag.Title = "Client Logins";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Client Logins</h2>
+        <a href="@Url.Action("Create", "ClientLogin")" class="btn btn-primary">+ Create New Client Login</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="alert alert-info">
+            No client logins found. <a href="@Url.Action("Create", "ClientLogin")">Create the first one</a>.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email Addresses</th>
+                        <th>Associated Clients</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var login in Model)
+                    {
+                        <tr>
+                            <td>@login.Id</td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(login.Name))
+                                {
+                                    @login.Name
+                                }
+                                else
+                                {
+                                    <em class="text-muted">No name</em>
+                                }
+                            </td>
+                            <td>
+                                @if (login.ClientLoginEmails != null && login.ClientLoginEmails.Any(e => e.Deleted == null))
+                                {
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var email in login.ClientLoginEmails.Where(e => e.Deleted == null))
+                                        {
+                                            <li class="d-flex align-items-center justify-content-between mb-1">
+                                                <div>
+                                                    <span class="me-2">@email.Email</span>
+                                                    @if (email.IsPrimary)
+                                                    {
+                                                        <span class="badge bg-primary">P</span>
+                                                    }
+                                                </div>
+                                                <button type="button"
+                                                        class="btn btn-sm btn-info send-email-btn ms-3"
+                                                        data-id="@login.Id"
+                                                        data-email="@email.Email">
+                                                    Send Email
+                                                </button>
+                                            </li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <em class="text-muted">No emails</em>
+                                }
+                            </td>
+                            <td>
+                                @if (login.ClientLoginPivots != null && login.ClientLoginPivots.Any(p => p.Deleted == null))
+                                {
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var pivot in login.ClientLoginPivots.Where(p => p.Deleted == null))
+                                        {
+                                            <li>@pivot.Client.Title</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <em class="text-muted">No clients</em>
+                                }
+                            </td>
+                            <td>
+                                @if (login.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Inactive</span>
+                                }
+                            </td>
+                            <td>@login.CreatedDate.ToLocalTime().ToString("M/d/yyyy h:mm tt")</td>
+                            <td>
+                                @if (login.LastLoginDate.HasValue)
+                                {
+                                    @login.LastLoginDate.Value.ToLocalTime().ToString("M/d/yyyy h:mm tt")
+                                }
+                                else
+                                {
+                                    <em class="text-muted">Never</em>
+                                }
+                            </td>
+                            <td>
+                                <a href="@Url.Action("Edit", "ClientLogin", new { id = login.Id })" class="btn btn-sm btn-warning me-1">Edit</a>
+                                <button type="button" class="btn btn-sm btn-danger delete-btn" data-id="@login.Id" data-name="@login.Name">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Handle send email button clicks
+        $('.send-email-btn').on('click', function() {
+            const clientLoginId = $(this).data('id');
+            const emailAddress = $(this).data('email');
+            const btn = $(this);
+
+            if (confirm('Send magic link to ' + emailAddress + '?')) {
+                // Show loading state
+                btn.prop('disabled', true).text('Sending...');
+
+                // Send email request
+                $.ajax({
+                    url: ProcessUrl('ClientLogin/SendEmail'),
+                    type: 'POST',
+                    data: {
+                        id: clientLoginId,
+                        email: emailAddress,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert('Success: ' + response.message + '\n\nExpires at: ' + response.expiresAt);
+                            btn.prop('disabled', false).text('Send Email');
+                        } else {
+                            alert('Error: ' + response.message);
+                            btn.prop('disabled', false).text('Send Email');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred: ' + error);
+                        btn.prop('disabled', false).text('Send Email');
+                    }
+                });
+            }
+        });
+
+        // Handle delete button clicks
+        $('.delete-btn').on('click', function() {
+            const id = $(this).data('id');
+            const name = $(this).data('name') || 'this client login';
+
+            if (confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+                // Show loading state
+                const btn = $(this);
+                btn.prop('disabled', true).text('Deleting...');
+
+                // Send delete request
+                $.ajax({
+                    url: ProcessUrl('ClientLogin/Delete'),
+                    type: 'POST',
+                    data: {
+                        id: id,
+                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message and reload page
+                            alert(response.message);
+                            window.location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                            btn.prop('disabled', false).text('Delete');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('An error occurred: ' + error);
+                        btn.prop('disabled', false).text('Delete');
+                    }
+                });
+            }
+        });
+    });
+</script>

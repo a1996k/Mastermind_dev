@@ -1,0 +1,224 @@
+﻿@model FifthPress.Models.ViewModels.EmailTemplateModels.VM_DepartmentPrintUtilization
+
+@using System.Linq
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Print Utilization Email</title>
+
+    <style>
+        .met {
+            color: green !important;
+        }
+
+        .not-met {
+            color: red !important;
+        }
+
+        /* Mobile-specific adjustments */
+        @@media screen and (max-width: 600px) {
+            th, td {
+                padding: 5px;
+                font-size: 12px;
+            }
+
+            p, table {
+                font-size: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f8f8;">
+
+    <!-- Outer Wrapper -->
+    <div style="max-width: 800px; margin: 20px auto; background-color: white; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+
+        <!-- Header -->
+        <div style="background-color: #4a90e2; color: white; text-align: center; padding: 20px;">
+            <h3 style="margin: 0;">Production Weekly &amp; YTD Utilization</h3>
+        </div>
+
+        <!-- Content Wrapper -->
+        <div style="padding: 20px;">
+            <!-- Pretext Section -->
+            <div style="margin-bottom: 20px;">
+                <p style="font-size: 16px; color: #333;">
+                    Hello,<br /><br />
+                    Below is last week's and year-to-date Print Utilization report for your review. This report
+                    highlights key metrics and insights to help keep our team aligned and focused on achieving
+                    our goals.<br /><br />
+                    Please take a moment to review the details and feel free to reach out with any questions or
+                    if you need further clarification.<br /><br />
+                    Thank you for your continued commitment to efficiency and excellence!
+                </p>
+            </div>
+
+            <!-- Single Combined Table (Weekly + YTD) -->
+            @{
+
+                // Convert WeeklyResults into a dictionary keyed by UserName,
+                // so we can union them with YTD and sort by name.
+                var weeklyDict = Model.WeeklyResults
+                    .Where(x => !string.IsNullOrEmpty(x.UserName))
+                    .ToDictionary(x => x.UserName, x => x);
+
+                var ytdDict = Model.YTDResults
+                    .Where(x => !string.IsNullOrEmpty(x.UserName))
+                    .ToDictionary(x => x.UserName, x => x);
+
+                var allUserNames = weeklyDict.Keys
+                    .Union(ytdDict.Keys)
+                    .OrderBy(name => name)
+                    .ToList();
+            }
+
+            <div style="margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 16px;">
+                    <thead>
+                        <tr style="background-color: #f0f4fa;">
+                            <th rowspan="2" style="padding: 10px; border: 1px solid #ddd; text-align: left;">User</th>
+                            <!-- Weekly columns -->
+                            <th colspan="4" style="padding: 10px; border: 1px solid #ddd; text-align: center;">Week</th>
+                            <!-- YTD columns -->
+                            <th colspan="4" style="padding: 10px; border: 1px solid #ddd; text-align: center;">YTD</th>
+                        </tr>
+                        <tr style="background-color: #f0f4fa;">
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Clock (hrs)</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Jobs (hrs)</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Util %</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Target %</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Clock (hrs)</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Jobs (hrs)</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Util %</th>
+                            <th style="padding: 10px; border: 1px solid #ddd; text-align: center;">Target %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var userName in allUserNames)
+                        {
+                            var weekly = weeklyDict.ContainsKey(userName) ? weeklyDict[userName] : null;
+                            var ytd = ytdDict.ContainsKey(userName) ? ytdDict[userName] : null;
+
+                            // Weekly stats
+                            decimal weeklyClock = weekly?.TotalWorkedHours ?? 0;
+                            decimal weeklyJobs = weekly?.TotalJobTime ?? 0;
+                            decimal weeklyUtilPct = (weekly?.AvgUtilization ?? 0) * 100;
+                            decimal weeklyTargetPct = (weekly?.TargetUtilization ?? 0) * 100;
+
+                            // YTD stats
+                            decimal ytdClock = ytd?.TotalWorkedHours ?? 0;
+                            decimal ytdJobs = ytd?.TotalJobTime ?? 0;
+                            decimal ytdUtilPct = (ytd?.AvgUtilization ?? 0) * 100;
+                            decimal ytdTargetPct = (ytd?.TargetUtilization ?? 0) * 100;
+
+                            // CSS classes for pass/fail vs. target
+                            string weeklyCss = (weeklyUtilPct >= weeklyTargetPct && weeklyTargetPct > 0)
+                                                ? "met" : "not-met";
+                            string ytdCss = (ytdUtilPct >= ytdTargetPct && ytdTargetPct > 0)
+                                                ? "met" : "not-met";
+
+                            <tr>
+                                <!-- UserName -->
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                                    @userName
+                                </td>
+
+                                <!-- Weekly columns, 2 decimal places -->
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    @weeklyClock.ToString("N2")
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    @weeklyJobs.ToString("N2")
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;" class="@weeklyCss">
+                                    @weeklyUtilPct.ToString("N2")%
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    @(weeklyTargetPct > 0
+                                        ? weeklyTargetPct.ToString("N2") + "%"
+                                        : "N/A")
+                                </td>
+
+                                <!-- YTD columns, 2 decimal places -->
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    @ytdClock.ToString("N2")
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    @ytdJobs.ToString("N2")
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;" class="@ytdCss">
+                                    @ytdUtilPct.ToString("N2")%
+                                </td>
+                                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                    @(ytdTargetPct > 0
+                                        ? ytdTargetPct.ToString("N2") + "%"
+                                        : "N/A")
+                                </td>
+                            </tr>
+                        }
+
+                        <!-- Totals Row -->
+                        @{
+                            decimal wtClock = Model.WeeklyTotals.TotalWorkedHours;
+                            decimal wtJobs = Model.WeeklyTotals.TotalJobTime;
+                            decimal wtUtilPct = Model.WeeklyTotals.AvgUtilization * 100;
+
+                            decimal ytdtClock = Model.YTDTotals.TotalWorkedHours;
+                            decimal ytdtJobs = Model.YTDTotals.TotalJobTime;
+                            decimal ytdtUtilPct = Model.YTDTotals.AvgUtilization * 100;
+
+                            string tgtUTz = $"{Math.Round((Model.YTDTotals.TargetUtilization ?? 0m) * 100m, 2)}%";
+
+                            string overallYtdTgtCss = Model.YTDTotals.MeetsOverallYTDUtzTarget ? "met" : "not-met";
+                            string overallWeekTgtCss = Model.WeeklyTotals.MeetsOverallWeekUtzTarget ? "met" : "not-met";
+                        }
+
+                        <tr style="background-color: #f8f8f8;" class="totals">
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: left;">
+                                Totals
+                            </td>
+
+                            <!-- Weekly Totals -->
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                @wtClock.ToString("N2")
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                @wtJobs.ToString("N2")
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;" class="@overallWeekTgtCss">
+                                @wtUtilPct.ToString("N2")%
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                @tgtUTz
+                            </td>
+
+                            <!-- YTD Totals -->
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                @ytdtClock.ToString("N2")
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                @ytdtJobs.ToString("N2")
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;" class="@overallYtdTgtCss">
+                                @ytdtUtilPct.ToString("N2")%
+                            </td>
+                            <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                                @tgtUTz
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="background-color: #4a90e2; color: white; text-align: center; padding: 10px;">
+            <p style="margin: 0; font-size: 16px;">&copy; 2025 FifthColor. All Rights Reserved.</p>
+        </div>
+
+    </div>
+</body>
+</html>

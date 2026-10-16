@@ -1,0 +1,99 @@
+﻿@model List<ItemsReadyToShip_Result>
+
+@Styles.Render("~/Content/joblistcss")
+
+<div class="container fs-3">
+    <h1>Jobs Ready to Ship</h1>
+    <div class="row pt-3">
+        <label for="user_toggle_checkbox">Only Show My Jobs <input type="checkbox" id="user_toggle_checkbox" /></label>
+    </div>
+    <div class="row pt-3">
+        <div class="col-12">
+            <button type="button" class="btn btn-sm btn-fc-info create-shipment-btn ff-poppins fs-15">New Shipment</button>
+            <div class="ship-build-buttons" style="display:none">
+                <button type="button" class="btn btn-sm btn-success to-details-btn ff-poppins fs-15" data-modal-to-open="#notesModal" disabled>Submit Shipment</button>
+                <button type="button" class="btn btn-sm btn-fc-danger cancel-shipment-btn ff-poppins fs-15">Cancel Shipment</button>
+            </div>
+        </div>
+    </div>
+    <table id="rts_table" class="fs-3">
+        <thead>
+            <tr>
+                <th>Select</th>
+                <th>Job Number</th>
+                <th>PO #</th>
+                <th>Client</th>
+                <th>Description</th>
+                <th>Due Date</th>
+                <th>Completed</th>
+                <th>Project Manager</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var x in Model)
+            {
+                <tr class="job-item-row" data-record-id="@Html.DisplayFor(model => x.JobItemId)" data-pm-id="@Html.DisplayFor(model => x.ProjectManager)">
+                    <td><input type="checkbox" /></td>
+                    <td>@Html.DisplayFor(model => x.JobNumber)</td>
+                    <td>@Html.DisplayFor(model => x.PurchaseOrderNumber)</td>
+                    <td>@Html.DisplayFor(model => x.ClientName)</td>
+                    <td>@Html.DisplayFor(model => x.ItemDescription)</td>
+                    <td>@(x.DueDate.HasValue ? x.DueDate.Value.ToString("M/d/yyyy") : "")</td>
+                    <td>@(x.CompletedAt.HasValue ? x.CompletedAt.Value.ToString("M/d/yyyy") : "")</td>
+                    <td>@Html.DisplayFor(model => x.ProjectManagerName)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Context Menu -->
+@*
+    <div id="job_context_menu" class="job-context-menu">
+        <input type="hidden" id="qa_selected_job_id" />
+
+        <div class="menu-item qa-edit-job fs-2">
+            <i class="fa-solid fa-pen-to-square"></i> <span class="fs-4">Edit</span>
+        </div>
+
+        <div class="menu-item qa-time-tracking fs-2">
+            <i class="fa-regular fa-clock-desk"></i> <span class="fs-4">Time Tracking</span>
+        </div>
+
+        <div class="menu-item qa-job-ticket fs-2">
+            <i class="fa-solid fa-ticket"></i> <span class="fs-4">View Job Ticket</span>
+        </div>
+    </div>*@
+
+@* Modal *@
+<div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notesModalLabel">Shipment Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Job Details List -->
+                <ul id="jobDetailsList" class="list-group mb-3">
+                    <!-- Job items will be dynamically inserted here -->
+                </ul>
+
+                <div class="mb-3">
+                    <label for="noteTitle" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="noteTitle" placeholder="Enter title">
+                </div>
+                <div class="mb-3">
+                    <label for="noteContent" class="form-label">Notes</label>
+                    <textarea class="form-control" id="noteContent" rows="4" placeholder="Enter your notes"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary validate-details-btn">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@Scripts.Render("~/bundles/jobshipments")

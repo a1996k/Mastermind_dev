@@ -1,0 +1,54 @@
+﻿@using FifthPress.Models.ViewModels.CardViewModels;
+@model VM_CostToOrganization
+
+@Html.Partial("~/Views/Dashboard/Shared/_RangeSelector.cshtml", "cto01")
+<div class="field-binder-row-flex chart-icon-wrapper">
+    <!--<i class="fa-solid fa-users"></i>-->
+    <i class="fa-solid fa-circle-info"></i>
+</div>
+
+
+<div class="field-binder-col-flex card-user-list-wrapper">
+    <h3>(Debug) User List</h3>
+    <ul class="cto01-user-list"></ul>
+</div>
+
+<div class="informational-block">
+    <p></p>
+</div>
+
+<canvas class="cost-to-org-chart metric-chart" id="pcto01"></canvas>
+
+<table class="table table-striped table-bordered fs-4">
+    <thead>
+        <tr>
+            <th>Job Cost</th>
+            <th>Material Cost</th>
+            <th>Employee Cost</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>@Html.DisplayFor(model => model.Aggregates.TotalJobCost, "Currency")</td>
+            <td>@Html.DisplayFor(model => model.Aggregates.TotalMaterialCost, "Currency")</td>
+            <td><!-- Employee Cost --></td>
+        </tr>
+    </tbody>
+</table>
+
+<script>
+    $('.u01-user-list').append(
+        `<li class="user-list-entry pt-2" data-user-id="-1">
+            <div class="field-binder-row-flex justify-content-between">
+                <label for="ulcb_-1" class="ff-poppins fs-16 fw-bold fst-italic">Select All</label>
+                <input type="checkbox" id="ulcb_-1" checked />
+            </div>
+         </li>`);
+    @foreach(FifthPress.Models.ViewModels.VMMUserChartPermissions v in Model.UserPermissions)
+    {
+        <text>$('.u01-user-list').append('<li data-user-id="@Html.DisplayFor(model => v.UserId )">@Html.DisplayFor(model => v.FirstName) @Html.DisplayFor(model => v.LastName)</li>')</text>
+    }
+
+    $('.range-selector[data-card-ajax-id="cto01"] select[name="Range"]').val('@Model.RangeOverride');
+    $('.range-selector[data-card-ajax-id="cto01"] input[name="Locked"]').prop('checked', '@Model.IsLocked' === 'True');
+</script>

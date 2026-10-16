@@ -1,0 +1,290 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_CustomerQuote
+
+<style>
+    @@media print {
+
+        .fs-3 {
+            font-size: 16px !important;
+        }
+
+        p {
+            font-size: 13px !important;
+        }
+
+        .header-row .col {
+            border: 1px solid black;
+        }
+    }
+</style>
+
+<div class="container-fluid px-5">
+    <div class="row">
+
+    </div>
+    <div class="row pt-5">
+        <div class="col-6 fs-4">
+            <div class="row">
+                <div class="col-6">
+                    <div class="d-block">FifthColor</div>
+                    <div class="d-block">1500 Stedman Way</div>
+                    <div class="d-block">Sheboygan Falls, WI 53085</div>
+                    <div class="d-block">920-892-2331</div>
+                </div>
+            </div>
+            <div class="row py-5">
+                <div class="col-6 fw-bold">
+                    <div class="d-block">@Html.DisplayFor(model => model.Quote.Contact1.First) @Html.DisplayFor(model => model.Quote.Contact1.Last)</div>
+                    <div class="d-block">@Html.DisplayFor(model => model.Quote.Client1.Title)</div>
+                    @if (Model.Quote.ShippingAddress.HasValue)
+                    {
+                        <div class="d-block">@Html.DisplayFor(model => model.Quote.ShippingAddress1.Address)</div>
+                        <div class="d-block">@Html.DisplayFor(model => model.Quote.ShippingAddress1.City) @Html.DisplayFor(model => model.Quote.ShippingAddress1.USState.Abbreviation) @Html.DisplayFor(model => model.Quote.ShippingAddress1.Zip)</div>
+                    }
+                    else
+                    {
+                        <div class="d-block">@Html.DisplayFor(model => model.Quote.Client1.Address)</div>
+                        <div class="d-block">@Html.DisplayFor(model => model.Quote.Client1.City) @Html.DisplayFor(model => model.Quote.Client1.USState1.Abbreviation) @Html.DisplayFor(model => model.Quote.Client1.Zip)</div>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <h3>Quotation @Html.DisplayFor(model => model.Quote.JobNumber)</h3>
+            <h4>Date: @DateTime.Now.ToString("M/d/yy")</h4>
+        </div>
+    </div>
+    <div class="row header-row fw-bold fs-3 pt-5">
+        <div class="col">
+            <span>Acct. No.</span>
+        </div>
+        <div class="col">
+            <span>Ordered By</span>
+        </div>
+        <div class="col">
+            <span>Phone</span>
+        </div>
+        <div class="col">
+            <span>Fax</span>
+        </div>
+        <div class="col">
+            <span>P.O. No.</span>
+        </div>
+        <div class="col">
+            <span>Prepared By</span>
+        </div>
+        <div class="col">
+            <span>Sales Rep</span>
+        </div>
+    </div>
+    <div class="row fs-4">
+        <div class="col">
+            @Html.DisplayFor(model => model.Quote.Client1.Id)
+        </div>
+        <div class="col">
+            @Html.DisplayFor(model => model.Quote.Contact1.First) @Html.DisplayFor(model => model.Quote.Contact1.Last)
+        </div>
+        <div class="col">
+            @Html.DisplayFor(model => model.Quote.Contact1.Phone)
+        </div>
+        <div class="col">
+            @Html.DisplayFor(model => model.Quote.Contact1.Fax)
+        </div>
+        <div class="col">
+            @Html.DisplayFor(model => model.Quote.ClientPONumber)
+        </div>
+        <div class="col">
+            <!--Prepared by data -->
+        </div>
+        <div class="col">
+            <!-- sales rep data -->
+        </div>
+    </div>
+    <div class="row header-row fw-bold fs-3 pt-3">
+        <div class="col-2 col">
+            <span>Quantity</span>
+        </div>
+        <div class="col-6 col">
+            <span>Description</span>
+        </div>
+        <div class="col-2 col">
+            <span>Unit Price</span>
+        </div>
+        <div class="col-2 col">
+            <span>Price</span>
+        </div>
+    </div>
+    @{
+        int maxOrdinal = ViewBag.MaxOrdinal;
+    }
+
+    <div class="row fst-italic fs-5">
+        <div class="col-2"></div>
+        <div class="col-6">
+            <p>Thank you for the opportunity.</p>
+            <p>Graphic Design and Shipping are NOT included in this quote.</p>
+            <p>
+                Customer provided art files: If there is an issue with the file or additional time is needed for prepress/form layout, we will notify you.<br />
+                If additional time is needed, you will be charged at our regular rate and may incur a delay in production.
+            </p>
+            <p>If specifications are changed, or were not fully provided during this process, your final price may vary from the original estimate.</p>
+            <p>Reference quote number on all purchase orders and correspondence.</p>
+            <p>Due to material delays from our suppliers, our standard lead time may need to be extended.</p>
+        </div>
+        <div class="col-2"></div>
+        <div class="col-2"></div>
+    </div>
+
+    @for (int i = 1; i <= maxOrdinal; i++)
+    {
+        FifthPress.Models.GenericItemOrganizer thisGio = Model.AllItems[(i - 1)];
+        string rowType = thisGio.RowType;
+
+        switch (rowType)
+        {
+            case "Standard":
+                QuoteItem thisItem = Model.Quote.QuoteItems.Single(x => x.Ordinal == i);
+
+
+
+
+                <div class="row fs-4 pt-5">
+                    <div class="col-2">
+                        @Html.DisplayFor(model => thisItem.TotalQuantity)
+                    </div>
+                    <div class="col-6">
+                        <p>@Html.DisplayFor(model => thisItem.Description)</p>
+                        <p>@Html.DisplayFor(model => thisItem.Notes)</p>
+                    </div>
+                    <div class="col-2">
+                        @if (Model.QuoteItemPricing.ShowItemPrices)
+                            {
+                                if (Model.QuoteItemPricing.QuoteItemPrices[i - 1] > 0m)
+                                {
+                                    decimal unitPrice = Decimal.Round(Model.QuoteItemPricing.QuoteItemPrices[(i - 1)] / (thisItem.TotalQuantity ?? 1), 4);
+                                    <span>@unitPrice.ToString("C") / Ea.</span>
+                                }
+                            }
+                    </div>
+                    <div class="col-2">
+                        @if (Model.QuoteItemPricing.ShowItemPrices)
+                            {
+                                if (Model.QuoteItemPricing.QuoteItemPrices[i - 1] > 0m)
+                                {
+                                    <span class="fw-bold">@Model.QuoteItemPricing.QuoteItemPrices[(i - 1)].ToString("C")</span>
+                                }
+                            }
+                    </div>
+                </div>
+
+                if (Model.QuoteItemPricing.ShowItemziedPrices)
+                    {
+                        for (int j = 0; j < Model.QuoteItemPricing.QuoteItemItemizedPrices[(i - 1)].Count; j++)
+                        {
+                            if (Model.QuoteItemPricing.QuoteItemItemizedPrices[(i - 1)][j] > 0m)
+                            {
+                                <div class="row fs-4 ps-2">
+                                    <div class="col-2">
+
+                                    </div>
+                                    <div class="col-6">
+                                        <span>@Model.QuoteItemPricing.QuoteItemItemizedDescriptions[(i - 1)][j]</span>
+                                    </div>
+                                    <div class="col-2">
+
+                                    </div>
+                                    <div class="col-2">
+                                        <span>@Model.QuoteItemPricing.QuoteItemItemizedPrices[i - 1][j].ToString("C")</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+
+
+
+
+                break;
+            case "Outsourced":
+                QuoteOutsourcedItem thisOutsourcedItem = Model.Quote.QuoteOutsourcedItems.Single(x => x.Ordinal == i);
+
+
+
+
+
+                <div class="row fs-4 pt-5">
+                    <div class="col-2">
+                        @Html.DisplayFor(model => thisOutsourcedItem.Quantity)
+                    </div>
+                    <div class="col-6">
+                        <p>@Html.DisplayFor(model => thisOutsourcedItem.Description)</p>
+                        <p>@Html.DisplayFor(model => thisOutsourcedItem.Notes)</p>
+                    </div>
+                    <div class="col-2">
+                        @if (Model.QuoteItemPricing.ShowItemPrices)
+                            {
+                                if (Model.QuoteItemPricing.QuoteItemPrices[i - 1] > 0m)
+                                {
+                                    decimal unitPrice = Decimal.Round(Model.QuoteItemPricing.QuoteItemPrices[(i - 1)] / (thisOutsourcedItem.Quantity ?? 1), 4);
+                                    <span>@unitPrice.ToString("C") / Ea.</span>
+                                }
+                            }
+                    </div>
+                    <div class="col-2">
+                        @if (Model.QuoteItemPricing.ShowItemPrices)
+                            {
+                                if (Model.QuoteItemPricing.QuoteItemPrices[i - 1] > 0m)
+                                {
+                                    <span class="fw-bold">@Model.QuoteItemPricing.QuoteItemPrices[(i - 1)].ToString("C")</span>
+                                }
+                            }
+                    </div>
+                </div>
+
+                if (Model.QuoteItemPricing.ShowItemziedPrices)
+                    {
+                        for (int j = 0; j < Model.QuoteItemPricing.QuoteItemItemizedPrices[(i - 1)].Count; j++)
+                        {
+                            if (Model.QuoteItemPricing.QuoteItemItemizedPrices[(i - 1)][j] > 0m)
+                            {
+                                <div class="row fs-4 ps-2">
+                                    <div class="col-2">
+
+                                    </div>
+                                    <div class="col-6">
+                                        <span>@Model.QuoteItemPricing.QuoteItemItemizedDescriptions[(i - 1)][j]</span>
+                                    </div>
+                                    <div class="col-2">
+
+                                    </div>
+                                    <div class="col-2">
+                                        <span>@Model.QuoteItemPricing.QuoteItemItemizedPrices[i - 1][j].ToString("C")</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+
+
+
+
+
+
+                break;
+        }
+
+
+
+
+
+    }
+
+    @if (Model.QuoteItemPricing.QuotePrice.HasValue)
+    {
+        <div class="row fs-3">
+            <div class="col-11 text-end">
+                <span class="fw-bold">Total: </span><span>@Model.QuoteItemPricing.QuotePrice.Value.ToString("C")</span>
+            </div>
+        </div>
+    }
+</div>

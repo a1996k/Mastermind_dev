@@ -1,0 +1,45 @@
+﻿
+<div class="modal" tabindex="-1" id="remove_stock_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title">Remove Stock</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#remove_stock_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-12 text-center">
+                            <label class="fs-3"><u>Enter the Amount to Remove</u> <input type="number" class="amount-to-remove" /></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#remove_stock_modal">Cancel</button>
+                <button class="btn btn-fc-success remove-stock-confirm-btn" data-modal-to-close="#remove_stock_modal">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    function PassesRemoveStockValidation(toCheck) {
+
+        return toCheck <= curStock && toCheck !== 0; //curStock defined in Index.cshtml
+    };
+    
+    function RemoveStockFromMaterial() {
+
+        let entered = Number($('.amount-to-remove').val());
+        
+        if (PassesRemoveStockValidation(entered)) {
+            UpdateMaterialInventory('remove-stock', $('#ac_helper').val(), entered);
+        }
+    };
+    
+    $(function () {
+
+    }).on('click', '.remove-stock-confirm-btn', RemoveStockFromMaterial);
+</script>

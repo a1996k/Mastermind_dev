@@ -1,0 +1,494 @@
+@using FifthPress.Models.ViewModels;
+@using FifthPress.Models.ViewModels2;
+@model VM_EventCostSheetRollup
+@{
+    Layout = null;
+
+    static decimal CalculatePercentDifference(decimal price, decimal cost)
+    {
+        return (price - cost) / (cost == 0m ? 1m : cost) * 100;
+    }
+
+    static string DecimalHoursToFormatted(decimal? hours)
+    {
+        if (hours == null) return "";
+        decimal raw = hours.Value;
+        bool isNegative = (raw < 0);
+        decimal absVal = Math.Abs(raw);
+        int wholeHours = (int)absVal;
+        decimal fractionalHours = absVal - wholeHours;
+        int minutes = (int)(fractionalHours * 60);
+        if (raw > 0m && wholeHours == 0 && minutes == 0) return "0:01";
+        string sign = isNegative ? "-" : "";
+        return $"{sign}{wholeHours}:{minutes:D2}";
+    }
+}
+
+<style>
+    .costsheet-rollup-wrapper {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    .costsheet-rollup-wrapper .text-success { color: green !important; }
+    .costsheet-rollup-wrapper .text-danger { color: red !important; }
+    .costsheet-export-bar { margin-bottom: 15px; }
+    .costsheet-export-bar .btn { margin-right: 8px; }
+
+    .costsheet-export-bar .btn .fas { margin-right: 4px; }
+</style>
+
+<div class="costsheet-rollup-wrapper">
+    <h1 class="ff-dm-sans">All Clients Cost Sheet Detail</h1>
+
+    <!-- Client selector -->
+    <div class="row mb-3 costsheet-no-print">
+        <div class="col-6">
+            @Html.Partial("~/Views/Partials/Working/_MultiselectDropdown.cshtml", Model.Clients)
+        </div>
+        <div class="col-6">
+            <button type="button" class="btn r-navy-action-btn update-allclients-costsheet-rollup">Update Results</button>
+        </div>
+    </div>
+
+    @if (Model.JobGroups != null && Model.JobGroups.Count > 0)
+    {
+        // Build selected client names for display
+        var selectedClients = Model.Clients.SelectList.Where(s => s.Selected).Select(s => s.Text).ToList();
+
+        <div class="mb-2 ff-dm-sans fs-14">
+            <span class="fw-bold">Showing:</span>
+            @foreach (var name in selectedClients)
+            {
+                <span class="badge" style="background-color: #0d6efd; color: white; margin-right: 4px; font-size: 13px;">@name</span>
+            }
+        </div>
+
+        <!-- Export buttons -->
+        <div class="costsheet-export-bar costsheet-no-print">
+            <button type="button" class="btn btn-success btn-sm" id="exportAllClientsCostSheetXlsx">
+                <i class="fas fa-file-excel"></i> Export XLSX
+            </button>
+        </div>
+
+        <!-- Overall Metrics -->
+        <div class="container-fluid pb-4 pt-3" style="background-color: #f8f9fa; border-radius: 10px;">
+            <div class="row fs-16">
+                <h3 class="ff-dm-sans fs-18">Overall Metrics (@Model.JobGroups.Count job@(Model.JobGroups.Count != 1 ? "s" : ""))</h3>
+                <div class="col">
+                    <div class="field-binder-col-flex">
+                        <div class="field-binder-row-flex justify-content-center">
+                            <span class="fw-bold ff-dm-sans pe-3">Quoted Price: </span>
+                            <span class="ff-lato">$@Model.TotalQuotedPriceString</span>
+                        </div>
+                        <div class="field-binder-row-flex">
+                            <span class="fw-bold ff-dm-sans pe-3">Actual Cost: </span>
+                            <span class="ff-lato">$@Model.TotalActualCostString</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="field-binder-col-flex">
+                        <div class="field-binder-row-flex">
+                            <span class="fw-bold ff-dm-sans pe-3">Overall % Diff: </span>
+                            <span class="ff-lato @(Model.TotalPositiveSpread ? "text-success" : "text-danger")">@Model.TotalPercentDiffString%</span>
+                        </div>
+                        <div class="field-binder-row-flex">
+                            <span class="fw-bold ff-dm-sans pe-3">Spread: </span>
+                            <span class="ff-lato @(Model.TotalPositiveSpread ? "text-success" : "text-danger")">$@Model.TotalSpreadString</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="field-binder-col-flex">
+                        <div class="field-binder-row-flex">
+                            <span class="fw-bold ff-dm-sans pe-3">Quoted Time (HH:MM)</span>
+                            <span class="ff-lato">@Model.TotalQuotedTimeFormatted</span>
+                        </div>
+                        <div class="field-binder-row-flex">
+                            <span class="fw-bold ff-dm-sans pe-3">Actual Time (HH:MM)</span>
+                            <span class="ff-lato">@Model.TotalActualTimeFormatted</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Rollups -->
+        <div class="container-fluid mt-4">
+            @foreach (IGrouping<string, GetJobCostSheetTVF_Result> rollup in Model.ServiceRollups.OrderBy(x => x.Key))
+            {
+                decimal quotedTime = rollup.Sum(x => (x.ChargedTime ?? 0m));
+                string qtFmt = DecimalHoursToFormatted(quotedTime);
+
+                decimal actualTime = rollup.Sum(x => (x.ActualTime ?? 0m));
+                string atFmt = DecimalHoursToFormatted(actualTime);
+
+                decimal quotedPrice = rollup.Sum(x => (x.ChargedPrice ?? 0m));
+                decimal actualPrice = rollup.Sum(x => x.InternalCost);
+                decimal difference = quotedPrice - actualPrice;
+                string diffFmt = difference.ToString("N2");
+                decimal pDiff = CalculatePercentDifference(quotedPrice, actualPrice);
+                string pDiffString = pDiff.ToString("N2");
+                bool posDiff = pDiff > 0m;
+
+                <span class="ff-dm-sans fw-bold fs-16">Rollups for <span class="fw-normal">@rollup.Key</span></span>
+                <table class="table table-borderless table-striped fs-14">
+                    <thead>
+                        <tr>
+                            <th>Job #</th>
+                            <th>Item Description</th>
+                            <th>Quoted Time</th>
+                            <th>Actual Time</th>
+                            <th>Quoted Price</th>
+                            <th>Actual Cost</th>
+                            <th>+/-</th>
+                            <th>% Diff.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (GetJobCostSheetTVF_Result res in rollup.OrderBy(x => x.Ordinal).ToList())
+                        {
+                            decimal costDiff = (res.ChargedPrice ?? 0m) - res.InternalCost;
+                            string costDiffString = costDiff.ToString("N2");
+                            decimal pDiff2 = CalculatePercentDifference(res.ChargedPrice ?? 0m, res.InternalCost);
+                            string pDiffString2 = pDiff2.ToString("N2");
+                            bool posDiff2 = pDiff2 > 0m;
+
+                            // Find which job this result belongs to
+                            string jobNum = "";
+                            foreach (var jg in Model.JobGroups)
+                            {
+                                if (jg.ItemGroups.Any(ig => ig.ItemPrices.Contains(res)))
+                                {
+                                    jobNum = jg.JobNumber;
+                                    break;
+                                }
+                            }
+
+                            <tr>
+                                <td>@jobNum</td>
+                                <td>@res.ItemDescription</td>
+                                <td>@res.ChargeTimeFormatted</td>
+                                <td>@res.ActualTimeFormatted</td>
+                                <td>@res.ChargedPriceString</td>
+                                <td>@res.InternalCostString</td>
+                                <td class="@(posDiff2 ? "text-success" : "text-danger")">@costDiffString</td>
+                                <td class="@(posDiff2 ? "text-success" : "text-danger")">@(pDiffString2)%</td>
+                            </tr>
+                        }
+                        <tr class="fw-bold">
+                            <td></td>
+                            <td class="text-end">TOTALS</td>
+                            <td>@qtFmt</td>
+                            <td>@atFmt</td>
+                            <td>@quotedPrice.ToString("N2")</td>
+                            <td>@actualPrice.ToString("N2")</td>
+                            <td class="@(posDiff ? "text-success" : "text-danger")">@diffFmt</td>
+                            <td class="@(posDiff ? "text-success" : "text-danger")">@(pDiffString)%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <hr class="my-4" />
+
+        <!-- Per-Job Breakdowns -->
+        foreach (EventCostSheetJobGroup jobGroup in Model.JobGroups)
+        {
+            int itemCtr = 1;
+            <div class="mt-4 mb-5 p-3 job-breakdown-card" style="border: 1px solid #dee2e6; border-radius: 8px;">
+                <!-- Job header -->
+                <div class="row mb-2">
+                    <div class="col-8">
+                        <h4 class="ff-dm-sans fw-bold mb-0">
+                            <span class="text-muted">@jobGroup.Client</span>
+                            &mdash;
+                            Job #@jobGroup.JobNumber
+                        </h4>
+                        <span class="ff-dm-sans fs-14 text-muted">@jobGroup.JobDescription</span>
+                    </div>
+                    <div class="col-4 text-end">
+                        <div class="ff-dm-sans fs-14">
+                            <div>
+                                <span class="fw-bold">Quoted:</span> $@jobGroup.JobTotals.ChargedPriceString
+                                &nbsp;|&nbsp;
+                                <span class="fw-bold">Actual:</span> $@jobGroup.JobTotals.InternalCostString
+                            </div>
+                            <div>
+                                <span class="fw-bold">Spread:</span>
+                                <span class="@(jobGroup.JobTotals.PositiveSpread ? "text-success" : "text-danger")">$@jobGroup.JobTotals.TotalSpreadString</span>
+                                &nbsp;|&nbsp;
+                                <span class="fw-bold">% Diff:</span>
+                                <span class="@(jobGroup.JobTotals.PositiveSpread ? "text-success" : "text-danger")">@(jobGroup.JobTotals.PercentDifferenceString)%</span>
+                            </div>
+                            <div>
+                                <span class="fw-bold">Quoted Time:</span> @jobGroup.JobTotals.JobTimeChargedFormatted
+                                &nbsp;|&nbsp;
+                                <span class="fw-bold">Actual Time:</span> @jobGroup.JobTotals.JobTimeActualFormatted
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Item breakdowns for this job -->
+                @foreach (VM_JobCostSheetGroup g in jobGroup.ItemGroups)
+                {
+                    <div class="mt-3">
+                        <span class="ff-dm-sans fw-bold fs-14">Item @itemCtr of @jobGroup.ItemGroups.Count &mdash; @g.ItemDescription</span>
+
+                        <table class="table table-borderless table-striped fs-14 mt-1">
+                            <thead>
+                                <tr>
+                                    <th>Service Name</th>
+                                    <th>Cost Per Hr.</th>
+                                    <th>Quoted Time</th>
+                                    <th>Actual Time</th>
+                                    <th>Unit Cost</th>
+                                    <th>Per</th>
+                                    <th>Quoted Qty.</th>
+                                    <th>Actual Qty.</th>
+                                    <th>Quoted Price</th>
+                                    <th>Internal Cost</th>
+                                    <th>+/-</th>
+                                    <th>% Diff.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (GetJobCostSheetTVF_Result r in g.ItemPrices.OrderBy(x => x.Ordinal).ToList())
+                                {
+                                    if (r.IsMaterial == 1)
+                                    {
+                                        <tr>
+                                            <td>@r.EntryTitle</td>
+                                            <td>@r.HourlyRate</td>
+                                            <td>N/A</td>
+                                            <td>N/A</td>
+                                            <td>@r.UnitCostString</td>
+                                            <td>@r.Per</td>
+                                            <td></td>
+                                            <td>@r.DurationHours</td>
+                                            <td>@r.ChargedPriceString</td>
+                                            <td>@r.InternalCostString</td>
+                                            <td class="@(r.PositiveSpread ? "text-success" : "text-danger")">@r.SpreadAmountString</td>
+                                            <td class="@(r.PositiveSpread ? "text-success" : "text-danger")">@(r.PercentDifferenceString)%</td>
+                                        </tr>
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td>@r.EntryTitle</td>
+                                            <td>@r.HourlyRate</td>
+                                            <td>@r.ChargeTimeFormatted</td>
+                                            <td>@r.ActualTimeFormatted</td>
+                                            <td>@r.UnitCostString</td>
+                                            <td>@r.Per</td>
+                                            <td>1</td>
+                                            <td>1</td>
+                                            <td>@r.ChargedPriceString</td>
+                                            <td>@r.InternalCostString</td>
+                                            <td class="@(r.PositiveSpread ? "text-success" : "text-danger")">@r.SpreadAmountString</td>
+                                            <td class="@(r.PositiveSpread ? "text-success" : "text-danger")">@(r.PercentDifferenceString)%</td>
+                                        </tr>
+                                    }
+                                }
+
+                                <!-- Item Totals -->
+                                <tr class="fw-bold">
+                                    <td class="text-end">TOTALS</td>
+                                    <td></td>
+                                    <td>@g.ItemTotals.ItemTimeChargedFormatted</td>
+                                    <td>@g.ItemTotals.ItemTimeActualFormatted</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td>@g.ItemTotals.ChargedPriceString</td>
+                                    <td>@g.ItemTotals.InternalCostString</td>
+                                    <td class="@(g.ItemTotals.PositiveSpread ? "text-success" : "text-danger")">@g.ItemTotals.TotalSpreadString</td>
+                                    <td class="@(g.ItemTotals.PositiveSpread ? "text-success" : "text-danger")">@(g.ItemTotals.PercentDifferenceString)%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    itemCtr++;
+                }
+            </div>
+        }
+
+        <!-- Export data embedded as JSON for structured XLSX -->
+        <script id="costSheetExportData" type="application/json">@Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(new {
+            TotalQuotedPrice = Model.TotalQuotedPriceString,
+            TotalActualCost = Model.TotalActualCostString,
+            TotalSpread = Model.TotalSpreadString,
+            TotalPercentDiff = Model.TotalPercentDiffString,
+            TotalQuotedTime = Model.TotalQuotedTimeFormatted,
+            TotalActualTime = Model.TotalActualTimeFormatted,
+            JobCount = Model.JobGroups.Count,
+            Rollups = Model.ServiceRollups.OrderBy(x => x.Key).Select(rollup => new {
+                ServiceName = rollup.Key,
+                Rows = rollup.OrderBy(x => x.Ordinal).Select(r => new {
+                    JobNumber = Model.JobGroups.Where(jg => jg.ItemGroups.Any(ig => ig.ItemPrices.Contains(r))).Select(jg => jg.JobNumber).FirstOrDefault() ?? "",
+                    ItemDescription = r.ItemDescription,
+                    QuotedTime = r.ChargeTimeFormatted,
+                    ActualTime = r.ActualTimeFormatted,
+                    QuotedPrice = r.ChargedPriceString,
+                    ActualCost = r.InternalCostString,
+                    Spread = r.SpreadAmountString,
+                    PctDiff = r.PercentDifferenceString + "%"
+                }),
+                TotalQuotedTime = "",
+                TotalActualTime = "",
+                TotalQuotedPrice = rollup.Sum(x => (x.ChargedPrice ?? 0m)).ToString("N2"),
+                TotalActualCost = rollup.Sum(x => x.InternalCost).ToString("N2"),
+                TotalSpread = (rollup.Sum(x => (x.ChargedPrice ?? 0m)) - rollup.Sum(x => x.InternalCost)).ToString("N2"),
+                TotalPctDiff = (rollup.Sum(x => x.InternalCost) == 0m ? 0m : ((rollup.Sum(x => (x.ChargedPrice ?? 0m)) - rollup.Sum(x => x.InternalCost)) / rollup.Sum(x => x.InternalCost) * 100)).ToString("N2") + "%"
+            }),
+            Jobs = Model.JobGroups.Select(jg => new {
+                Client = jg.Client,
+                JobNumber = jg.JobNumber,
+                Description = jg.JobDescription,
+                QuotedPrice = jg.JobTotals.ChargedPriceString,
+                ActualCost = jg.JobTotals.InternalCostString,
+                Spread = jg.JobTotals.TotalSpreadString,
+                PctDiff = jg.JobTotals.PercentDifferenceString + "%",
+                QuotedTime = jg.JobTotals.JobTimeChargedFormatted,
+                ActualTime = jg.JobTotals.JobTimeActualFormatted,
+                Items = jg.ItemGroups.Select(ig => new {
+                    ItemDescription = ig.ItemDescription,
+                    Services = ig.ItemPrices.OrderBy(x => x.Ordinal).Select(r => new {
+                        ServiceName = r.EntryTitle,
+                        CostPerHr = r.HourlyRate.HasValue ? r.HourlyRate.Value.ToString("N2") : "",
+                        QuotedTime = r.IsMaterial == 1 ? "N/A" : r.ChargeTimeFormatted,
+                        ActualTime = r.IsMaterial == 1 ? "N/A" : r.ActualTimeFormatted,
+                        UnitCost = r.UnitCostString ?? "",
+                        Per = r.Per ?? "",
+                        QuotedQty = r.IsMaterial == 1 ? "" : "1",
+                        ActualQty = r.IsMaterial == 1 ? (r.DurationHours.HasValue ? r.DurationHours.Value.ToString() : "") : "1",
+                        QuotedPrice = r.ChargedPriceString,
+                        InternalCost = r.InternalCostString,
+                        Spread = r.SpreadAmountString,
+                        PctDiff = r.PercentDifferenceString + "%"
+                    }),
+                    TotalQuotedTime = ig.ItemTotals.ItemTimeChargedFormatted,
+                    TotalActualTime = ig.ItemTotals.ItemTimeActualFormatted,
+                    TotalQuotedPrice = ig.ItemTotals.ChargedPriceString,
+                    TotalInternalCost = ig.ItemTotals.InternalCostString,
+                    TotalSpread = ig.ItemTotals.TotalSpreadString,
+                    TotalPctDiff = ig.ItemTotals.PercentDifferenceString + "%"
+                })
+            })
+        }))</script>
+    }
+    else if (Model.JobGroups != null && Model.JobGroups.Count == 0)
+    {
+        <div class="alert alert-info mt-3">Select a client and click "Update Results" to view cost sheet data.</div>
+    }
+</div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script>
+    $(function () {
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // XLSX Export — unbind first to prevent stacking from AJAX reloads
+        $(document).off('click', '#exportAllClientsCostSheetXlsx').on('click', '#exportAllClientsCostSheetXlsx', function () {
+            var $btn = $(this);
+            var originalHtml = $btn.html();
+
+            // Show spinner feedback
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generating XLSX...');
+
+            // Use setTimeout to let the UI update before heavy processing
+            setTimeout(function () {
+                try {
+                    var jsonEl = document.getElementById('costSheetExportData');
+                    if (!jsonEl) { $btn.prop('disabled', false).html(originalHtml); return; }
+                    var data = JSON.parse(jsonEl.textContent);
+
+                    var rows = [];
+
+                    // Title
+                    rows.push(['All Clients Cost Sheet Detail']);
+                    rows.push([]);
+
+                    // Overall Metrics
+                    rows.push(['Overall Metrics (' + data.JobCount + ' job' + (data.JobCount !== 1 ? 's' : '') + ')']);
+                    rows.push(['Quoted Price', '$' + data.TotalQuotedPrice, '', 'Actual Cost', '$' + data.TotalActualCost]);
+                    rows.push(['Spread', '$' + data.TotalSpread, '', '% Diff', data.TotalPercentDiff + '%']);
+                    rows.push(['Quoted Time', data.TotalQuotedTime, '', 'Actual Time', data.TotalActualTime]);
+                    rows.push([]);
+
+                    // Service Rollups
+                    rows.push(['SERVICE ROLLUPS']);
+                    rows.push([]);
+
+                    data.Rollups.forEach(function (rollup) {
+                        rows.push(['Rollup: ' + rollup.ServiceName]);
+                        rows.push(['Job #', 'Item Description', 'Quoted Time', 'Actual Time', 'Quoted Price', 'Actual Cost', '+/-', '% Diff']);
+
+                        rollup.Rows.forEach(function (r) {
+                            rows.push([r.JobNumber, r.ItemDescription, r.QuotedTime, r.ActualTime, r.QuotedPrice, r.ActualCost, r.Spread, r.PctDiff]);
+                        });
+
+                        rows.push(['', 'TOTALS', rollup.TotalQuotedTime, rollup.TotalActualTime, rollup.TotalQuotedPrice, rollup.TotalActualCost, rollup.TotalSpread, rollup.TotalPctDiff]);
+                        rows.push([]);
+                    });
+
+                    // Job Detail
+                    rows.push(['JOB DETAIL']);
+                    rows.push([]);
+
+                    var detailHeader = ['Service Name', 'Cost/Hr', 'Quoted Time', 'Actual Time', 'Unit Cost', 'Per', 'Quoted Qty', 'Actual Qty', 'Quoted Price', 'Internal Cost', '+/-', '% Diff'];
+
+                    data.Jobs.forEach(function (job) {
+                        rows.push([job.Client + ' \u2014 Job #' + job.JobNumber + ' \u2014 ' + job.Description]);
+                        rows.push(['Quoted: $' + job.QuotedPrice, 'Actual: $' + job.ActualCost, 'Spread: $' + job.Spread, '% Diff: ' + job.PctDiff, 'Quoted Time: ' + job.QuotedTime, 'Actual Time: ' + job.ActualTime]);
+
+                        job.Items.forEach(function (item) {
+                            rows.push([]);
+                            rows.push(['  Item: ' + item.ItemDescription]);
+                            rows.push(detailHeader);
+
+                            item.Services.forEach(function (svc) {
+                                rows.push([svc.ServiceName, svc.CostPerHr, svc.QuotedTime, svc.ActualTime, svc.UnitCost, svc.Per, svc.QuotedQty, svc.ActualQty, svc.QuotedPrice, svc.InternalCost, svc.Spread, svc.PctDiff]);
+                            });
+
+                            rows.push(['TOTALS', '', item.TotalQuotedTime, item.TotalActualTime, '', '', '', '', item.TotalQuotedPrice, item.TotalInternalCost, item.TotalSpread, item.TotalPctDiff]);
+                        });
+
+                        rows.push([]);
+                    });
+
+                    var ws = XLSX.utils.aoa_to_sheet(rows);
+
+                    // Auto-size columns
+                    var colWidths = [];
+                    rows.forEach(function (row) {
+                        row.forEach(function (cell, ci) {
+                            var len = cell ? cell.toString().length : 0;
+                            if (!colWidths[ci] || len > colWidths[ci]) colWidths[ci] = len;
+                        });
+                    });
+                    ws['!cols'] = colWidths.map(function (w) { return { wch: Math.min(w + 2, 40) }; });
+
+                    var wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, ws, 'Cost Sheet Detail');
+
+                    var now = new Date();
+                    var fname = now.getFullYear() + '-' +
+                        String(now.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(now.getDate()).padStart(2, '0') +
+                        '_all_clients_cost_sheet_detail.xlsx';
+                    XLSX.writeFile(wb, fname);
+                } catch (err) {
+                    console.error('XLSX export error:', err);
+                    alert('Error generating XLSX: ' + err.message);
+                } finally {
+                    $btn.prop('disabled', false).html(originalHtml);
+                }
+            }, 50);
+        });
+    });
+</script>

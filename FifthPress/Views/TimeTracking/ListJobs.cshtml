@@ -1,0 +1,194 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_TimeTrackerJobList
+
+@Styles.Render("~/Content/timetracking")
+
+@Scripts.Render("~/bundles/timetracking")
+<script>
+    let individualTimers = [];
+    let aggregateTimers = [];
+
+    //initialElapsedTime is in MILLISECONDS (use the parseTimeToMilliseconds function above which parses from a HH:MM:SS format)
+    function addTimeTrackingTimer(serviceId, initialElapsedTime) {
+
+        let startTime = new Date(new Date().getTime() - initialElapsedTime);
+
+        console.log('creating timer with service id = ' + serviceId);
+
+        individualTimers.push({
+            id: 'mt_' + serviceId,
+            startTime: startTime
+        });
+
+        console.log(individualTimers);
+    };
+</script>
+<div class="container-fluid">
+    <div class="row">
+        <div class="row">
+            <div class="col-5">
+                <span class="ff-poppins fw-bold fs-30">Upcoming Jobs</span>
+                <!-- Key Here -->
+            </div>
+            <div class="col-4 text-end">
+                <span class="ff-dm-sans fw-normal fs-24">@System.DateTime.Now.ToString("dddd, MMM dd")</span>
+            </div>
+            <div class="col-3"></div>
+        </div>
+        <div class="col-12 col-md-9">
+            <div class="row">
+                @foreach (var group in Model.GroupedJobs.OrderBy(x => x.First().GroupSort))
+                {
+                    <div class="col-12 display-wrapper mt-5">
+                        <h2 class="ff-dm-sans fs-24 fw-bolder">@group.Key</h2>
+                        <table class="table table-striped">
+                            <thead>
+                                <tr class="fs-18">
+                                    <th></th>
+                                    <th>Min Start Date</th>
+                                    <th>Items Complete</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var jobGroup in group.GroupBy(j => j.JobId))
+                                {
+                                    var job = jobGroup.FirstOrDefault();
+                                    var collapseId = $"collapse_{job.JobId}";
+
+                                    <tr class="ff-poppins fs-16 fw-bold job-parent" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                                        <td class="ff-lato">#@job.JobNumber</td>
+                                        <td class="fs-14 ff-dm-sans">@(job.JobMinStartDate.HasValue ? job.JobMinStartDate.Value.ToString("dddd, MMM dd") : "No Min Start Date")</td>
+                                        <td class="fw-normal fs-14 ff-lato">@job.CompletionStatus</td>
+                                        <td><i class="fa-solid fa-caret-up expand-icon fs-28" aria-expanded="false"></i></td>
+                                    </tr>
+
+                                    <tr class="collapse fs-16" id="@collapseId">
+                                        <td colspan="5">
+                                            <table class="table">
+                                                <tbody>
+                                                    @foreach (var item in jobGroup)
+                                                    {
+                                                        <tr>
+                                                            <td class="ff-dm-sans fs-14">#@item.ItemIdentifier</td>
+                                                            <td class="ff-dm-sans fw-bold fs-14">@item.Description</td>
+                                                            <td class="ff-dm-sans fw-bold fs-14">Qty: @item.Quantity</td>
+                                                            @if (group.First().GroupSort == 1)
+                                                            {
+                                                                <td>
+                                                                    @if (Model.PendingOverdueServices.Any(x => x.JobItemId == item.Id))
+                                                                    {
+                                                                        var pendingService = Model.PendingOverdueServices.First(x => x.JobItemId == item.Id);
+                                                                        <span class="ff-poppins fs-14"><span class="fw-normal">Overdue At:</span> @pendingService.Title</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <span class="ff-poppins fs-14 fw-normal">No Pending Service</span>
+                                                                    }
+                                                                </td>
+                                                            }
+                                                            <td>
+                                                                @if (item.ItemComplete.HasValue)
+                                                                {
+                                                                    <span class="i-complete-text">Complete</span>
+                                                                }
+                                                            </td>
+                                                            <td class="d-flex flex-row justify-content-end">
+                                                                <span class="ff-poppins fs-14 fw-bold track-time-tgt" data-job-id="@item.JobId" data-item-id="@item.Id">
+                                                                    Track Time <i class="fa-solid fa-clock ms-2"></i>
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-12 col-md-3 ps-5">
+            <!-- General Tasks -->
+            <div class="row">
+                <div class="col-12 display-wrapper mt-5">
+                    <span class="ff-dm-sans fs-18 fw-bold">Other Tasks</span>
+                    @foreach (var categoryGroup in Model.GeneralServicesByCategory)
+                    {
+                        var collapseId = $"collapse_{categoryGroup.Key.Replace(" ", "_")}";
+                        <div class="col-12 display-wrapper mt-3 service-list-row">
+                            <div class="gen-task-collapser" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                                <i class="fa-solid fa-caret-up expand-icon fs-18" aria-expanded="false"></i>
+                                <span class="ff-dm-sans fs-16 fw-bold">@categoryGroup.Key</span>
+                            </div>
+                            <div class="collapse" id="@collapseId">
+                                <ul>
+                                    @foreach (var service in categoryGroup.OrderBy(x => x.Title))
+                                    {
+                                        <li class="ff-poppins fs-14 p-3 border-bottom gen-service-entry service-entry" data-record-id="@Html.DisplayFor(model => service.Id)">
+                                            <input type="hidden" class="elapsed-ms" value="@Html.DisplayFor(model => service.UserContext_SingleServiceTimeMilliseconds)" />
+                                            <div class="field-binder-row-flex justify-content-between">
+                                                <span class="ff-dm-sans fs-14 fw-bold">@service.Title</span>
+                                                @if ((service.Service.IsTimed ?? false))
+                                                {
+                                                    <div class="field-binder-row-flex justify-content-between">
+                                                        <!-- My Time -->
+                                                        <span class="ff-lato fs-18 my-time-display me-3" id="mt_@Html.DisplayFor(model => service.Id)"></span>
+
+                                                        <!-- Start/Stop Button -->
+                                                        @if (service.UserContext_IsRunning)
+                                                        {
+                                                            <script>
+                                                                //start a timer
+                                                                addTimeTrackingTimer('@service.Id', '@service.UserContext_SingleServiceTimeMilliseconds');
+                                                            </script>
+
+                                                            <button type="button" class="btn btn-success btn-sm start-button start-general-task-btn fs-12" style="display:none">Start <i class="ms-3 fa-solid fa-play"></i></button>
+                                                            <button type="button" class="btn btn-danger btn-sm stop-button stop-general-task-btn fs-12">Stop <i class="ms-3 fa-solid fa-stop"></i></button>
+                                                        }
+                                                        else
+                                                        {
+                                                            <button type="button" class="btn btn-success start-button btn-sm start-general-task-btn fs-12">Start <i class="ms-3 fa-solid fa-play"></i></button>
+                                                            <button type="button" class="btn btn-danger stop-button btn-sm stop-general-task-btn fs-12" style="display:none">Stop <i class="ms-3 fa-solid fa-stop"></i></button>
+                                                        }
+                                                    </div>
+                                                }
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggles the expand/collapse icon
+    function ExpandCollapseRow(event) {
+        const $row = $(event.currentTarget);
+        const $icon = $row.find('.expand-icon');
+        const isExpanded = $icon.attr('aria-expanded') === 'true';
+
+        $icon.attr('aria-expanded', !isExpanded);
+    }
+
+    // Redirects to the time tracker page
+    function GoToTimeTracker(event) {
+        const $target = $(event.currentTarget);
+        const jobId = $target.attr('data-job-id');
+        const itemId = $target.attr('data-item-id');
+
+        window.location = `/time-tracking/${jobId}/${itemId}`;
+    }
+
+    $(function () { })
+        .on('click', '.job-parent', ExpandCollapseRow)
+        .on('click', '.track-time-tgt', GoToTimeTracker);
+</script>

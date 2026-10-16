@@ -1,0 +1,268 @@
+﻿@model FifthPress.Models.ViewModels2.PO25.VM_ApprovalDashboard25
+@{
+    ViewBag.Title = "Approval Dashboard";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Approval Dashboard</h2>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <!-- SLA Metrics Summary -->
+            @if (Model.SLAMetrics != null)
+            {
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-primary">
+                            <div class="card-body">
+                                <div class="card-title">
+                                    <h3>@Model.SLAMetrics.TotalPendingApprovals</h3>
+                                    <p class="mb-0">Pending Approvals</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white @(Model.SLAMetrics.OverduePOs > 0 ? "bg-danger" : "bg-success")">
+                            <div class="card-body">
+                                <div class="card-title">
+                                    <h3>@Model.SLAMetrics.OverduePOs</h3>
+                                    <p class="mb-0">Overdue POs</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning">
+                            <div class="card-body">
+                                <div class="card-title">
+                                    <h3>@Model.SLAMetrics.DueTodayPOs</h3>
+                                    <p class="mb-0">Due Today</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-info">
+                            <div class="card-body">
+                                <div class="card-title">
+                                    <h3>@Model.SLAMetrics.AverageApprovalTimeHours.ToString("F1")h</h3>
+                                    <p class="mb-0">Avg Approval Time</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="row">
+                <div class="col-md-8">
+                    <!-- Pending Approvals -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h4>Pending Purchase Orders</h4>
+                        </div>
+                        <div class="card-body">
+                            @if (Model.PendingApprovals != null && Model.PendingApprovals.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover">
+                                        <thead class="thead-dark">
+                                            <tr>
+                                                <th>PO #</th>
+                                                <th>Submitted By</th>
+                                                <th>Department</th>
+                                                <th>Amount</th>
+                                                <th>Date Submitted</th>
+                                                <th>SLA Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var po in Model.PendingApprovals)
+                                            {
+                                                <tr class="@(po.SLAStatus.IsOverdue ? "table-danger" : po.SLAStatus.HoursRemaining <= 24 ? "table-warning" : "")">
+                                                    <td>
+                                                        @Html.ActionLink(po.PO_OrderId.ToString(), "Review", new { id = po.PO_OrderId }, new { @class = "font-weight-bold" })
+                                                    </td>
+                                                    <td>@po.SubmittedBy</td>
+                                                    <td>@po.Department</td>
+                                                    <td>$@po.TotalAmount.ToString("F2")</td>
+                                                    <td>@po.DateSubmitted.ToString("MM/dd/yyyy")</td>
+                                                    <td>
+                                                        <span class="badge @GetSLABadgeClass(po.SLAStatus.StatusClass)">
+                                                            @po.SLAStatus.StatusText
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        @Html.ActionLink("Review", "Review", new { id = po.PO_OrderId }, new { @class = "btn btn-sm btn-primary" })
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-info">
+                                    <h5>No Pending Approvals</h5>
+                                    <p class="mb-0">There are currently no purchase orders awaiting your approval.</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <!-- Budget Summary -->
+                    @if (Model.BudgetSummary != null)
+                    {
+                        <div class="card">
+                            <div class="card-header">
+                                <h4>Department Budget</h4>
+                            </div>
+                            <div class="card-body">
+                                <h5>@Model.BudgetSummary.DepartmentName</h5>
+
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Annual Budget:</span>
+                                        <strong>$@Model.BudgetSummary.AnnualBudget.ToString("F2")</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>YTD Spent:</span>
+                                        <span>$@Model.BudgetSummary.YtdSpent.ToString("F2")</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span>Remaining:</span>
+                                        <strong class="@(Model.BudgetSummary.AvailableBalance < 0 ? "text-danger" : "text-success")">
+                                            $@Model.BudgetSummary.AvailableBalance.ToString("F2")
+                                        </strong>
+                                    </div>
+                                </div>
+
+                                <div class="progress mb-2">
+                                    <div class="progress-bar @(Model.BudgetSummary.PercentUsed > 100 ? "bg-danger" : Model.BudgetSummary.PercentUsed > 80 ? "bg-warning" : "bg-success")"
+                                         role="progressbar"
+                                         style="width: @Math.Min(Model.BudgetSummary.PercentUsed, 100)%"
+                                         aria-valuenow="@Model.BudgetSummary.PercentUsed"
+                                         aria-valuemin="0"
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                <small class="text-muted">@Model.BudgetSummary.PercentUsed.ToString("F1")% of budget used</small>
+
+                                @if (Model.BudgetSummary.IsOverBudget)
+                                {
+                                    <div class="alert alert-danger mt-2 mb-0">
+                                        <small><strong>⚠️ Over Budget!</strong></small>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- SLA Alerts -->
+                    @if (Model.SLAMetrics?.Alerts != null && Model.SLAMetrics.Alerts.Any())
+                    {
+                        <div class="card mt-3">
+                            <div class="card-header">
+                                <h4>SLA Alerts</h4>
+                            </div>
+                            <div class="card-body">
+                                @foreach (var alert in Model.SLAMetrics.Alerts.Take(5))
+                                {
+                                    <div class="alert @GetAlertClass(alert.AlertType) alert-sm mb-2">
+                                        <small>
+                                            <strong>@alert.AlertType:</strong><br>
+                                            @alert.Message
+                                        </small>
+                                    </div>
+                                }
+
+                                @if (Model.SLAMetrics.Alerts.Count > 5)
+                                {
+                                    <small class="text-muted">...and @(Model.SLAMetrics.Alerts.Count - 5) more alerts</small>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Quick Actions -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h4>Quick Actions</h4>
+                        </div>
+                        <div class="card-body">
+                            @if (Html.IsPOAdmin())
+                            {
+                                @Html.ActionLink("Admin Dashboard", "Index", "PO25Admin", null, new { @class = "btn btn-outline-primary btn-block mb-2" })
+                                @Html.ActionLink("Budget Management", "BudgetManagement", "PO25Admin", null, new { @class = "btn btn-outline-secondary btn-block mb-2" })
+                            }
+
+                            @Html.ActionLink("All POs", "Index", "PO25", null, new { @class = "btn btn-outline-info btn-block mb-2" })
+                            @Html.ActionLink("Create New PO", "Create", "PO25", null, new { @class = "btn btn-success btn-block" })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetSLABadgeClass(string statusClass)
+    {
+        switch (statusClass)
+        {
+            case "sla-overdue": return "badge-danger";
+            case "sla-critical": return "badge-warning";
+            case "sla-warning": return "badge-info";
+            default: return "badge-success";
+        }
+    }
+
+    string GetAlertClass(string alertType)
+    {
+        switch (alertType)
+        {
+            case "Overdue": return "alert-danger";
+            case "DueSoon": return "alert-warning";
+            case "DueToday": return "alert-info";
+            default: return "alert-secondary";
+        }
+    }
+}
+
+<style>
+    .alert-sm {
+        padding: 0.25rem 0.5rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .card-title h3 {
+        font-size: 2rem;
+        margin-bottom: 0;
+    }
+
+    .table-danger {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+
+    .table-warning {
+        background-color: rgba(255, 193, 7, 0.1) !important;
+    }
+
+    .progress {
+        height: 10px;
+    }
+</style>

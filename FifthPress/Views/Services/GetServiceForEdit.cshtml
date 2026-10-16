@@ -1,0 +1,101 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Service
+
+<div class="fs-3 param-wrapper" data-modal-to-open="#parameter_list">
+    <i class="fa-light fa-bomb view-parameters" id="vp"></i>
+    <label>Timing Parameters</label>
+</div>
+<form method="post" action="services/save" enctype="multipart/form-data" data-item-type="Service">
+    @Html.HiddenFor(model => model.Service.Id)
+    @Html.HiddenFor(model => model.Service.Deleted)
+    @Html.HiddenFor(model => model.Service.SerNo)
+    @Html.HiddenFor(model => model.Service.ServiceCategory)
+    @Html.HiddenFor(model => model.Service.ServiceConfiguration)
+
+    <div class="d-flex flex-row flex-wrap justify-content-between">
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.Title)
+            @Html.EditorFor(model => model.Service.Title, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.CatNo)
+            @Html.DropDownListFor(model => model.Service.CatNo, ViewData["Service.CatNo"] as SelectList, htmlAttributes: new { })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.ProductionDepartment)
+            @Html.DropDownListFor(model => model.Service.ProductionDepartment, ViewData["Service.ProductionDepartment"] as SelectList, htmlAttributes: new { })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.TimeFormula)
+            @Html.DropDownListFor(model => model.Service.TimeFormula, ViewData["Service.TimeFormula"] as SelectList, htmlAttributes: new { })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.MakeReady)
+            @Html.EditorFor(model => model.Service.MakeReady, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.WashUp)
+            @Html.EditorFor(model => model.Service.WashUp, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.Caliper)
+            @Html.EditorFor(model => model.Service.Caliper, new { htmlAttribues = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.BasePrice)
+            @Html.EditorFor(model => model.Service.BasePrice)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.MaterialCost)
+            @Html.EditorFor(model => model.Service.MaterialCost)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.Notes)
+            @Html.TextAreaFor(model => model.Service.Notes, htmlAttributes: new { @data_changed = false })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.Required)
+            @Html.CheckBox("Service.Required", Model.Service.Required ?? false)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.IsTimed)
+            @Html.CheckBox("Service.IsTimed", Model.Service.IsTimed ?? false)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            <label for="Service_ShowInUtilization">Show In Utilization Report</label>
+            @Html.CheckBox("Service.ShowInUtilization", Model.Service.ShowInUtilization)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.IsCuttingService)
+            @Html.CheckBox("Service.IsCuttingService", Model.Service.IsCuttingService ?? false)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.ScrapAmount)
+            @Html.EditorFor(model => model.Service.ScrapAmount)
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Service.ScrapPercent)
+            @Html.EditorFor(model => model.Service.ScrapPercent)
+        </div>
+    </div>
+
+    <div class="field-binder-row-flex mt-5">
+        <input type="submit" value="Save" data-modal-to-close="#" />
+        <input type="button" value="Cancel" data-modal-to-close="#" />
+    </div>
+</form>
+
+<div class="modal" tabindex="-1" id="parameter_list">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Timing Parameters</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#parameter_list" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+            </div>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_GeneralServiceSelectModal.cshtml", Model.Services)

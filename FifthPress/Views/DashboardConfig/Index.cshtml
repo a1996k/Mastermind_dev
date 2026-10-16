@@ -1,0 +1,27 @@
+﻿@Styles.Render("~/Content/DashboardConfigurator")
+
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h3 class="ff-poppins fs-16">Select a User to Configure Dashboard Permissions</h3>
+            @Html.DropDownList("Users", ViewData["Users"] as SelectList, htmlAttributes: new { @class = "styled-input dash-config-user-select" })
+        </div>
+    </div>
+
+    <div class="row pt-5">
+        <div class="col-6 active-card-col" style="display:none">
+            <h3>Active Cards</h3>
+            <ul class="active-cards striped-ul">
+            </ul>
+        </div>
+        <div class="col-6 inactive-card-col" style="display:none">
+            <h3>Inactive Cards</h3>
+            <ul class="inactive-cards striped-ul">
+            </ul>
+        </div>
+    </div>
+</div>
+
+@Html.Partial("~/Views/Partials/_DashboardPermissionConfigurator.cshtml")
+
+@Scripts.Render("~/bundles/DashboardConfigurator")

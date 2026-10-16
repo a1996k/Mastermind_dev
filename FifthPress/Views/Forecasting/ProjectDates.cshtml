@@ -1,0 +1,829 @@
+@model List<FifthPress.Controllers.ExternalProjectDateInfo>
+
+@{
+    ViewBag.Title = "Project Date Management";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Project Date Management</h2>
+            <p class="text-muted">
+                Set start and end dates for external projects to improve utilization forecasting accuracy
+            </p>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade in">
+                    <button type="button" class="close" data-bs-dismiss="alert">&times;</button>
+                    @TempData["Success"]
+                </div>
+            }
+
+            <!-- Recently Created Projects -->
+            @{
+                var recentProjects = ViewBag.RecentProjects as List<FifthPress.Controllers.ExternalProjectDateInfo>;
+            }
+            <div class="panel panel-warning" style="margin-bottom: 20px;">
+                <div class="panel-heading">
+                    <h4 class="panel-title">New Projects (Last 7 Days) @if (recentProjects != null && recentProjects.Any()) { <span class="badge">@recentProjects.Count</span> }</h4>
+                </div>
+                @if (recentProjects != null && recentProjects.Any())
+                {
+                    <div class="panel-body" style="padding: 0;">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover table-condensed" style="margin-bottom: 0;">
+                                <thead>
+                                    <tr>
+                                        <th style="min-width: 180px;">Project Name</th>
+                                        <th style="width: 90px;">Client</th>
+                                        <th style="width: 60px;" title="Total Budget Hours">Budget</th>
+                                        <th style="width: 60px;" title="Hours Logged">Logged</th>
+                                        <th style="width: 110px;" title="First - Last Time Entry">Entries</th>
+                                        <th style="width: 100px;">Start</th>
+                                        <th style="width: 100px;">End</th>
+                                        <th style="width: 130px;" title="Assigned billing classes">Billing Classes</th>
+                                        <th style="width: 80px;">Created</th>
+                                        <th style="width: 100px;">Status</th>
+                                        <th style="width: 70px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var project in recentProjects)
+                                    {
+                                        var hasNoDates = !project.ProjectStartDate.HasValue && !project.ProjectEndDate.HasValue && !project.EstimatedCompletionDate.HasValue;
+                                        var rowClass = hasNoDates ? "warning" : "";
+
+                                        <tr class="@rowClass" data-project-id="@project.ProjectId" data-external-id="@project.ExternalProjectId">
+                                            <td>
+                                                <strong>@project.ProjectName</strong>
+                                                @if (hasNoDates)
+                                                {
+                                                    <span class="label label-warning">No dates</span>
+                                                }
+                                            </td>
+                                            <td>@project.ClientName</td>
+                                            <td>@(project.TotalBudgetHours?.ToString("N0") ?? "0")</td>
+                                            <td>@(project.TotalHoursLogged?.ToString("N0") ?? "0")</td>
+                                            <td>
+                                                @if (project.FirstTimeEntryDate.HasValue && project.LastTimeEntryDate.HasValue)
+                                                {
+                                                    <small>
+                                                        @project.FirstTimeEntryDate.Value.ToString("MM/dd/yy") -
+                                                        @project.LastTimeEntryDate.Value.ToString("MM/dd/yy")
+                                                    </small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <input type="date"
+                                                       class="form-control input-sm date-input"
+                                                       data-field="startDate"
+                                                       data-project-id="@project.ProjectId"
+                                                       value="@(project.ProjectStartDate?.ToString("yyyy-MM-dd"))" />
+                                            </td>
+                                            <td>
+                                                <input type="date"
+                                                       class="form-control input-sm date-input"
+                                                       data-field="endDate"
+                                                       data-project-id="@project.ProjectId"
+                                                       value="@(project.ProjectEndDate?.ToString("yyyy-MM-dd"))" />
+                                            </td>
+                                            <td>
+                                                @if (project.BillingClassCount > 0)
+                                                {
+                                                    <span class="label label-info" style="cursor: pointer;" title="@project.BillingClassSummary"
+                                                          onclick="showBillingClasses(@project.ExternalProjectId, '@Html.Raw(project.ProjectName.Replace("'", "\\'"))')">
+                                                        @project.BillingClassCount class(es) - @(project.AssignedHours?.ToString("N0") ?? "0")h
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">None</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (project.CreatedOn.HasValue)
+                                                {
+                                                    <small>@project.CreatedOn.Value.ToString("MM/dd/yy")</small>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">-</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (project.LinkedContractId.HasValue)
+                                                {
+                                                    <span class="label label-success" title="Linked to: @project.LinkedContractName">Converted</span>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" class="btn btn-xs btn-success"
+                                                            onclick="convertToContract(@project.ExternalProjectId, '@Html.Raw(project.ProjectName.Replace("'", "\\'"))')">
+                                                        Convert
+                                                    </button>
+                                                }
+                                            </td>
+                                            <td>
+                                                <button type="button"
+                                                        class="btn btn-xs btn-primary save-btn"
+                                                        onclick="saveProjectDates(@project.ProjectId)">
+                                                    Save
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="panel-body">
+                        <p class="text-muted" style="margin: 0;">No new projects in the last 7 days.</p>
+                    </div>
+                }
+            </div>
+
+            <!-- Filters -->
+            <div class="panel panel-default" style="margin-bottom: 20px;">
+                <div class="panel-body">
+                    <form method="get" class="form-inline">
+                        <div class="form-group" style="margin-right: 10px;">
+                            <label for="departmentId">Department:</label>
+                            <select name="departmentId" id="departmentId" class="form-control">
+                                <option value="">All Departments</option>
+                                @foreach (var dept in ViewBag.Departments)
+                                {
+                                    <option value="@dept.Id" @(ViewBag.SelectedDepartmentId == dept.Id ? "selected" : "")>
+                                        @dept.Title
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-right: 10px;">
+                            <label for="searchTerm">Search:</label>
+                            <input type="text" name="searchTerm" id="searchTerm" value="@ViewBag.SearchTerm"
+                                   class="form-control" placeholder="Project or client name" />
+                        </div>
+
+                        <div class="form-group" style="margin-right: 10px;">
+                            <label for="tagFilter">Tag:</label>
+                            <select name="tagFilter" id="tagFilter" class="form-control" style="width: 180px;">
+                                <option value="">All Tags</option>
+                                <option value="Active" @(ViewBag.TagFilter == "Active" ? "selected" : "")>Active</option>
+                                <option value="Backlog" @(ViewBag.TagFilter == "Backlog" ? "selected" : "")>Backlog</option>
+                                <option value="In Progress" @(ViewBag.TagFilter == "In Progress" ? "selected" : "")>In Progress</option>
+                                <option value="Internal Review" @(ViewBag.TagFilter == "Internal Review" ? "selected" : "")>Internal Review</option>
+                                <option value="Internal - Non Billable" @(ViewBag.TagFilter == "Internal - Non Billable" ? "selected" : "")>Internal - Non Billable</option>
+                                <option value="On Hold" @(ViewBag.TagFilter == "On Hold" ? "selected" : "")>On Hold</option>
+                                <option value="Pro Bono Work" @(ViewBag.TagFilter == "Pro Bono Work" ? "selected" : "")>Pro Bono Work</option>
+                                <option value="Ready To Bill" @(ViewBag.TagFilter == "Ready To Bill" ? "selected" : "")>Ready To Bill</option>
+                                <option value="Waiting On Client" @(ViewBag.TagFilter == "Waiting On Client" ? "selected" : "")>Waiting On Client</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" style="margin-right: 10px;">
+                            <label>
+                                <input type="checkbox" name="hasNoDates" value="true" @(ViewBag.HasNoDates ? "checked" : "") />
+                                Show only projects without dates
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Filter</button>
+                        <a href="@Url.Action("ProjectDates")" class="btn btn-default">Clear</a>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="panel panel-info" style="margin-bottom: 20px;">
+                <div class="panel-heading">
+                    <h4 class="panel-title">Bulk Actions</h4>
+                </div>
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label>Start Date:</label>
+                            <input type="date" id="bulkStartDate" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label>End Date:</label>
+                            <input type="date" id="bulkEndDate" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label>Expected Completion:</label>
+                            <input type="date" id="bulkExpectedDate" class="form-control" />
+                        </div>
+                        <div class="col-md-3">
+                            <label>&nbsp;</label>
+                            <button type="button" class="btn btn-warning btn-block" onclick="applyBulkDates()">
+                                Apply Dates to Selected
+                            </button>
+                            <button type="button" class="btn btn-success btn-block" style="margin-top: 5px;" onclick="bulkConvertToContracts()">
+                                Convert Selected to Contracts
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-muted" style="margin-top: 10px; margin-bottom: 0;">
+                        <strong>Tip:</strong> Select projects using checkboxes below, then set dates or convert to forecasted contracts.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Project Count -->
+            <div class="alert alert-info">
+                <strong>@Model.Count projects found</strong>
+                @if (Model.Count(p => !p.ProjectStartDate.HasValue && !p.ProjectEndDate.HasValue) > 0)
+                {
+                    <text> - @Model.Count(p => !p.ProjectStartDate.HasValue && !p.ProjectEndDate.HasValue) without dates</text>
+                }
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-condensed main-projects-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;">
+                                    <input type="checkbox" id="selectAll" title="Select all" />
+                                </th>
+                                <th style="min-width: 180px;">Project Name</th>
+                                <th style="width: 90px;">Client</th>
+                                <th style="width: 60px;" title="Total Budget Hours">Budget</th>
+                                <th style="width: 60px;" title="Hours Logged">Logged</th>
+                                <th style="width: 110px;" title="First - Last Time Entry">Entries</th>
+                                <th style="width: 100px;">Start</th>
+                                <th style="width: 100px;">End</th>
+                                <th style="width: 130px;" title="Assigned billing classes">Billing Classes</th>
+                                <th style="width: 80px;">Created</th>
+                                <th style="width: 100px;">Status</th>
+                                <th style="width: 70px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var project in Model)
+                            {
+                                var hasNoDates = !project.ProjectStartDate.HasValue && !project.ProjectEndDate.HasValue && !project.EstimatedCompletionDate.HasValue;
+                                var rowClass = hasNoDates ? "warning" : "";
+
+                                <tr class="@rowClass" data-project-id="@project.ProjectId" data-external-id="@project.ExternalProjectId">
+                                    <td>
+                                        <input type="checkbox" class="project-checkbox" value="@project.ProjectId" data-external-id="@project.ExternalProjectId" />
+                                    </td>
+                                    <td>
+                                        <strong>@project.ProjectName</strong>
+                                        @if (hasNoDates)
+                                        {
+                                            <span class="label label-warning">No dates</span>
+                                        }
+                                    </td>
+                                    <td>@project.ClientName</td>
+                                    <td>@(project.TotalBudgetHours?.ToString("N0") ?? "0")</td>
+                                    <td>@(project.TotalHoursLogged?.ToString("N0") ?? "0")</td>
+                                    <td>
+                                        @if (project.FirstTimeEntryDate.HasValue && project.LastTimeEntryDate.HasValue)
+                                        {
+                                            <small>
+                                                @project.FirstTimeEntryDate.Value.ToString("MM/dd/yy") -
+                                                @project.LastTimeEntryDate.Value.ToString("MM/dd/yy")
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <input type="date"
+                                               class="form-control input-sm date-input"
+                                               data-field="startDate"
+                                               data-project-id="@project.ProjectId"
+                                               value="@(project.ProjectStartDate?.ToString("yyyy-MM-dd"))" />
+                                    </td>
+                                    <td>
+                                        <input type="date"
+                                               class="form-control input-sm date-input"
+                                               data-field="endDate"
+                                               data-project-id="@project.ProjectId"
+                                               value="@(project.ProjectEndDate?.ToString("yyyy-MM-dd"))" />
+                                    </td>
+                                    <td>
+                                        @if (project.BillingClassCount > 0)
+                                        {
+                                            <span class="label label-info" style="cursor: pointer;" title="@project.BillingClassSummary"
+                                                  onclick="showBillingClasses(@project.ExternalProjectId, '@Html.Raw(project.ProjectName.Replace("'", "\\'"))')">
+                                                @project.BillingClassCount class(es) - @(project.AssignedHours?.ToString("N0") ?? "0")h
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">None</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (project.CreatedOn.HasValue)
+                                        {
+                                            <small>@project.CreatedOn.Value.ToString("MM/dd/yy")</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (project.LinkedContractId.HasValue)
+                                        {
+                                            <span class="label label-success" title="Linked to: @project.LinkedContractName">Converted</span>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-xs btn-success"
+                                                    onclick="convertToContract(@project.ExternalProjectId, '@Html.Raw(project.ProjectName.Replace("'", "\\'"))')">
+                                                Convert
+                                            </button>
+                                        }
+                                    </td>
+                                    <td>
+                                        <button type="button"
+                                                class="btn btn-xs btn-primary save-btn"
+                                                onclick="saveProjectDates(@project.ProjectId)">
+                                            Save
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <strong>No projects found.</strong> Try adjusting your filters.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .date-input {
+        font-size: 11px;
+        padding: 3px;
+        width: 110px;
+        height: 28px;
+        box-sizing: border-box;
+    }
+    .main-projects-table > tbody > tr > td {
+        padding: 5px;
+        vertical-align: middle;
+        font-size: 12px;
+    }
+    .main-projects-table > thead > tr > th {
+        padding: 6px 5px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+    .container-fluid {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+    /* Checkbox column */
+    .main-projects-table td:first-child,
+    .main-projects-table th:first-child {
+        width: 30px;
+        padding: 5px 3px;
+        text-align: center;
+    }
+    /* Label badges */
+    .label {
+        font-size: 9px;
+        padding: 2px 4px;
+        white-space: nowrap;
+    }
+    /* Make small text even smaller */
+    small {
+        font-size: 10px;
+        line-height: 1.2;
+    }
+</style>
+
+<script>
+    // Select all checkbox functionality
+    $('#selectAll').on('change', function() {
+        $('.project-checkbox').prop('checked', this.checked);
+    });
+
+    // Individual checkbox changes
+    $('.project-checkbox').on('change', function() {
+        var allChecked = $('.project-checkbox:checked').length === $('.project-checkbox').length;
+        $('#selectAll').prop('checked', allChecked);
+    });
+
+    // Save individual project dates
+    function saveProjectDates(projectId) {
+        var row = $('tr[data-project-id="' + projectId + '"]');
+        var startDate = row.find('input[data-field="startDate"]').val();
+        var endDate = row.find('input[data-field="endDate"]').val();
+        var expectedDate = row.find('input[data-field="expectedDate"]').val();
+
+        $.ajax({
+            url: '@Url.Action("SaveProjectDate", "Forecasting")',
+            type: 'POST',
+            data: {
+                projectId: projectId,
+                startDate: startDate || null,
+                endDate: endDate || null,
+                expectedCompletionDate: expectedDate || null
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Show success feedback
+                    row.removeClass('warning');
+                    row.addClass('success');
+                    setTimeout(function() {
+                        row.removeClass('success');
+                    }, 2000);
+
+                    // Show toast message
+                    showMessage('Success: ' + response.message, 'success');
+                } else {
+                    showMessage('Error: ' + response.message, 'danger');
+                }
+            },
+            error: function() {
+                showMessage('Error: Failed to save project dates', 'danger');
+            }
+        });
+    }
+
+    // Apply bulk dates to selected projects
+    function applyBulkDates() {
+        var selectedProjects = [];
+        $('.project-checkbox:checked').each(function() {
+            selectedProjects.push(parseInt($(this).val()));
+        });
+
+        if (selectedProjects.length === 0) {
+            showMessage('Please select at least one project', 'warning');
+            return;
+        }
+
+        var startDate = $('#bulkStartDate').val();
+        var endDate = $('#bulkEndDate').val();
+        var expectedDate = $('#bulkExpectedDate').val();
+
+        if (!startDate && !endDate && !expectedDate) {
+            showMessage('Please set at least one date to apply', 'warning');
+            return;
+        }
+
+        if (!confirm('Apply dates to ' + selectedProjects.length + ' selected project(s)?')) {
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("BulkSetDates", "Forecasting")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                projectIds: selectedProjects,
+                startDate: startDate || null,
+                endDate: endDate || null,
+                expectedCompletionDate: expectedDate || null
+            }),
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Success: ' + response.message, 'success');
+
+                    // Update UI for affected rows
+                    selectedProjects.forEach(function(projectId) {
+                        var row = $('tr[data-project-id="' + projectId + '"]');
+                        if (startDate) row.find('input[data-field="startDate"]').val(startDate);
+                        if (endDate) row.find('input[data-field="endDate"]').val(endDate);
+                        if (expectedDate) row.find('input[data-field="expectedDate"]').val(expectedDate);
+                        row.removeClass('warning');
+                    });
+
+                    // Clear selections
+                    $('.project-checkbox').prop('checked', false);
+                    $('#selectAll').prop('checked', false);
+                } else {
+                    showMessage('Error: ' + response.message, 'danger');
+                }
+            },
+            error: function() {
+                showMessage('Error: Failed to apply bulk dates', 'danger');
+            }
+        });
+    }
+
+    // Show message helper
+    function showMessage(message, type) {
+        var alertHtml = '<div class="alert alert-' + type + ' alert-dismissible fade in" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">' +
+            '<button type="button" class="close" data-bs-dismiss="alert">&times;</button>' +
+            message +
+            '</div>';
+        $('body').append(alertHtml);
+
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 4000);
+    }
+
+    // Show billing classes modal
+    function showBillingClasses(externalProjectId, projectName) {
+        $('#billingClassProjectName').text(projectName);
+        $('#billingClassList').html('<tr><td colspan="4" class="text-center">Loading...</td></tr>');
+        $('#billingClassModal').data('external-id', externalProjectId).modal('show');
+
+        $.ajax({
+            url: '@Url.Action("GetProjectBillingClasses", "Forecasting")',
+            type: 'GET',
+            data: { externalProjectId: externalProjectId },
+            success: function(response) {
+                if (response.success && response.billingClasses.length > 0) {
+                    var html = '';
+                    response.billingClasses.forEach(function(bc) {
+                        html += '<tr>' +
+                            '<td>' + bc.BillingClassName + '</td>' +
+                            '<td>' + (bc.DepartmentName || '-') + '</td>' +
+                            '<td>' + bc.BudgetedHours + 'h</td>' +
+                            '<td><button class="btn btn-xs btn-danger" onclick="removeBillingClass(' + externalProjectId + ', ' + bc.BillingClassId + ')">Remove</button></td>' +
+                            '</tr>';
+                    });
+                    $('#billingClassList').html(html);
+                } else {
+                    $('#billingClassList').html('<tr><td colspan="4" class="text-center text-muted">No billing classes assigned</td></tr>');
+                }
+            },
+            error: function() {
+                $('#billingClassList').html('<tr><td colspan="4" class="text-center text-danger">Error loading billing classes</td></tr>');
+            }
+        });
+    }
+
+    // Remove billing class
+    function removeBillingClass(externalProjectId, billingClassId) {
+        if (!confirm('Remove this billing class assignment?')) return;
+
+        $.ajax({
+            url: '@Url.Action("RemoveBillingClass", "Forecasting")',
+            type: 'POST',
+            data: { externalProjectId: externalProjectId, billingClassId: billingClassId },
+            success: function(response) {
+                if (response.success) {
+                    showMessage(response.message, 'success');
+                    // Refresh the modal
+                    var projectName = $('#billingClassProjectName').text();
+                    showBillingClasses(externalProjectId, projectName);
+                } else {
+                    showMessage('Error: ' + response.message, 'danger');
+                }
+            },
+            error: function() {
+                showMessage('Error: Failed to remove billing class', 'danger');
+            }
+        });
+    }
+
+    // Remove all billing classes
+    function removeAllBillingClasses() {
+        var externalProjectId = $('#billingClassModal').data('external-id');
+        if (!confirm('Remove ALL billing class assignments from this project?')) return;
+
+        $.ajax({
+            url: '@Url.Action("RemoveBillingClass", "Forecasting")',
+            type: 'POST',
+            data: { externalProjectId: externalProjectId },
+            success: function(response) {
+                if (response.success) {
+                    showMessage(response.message, 'success');
+                    $('#billingClassModal').modal('hide');
+                    location.reload();
+                } else {
+                    showMessage('Error: ' + response.message, 'danger');
+                }
+            },
+            error: function() {
+                showMessage('Error: Failed to remove billing classes', 'danger');
+            }
+        });
+    }
+
+    // Convert to contract
+    function convertToContract(externalProjectId, projectName) {
+        $('#convertProjectName').text(projectName);
+        $('#convertModal').data('external-id', externalProjectId).modal('show');
+    }
+
+    function confirmConvert() {
+        var externalProjectId = $('#convertModal').data('external-id');
+        var periodId = $('#convertPeriodSelect').val();
+
+        if (!periodId) {
+            showMessage('Please select a forecast period', 'warning');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("ConvertToContract", "Forecasting")',
+            type: 'POST',
+            data: { externalProjectId: externalProjectId, periodId: periodId },
+            success: function(response) {
+                if (response.success) {
+                    showMessage(response.message, 'success');
+                    $('#convertModal').modal('hide');
+                    location.reload();
+                } else {
+                    showMessage('Error: ' + response.message, 'danger');
+                }
+            },
+            error: function() {
+                showMessage('Error: Failed to convert project', 'danger');
+            }
+        });
+    }
+
+    // Bulk convert selected projects to contracts
+    function bulkConvertToContracts() {
+        var selectedIds = [];
+        $('.project-checkbox:checked').each(function() {
+            var extId = $(this).data('external-id');
+            if (extId) selectedIds.push(parseInt(extId));
+        });
+
+        if (selectedIds.length === 0) {
+            showMessage('Please select at least one project', 'warning');
+            return;
+        }
+
+        // Check how many are already converted
+        var alreadyConverted = 0;
+        $('.project-checkbox:checked').each(function() {
+            var row = $(this).closest('tr');
+            if (row.find('.label-success').length > 0) {
+                alreadyConverted++;
+            }
+        });
+
+        if (alreadyConverted === selectedIds.length) {
+            showMessage('All selected projects are already converted', 'info');
+            return;
+        }
+
+        $('#bulkConvertCount').text(selectedIds.length);
+        if (alreadyConverted > 0) {
+            $('#bulkConvertSkipNote').show().find('span').text(alreadyConverted);
+        } else {
+            $('#bulkConvertSkipNote').hide();
+        }
+        $('#bulkConvertModal').modal('show');
+    }
+
+    function confirmBulkConvert() {
+        var selectedIds = [];
+        $('.project-checkbox:checked').each(function() {
+            var extId = $(this).data('external-id');
+            if (extId) selectedIds.push(parseInt(extId));
+        });
+
+        var periodId = $('#bulkConvertPeriodSelect').val();
+        if (!periodId) {
+            showMessage('Please select a forecast period', 'warning');
+            return;
+        }
+
+        $('#bulkConvertBtn').prop('disabled', true).text('Converting...');
+
+        $.ajax({
+            url: '@Url.Action("BulkConvertToContracts", "Forecasting")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                externalProjectIds: selectedIds,
+                periodId: parseInt(periodId)
+            }),
+            success: function(response) {
+                $('#bulkConvertBtn').prop('disabled', false).text('Convert');
+                if (response.success) {
+                    showMessage(response.message, 'success');
+                    $('#bulkConvertModal').modal('hide');
+                    location.reload();
+                } else {
+                    showMessage('Error: ' + response.message, 'danger');
+                }
+            },
+            error: function() {
+                $('#bulkConvertBtn').prop('disabled', false).text('Convert');
+                showMessage('Error: Failed to bulk convert projects', 'danger');
+            }
+        });
+    }
+</script>
+
+<!-- Billing Classes Modal -->
+<div class="modal fade" id="billingClassModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Billing Classes: <span id="billingClassProjectName"></span></h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-condensed">
+                    <thead>
+                        <tr><th>Billing Class</th><th>Department</th><th>Hours</th><th></th></tr>
+                    </thead>
+                    <tbody id="billingClassList"></tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="removeAllBillingClasses()">Remove All</button>
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Convert to Contract Modal (single project) -->
+<div class="modal fade" id="convertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Convert to Forecasted Contract</h4>
+            </div>
+            <div class="modal-body">
+                <p>Convert <strong id="convertProjectName"></strong> to a forecasted contract.</p>
+                <div class="form-group">
+                    <label for="convertPeriodSelect">Select Forecast Period:</label>
+                    <select id="convertPeriodSelect" class="form-control">
+                        <option value="">-- Select Period --</option>
+                        @if (ViewBag.ForecastPeriods != null)
+                        {
+                            foreach (var period in ViewBag.ForecastPeriods)
+                            {
+                                <option value="@period.ForecastPeriodID">@period.PeriodName (@period.StartDate.ToString("MM/yyyy") - @period.EndDate.ToString("MM/yyyy"))</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <p class="text-muted"><small>The project's dates and budget hours will be copied to the new contract.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="confirmConvert()">Convert</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Convert to Contracts Modal -->
+<div class="modal fade" id="bulkConvertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Bulk Convert to Forecasted Contracts</h4>
+            </div>
+            <div class="modal-body">
+                <p>Convert <strong><span id="bulkConvertCount"></span> selected project(s)</strong> to forecasted contracts.</p>
+                <p id="bulkConvertSkipNote" class="text-warning" style="display: none;">
+                    <small><span></span> project(s) are already converted and will be skipped.</small>
+                </p>
+                <div class="form-group">
+                    <label for="bulkConvertPeriodSelect">Select Forecast Period:</label>
+                    <select id="bulkConvertPeriodSelect" class="form-control">
+                        <option value="">-- Select Period --</option>
+                        @if (ViewBag.ForecastPeriods != null)
+                        {
+                            foreach (var period in ViewBag.ForecastPeriods)
+                            {
+                                <option value="@period.ForecastPeriodID">@period.PeriodName (@period.StartDate.ToString("MM/yyyy") - @period.EndDate.ToString("MM/yyyy"))</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <p class="text-muted"><small>Each project's dates and budget hours will be copied to a new contract. Billing class details can be added afterward via Edit Contract.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="bulkConvertBtn" onclick="confirmBulkConvert()">Convert</button>
+            </div>
+        </div>
+    </div>
+</div>

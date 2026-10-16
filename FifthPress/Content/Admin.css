@@ -1,0 +1,164 @@
+﻿.sidebar-wrapper ul li.selected{
+    font-weight: bold;
+}
+
+.admin-nav-group button{
+    font-size: 2rem;
+}
+
+.ship-address-row{
+    overflow-y: scroll;
+}
+.body-content{
+    padding: 80px 0px;
+}
+.config-wrapper{
+    width: 100%;
+}
+.viewer-table-column-header{
+    font-size: 20px;
+}
+.edit-modal .modal-body label{
+    font-weight: 700;
+    text-decoration: underline;
+}
+.edit-modal .modal-body sub{
+    font-weight: 700;
+}
+.default-services ul,
+.helper-services ul{
+    list-style-type: none;
+}
+.default-services ul li.add-default-service,
+.default-services ul li.add-helper-service{
+    padding-top: 10px;
+    text-align: center;
+    cursor: pointer;
+}
+.default-services .remove-link,
+.helper-services .remove-link{
+    cursor: pointer;
+}
+.default-services ul li i,
+.helper-services ul li i{
+    transform: scale(2);
+} 
+.default-services ul li i:hover,
+.helper-services ul li i:hover{
+    transform: scale(3.3333);
+    transition: ease-in-out .13s;
+}
+.default-services ul li .title,
+.helper-services ul li .title{
+    font-size: 18px;
+    padding-right: 25px;
+}
+#general_service_modal .modal-dialog{
+    border: 2px solid black;
+}
+.btn-group.stock-type-group button.active-choice{
+    order: 1;
+    background: transparent;
+    margin-right: 30px;
+}
+.btn-group.stock-type-group button:not(.active-choice){
+    order: 2;
+}
+.sidebar-wrapper {
+    background-color: #b5cbd8;
+    padding: 20px;
+    border-radius: 10px;
+    overflow-y: scroll;
+    height: 420px;
+    position: fixed;
+    top: 200px;
+    width: 300px;
+}
+.sidebar-container ul li {
+    font-family: 'poppins';
+}
+@media screen and (max-width: 991px) {
+    .modal-body form input, .modal-body form select, .modal-body form label {
+        font-size: 16px;
+        display: block;
+    }
+}
+
+@media screen and (min-width: 991px){
+    .edit-modal .modal-body form {
+        max-width: 85%;
+        margin: 0 auto;
+    }
+}
+
+.sidebar-container{
+    max-width:250px;
+}
+
+.sidebar-container ul li{
+    cursor: pointer;
+    padding: 5px 0;
+    font-size: 2rem;
+    
+}
+
+#clock_activity_edit_modal ul{
+    list-style-type: none;
+}
+#clock_activity_edit_modal li{
+    padding: 10px;
+}
+
+.ship-address-list li{
+    border-bottom: 1px solid black;
+}
+
+.fc-btn-admin {
+    background-color: none;
+    color: #fff;
+    border-radius: 30px;
+    padding: 8px 20px;
+}
+.fc-table-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 20px;
+}
+.fc-btn-admin:hover {
+    background-color: #000;
+    color: #fff;
+    border-radius: 30px;
+}
+.fc-table-content th {
+    background-color: #dddddd;
+}
+.fc-item-td td {
+    border: 1px solid #ddd;
+}
+.fc-item-td tr:nth-last-child(odd) {
+    background-color: #ddd;
+}
+.admin-wrapper {
+    background-color: #4f4f4f;
+    padding: 20px 
+}
+.admin-h2 {
+    color: #fff;
+}
+
+.add-user-btn {
+    background-color: #2e4057;
+    padding: 8px 20px;
+    border-radius: 40px;
+    color: #fff;
+    border: none;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.dataTables_wrapper input[type="search"] {
+    border-radius: 40px;
+    padding: 3px 20px;
+    border: 2px solid #2e4057;
+    margin-right: 10px;
+}

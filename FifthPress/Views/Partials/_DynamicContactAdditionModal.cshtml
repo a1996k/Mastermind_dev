@@ -1,0 +1,63 @@
+﻿
+
+<style>
+    #dynamic_contact_modal .single-line {
+        width: 90% !important;
+    }
+
+    #dynamic_contact_modal label {
+        font-family: 'Poppins';
+        font-size: 14px;
+        font-weight: bold;
+    }
+</style>
+
+<div class="modal" tabindex="-1" id="dynamic_contact_modal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title"></h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#dynamic_contact_modal" aria-label="Cancel">X Close</button>
+            </div>
+            <div class="modal-body">
+                <div class="container contact-form">
+                    <input type="hidden" id="dmc_cus_no" />
+                    <div class="field-binder-row-flex">
+                        <div class="field-binder-col-flex">
+                            <label>First Name</label>
+                            <input class="single-line styled-input" id="dmc_first_name" />
+                        </div>
+                        <div class="field-binder-col-flex">
+                            <label>Last Name</label>
+                            <input class="single-line styled-input" id="dmc_last_name" />
+                        </div>
+                        <div class="field-binder-row-flex">
+                            <div class="field-binder-col-flex">
+                                <label>Phone</label>
+                                <input class="single-line styled-input" id="dmc_phone" />
+                            </div>
+                            <div class="field-binder-col-flex">
+                                <label>Phone2</label>
+                                <input class="single-line styled-input" id="dmc_phone2" />
+                            </div>
+                            <div class="field-binder-col-flex">
+                                <label>Email</label>
+                                <input class="single-line styled-input" id="dmc_email" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="field-binder-row-flex w-50">
+                        <div class="field-binder-col-flex w-100">
+                            <label>Notes</label>
+                            <textarea class="single-line styled-input" id="dmc_contact_note"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#dynamic_contact_modal">Cancel</button>
+                <button class="btn btn-fc-success save-dynamic-contact" data-modal-to-close="#dynamic_contact_modal">Save</button> <!-- save-dynamic-client -->
+            </div>
+        </div>
+    </div>
+</div>

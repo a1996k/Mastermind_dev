@@ -1,0 +1,54 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Presses
+
+<div class="modal" tabindex="-1" id="press_select_modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content  popup-modal-fc">
+            <div class="modal-header fc-popup">
+                <h5 class="modal-title fc-model-title">Select Press</h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#press_select_modal" aria-label="Cancel">X Cancel</button>
+            </div>
+            <div class="modal-body">
+                <div class="nu-viewport">
+                    <table id="press_select_table" class="pt-5">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Press
+                                </th>
+                                <th>
+                                    Speed
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @foreach (Press p in Model.Presses)
+                            {
+                                <tr data-press-id="@Html.DisplayFor(model => p.Id)" data-press-speed="@Html.DisplayFor(model => p.SpeedNumerator)" data-press-speed-unit-val="@Html.DisplayFor(model => p.SpeedDenominator)" data-press-speed-unit-text="@Html.DisplayFor(model => p.SpeedDenominator1.Text)">
+                                    <td class="press-title">
+                                        @Html.DisplayFor(model => p.Title)
+                                    </td>
+                                    <td class="press-speed">
+                                        <div class="d-flex justify-content-between w-50">
+                                            <div class="speed-settings-text">
+                                                @Html.DisplayFor(model => p.SpeedNumerator) @Html.DisplayFor(model => p.SpeedDenominator1.Text)
+                                            </div>
+                                            <div class="gear-icon-modal press-speed-settings">
+                                                <i class="fa-solid fa-gears open-settings" data-press-id="@Html.DisplayFor(model => p.Id)"></i>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-fc-caution" data-modal-to-close="#press_select_modal"><i class="fa-solid fa-chevron-left"></i> Back</button>
+                <button type="button" class="btn btn-fc-primary builder-press-add" data-target-type="Press" data-modal-to-close="#press_select_modal">Update</button>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,61 @@
+﻿<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <input type="button" class="btn btn-fc-caution test-lc-btn" value="Test Service Start" />
+            <input type="button" class="btn btn-fc-caution test-lc-btn-2" value="Test Service End" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <input type="button" class="btn btn-fc-caution dummy-recs" value="Make Dummy Recs (Timing)" />
+        </div>
+    </div>
+</div>
+
+<!-- play with job timing records here -->
+
+<script>
+    function TestServiceStop() {
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('stop-job-task'),
+            data: {
+                jobId: 4,
+                jobServiceId: 3699,
+                isComplete: false
+            },
+            success: function (data) {
+                console.log(data);
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        });
+    };
+    function TestServiceStart() {
+        $.ajax({
+            type: 'POST',
+            url: ProcessUrl('start-job-task'),
+            data: {
+                jobId: 4,
+                jobServiceId: 3699,
+                isComplete: false
+            },
+            success: function (data) {
+                console.log(data);
+            },
+            error: function (err) {
+                console.log(err);
+            }
+        });
+    };
+    function MakeDummyRecs() {
+        $.post(ProcessUrl('dummy-recs'), function (data) {
+            console.log(data);
+        });
+    };
+    $(function () { })
+        .on('click', '.test-lc-btn-2', TestServiceStop)
+        .on('click', '.test-lc-btn', TestServiceStart)
+        .on('click', '.dummy-recs', MakeDummyRecs);
+</script>

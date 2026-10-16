@@ -1,0 +1,51 @@
+﻿@using FifthPress.Models.ViewModels;
+@model VM_Plate
+
+<form method="post" action="plate/save" enctype="multipart/form-data" data-item-type="Plate">
+    @Html.HiddenFor(model => model.Plate.Id)
+
+    <div class="d-flex flex-row flex-wrap justify-content-between">
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Plate.Title)
+            @Html.EditorFor(model => model.Plate.Title, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Plate.MakeReady)
+            @Html.EditorFor(model => model.Plate.MakeReady, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Plate.WashUp)
+            @Html.EditorFor(model => model.Plate.WashUp, new { htmlAttributes = new { @data_changed = false } })
+        </div>
+        <div class="field-binder-flexxy justify-content-lg-start">
+            @Html.LabelFor(model => model.Plate.MinRunTime)
+            @Html.EditorFor(model => model.Plate.MinRunTime, new { htmlAttribues = new { @data_changed = false } })
+        </div>
+    </div>
+
+    <div class="field-binder-row-flex mt-5">
+        <input type="submit" value="Save" data-modal-to-close="#edit_plate_modal" />
+        <input type="button" value="Cancel" data-modal-to-close="#edit_plate_modal" />
+    </div>
+</form>
+
+<div class="field-binder-row-flex justify-content-evenly mt-5 default-services align-items-start">
+    <h3>Assigned Presses</h3>
+    <ul class="assigned-presses-list">
+        @foreach (PressPlate pp in Model.AssignedPresses)
+        {
+            <li class="press-plate-entry d-flex flex-row justify-content-between" data-press-id="@pp.Press" data-record-id="@pp.Id">
+                <span class="title">@pp.Press1.Title</span>
+                <span class="remove-link">
+                    <i class="fa-solid fa-minus" style="color: #8f0000;"></i>
+                </span>
+            </li>
+
+        }
+        <li class="add-press" data-modal-to-open="#general_press_modal">
+            <i class="fa-solid fa-plus" style="color: #006607;"></i>
+        </li>
+    </ul>
+</div>
+
+<!-- Need general press select modal (like getserviceforedit) line 45 --> 

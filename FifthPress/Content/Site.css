@@ -1,0 +1,95 @@
+﻿:root {
+    --fc-red: #EF2A25;
+    --fc-tan: #F2EBE6;
+    --fc-blue: #B5CBD8;
+    --fc-navy: #2E4057;
+    --fc-black: #000000;
+    --fc-tan-selected: #fcbc8b;
+    font-size:10px;
+}
+
+body{
+    overflow-x: hidden;
+}
+
+.body-content {
+   background: var(--fc-tan);
+    overflow-x: hidden;
+    min-height:100vh;
+}
+
+h1,
+h2,
+h3,
+h4{
+    color: var(--fc-black);
+    font-family: poppins;
+}
+
+/* Avalara Address Validation Styles */
+.address-validation-feedback {
+    font-size: 1.4rem;
+    line-height: 1.6;
+}
+
+.address-validation-feedback.address-valid {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+
+.address-validation-feedback.address-warning {
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    color: #856404;
+}
+
+.address-validation-feedback.address-error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}
+
+.address-validation-feedback ul {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.address-validation-feedback strong {
+    font-weight: 600;
+}
+
+.validate-address-btn,
+.validate-modal-address-btn {
+    white-space: nowrap;
+}
+
+/* Address comparison display */
+.address-comparison {
+    display: flex;
+    gap: 20px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.address-column {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.address-column strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.address-action-buttons {
+    margin-top: 15px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}

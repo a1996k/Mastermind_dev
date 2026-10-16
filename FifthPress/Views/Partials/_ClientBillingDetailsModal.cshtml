@@ -1,0 +1,67 @@
+﻿<style>
+
+    #client_billing_modal label {
+        font-family: 'Poppins';
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    #client_billing_modal .modal-header {
+        font-size: 16px;
+        font-weight: bold;
+        font-family: 'DM Sans';
+    }
+
+</style>
+
+<div class="modal" tabindex="-1" id="client_billing_modal">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header d-flex justify-content-between">
+                <h5 class="modal-title"></h5>
+                <button type="button" data-bs-dismiss="modal" data-modal-to-close="#client_billing_modal" aria-label="Cancel">X Close</button>
+            </div>
+            <div class="modal-body">
+                <div class="container billing-form">
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="field-binder-col-flex">
+                                <label>Billing Address</label>
+                                <input class="single-line styled-input" id="cb_address" />
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="field-binder-col-flex">
+                                <label>Billing City</label>
+                                <input class="single-line styled-input" id="cb_city" />
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="field-binder-col-flex">
+                                <label>Billing State</label>
+                                <select class="styled-input" id="cb_state"></select>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="field-binder-col-flex">
+                                <label>Billing Zip</label>
+                                <input class="single-line styled-input" id="cb_zip" />
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="field-binder-col-flex">
+                                <label>AREmail</label>
+                                <input class="single-line styled-input" id="cb_aremail" />
+                                <span class="ff-dm-sans fs-12 fw-bold">Use commas to separate emails</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-fc-danger gb-btn" data-modal-to-close="#client_billing_modal">Cancel</button>
+                <button class="btn btn-fc-success save-client-billing-info" data-modal-to-close="#client_billing_modal">Save</button> <!-- save-dynamic-client -->
+            </div>
+        </div>
+    </div>
+</div>

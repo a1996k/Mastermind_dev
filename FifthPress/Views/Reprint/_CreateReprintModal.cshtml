@@ -1,0 +1,315 @@
+@model FifthPress.Models.ViewModels2.Reprint.VM_CreateReprintRequest
+
+@*
+    4-Step Reprint Request Modal Wizard
+    Step 1: Select Type
+    Step 2: Select Items (conditional - partial only)
+    Step 3: Reason & Cost Allocation
+    Step 4: Description & Confirmation
+*@
+
+<div class="modal fade" id="reprintModal" tabindex="-1" role="dialog" aria-labelledby="reprintModalLabel">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title" id="reprintModalLabel">
+                    Request Reprint - Job #<span id="modalJobNumber">@Model.OriginalJobNumber</span>
+                </h4>
+            </div>
+
+            <div class="modal-body">
+                <form id="reprintForm">
+                    @Html.HiddenFor(m => m.OriginalJobId, new { @id = "originalJobId" })
+
+                    <!-- Progress Indicator -->
+                    <div class="reprint-progress mb-4">
+                        <div class="progress-step active" data-step="1">
+                            <div class="step-number">1</div>
+                            <div class="step-label">Type</div>
+                        </div>
+                        <div class="progress-step" data-step="2">
+                            <div class="step-number">2</div>
+                            <div class="step-label">Items</div>
+                        </div>
+                        <div class="progress-step" data-step="3">
+                            <div class="step-number">3</div>
+                            <div class="step-label">Reason</div>
+                        </div>
+                        <div class="progress-step" data-step="4">
+                            <div class="step-number">4</div>
+                            <div class="step-label">Confirm</div>
+                        </div>
+                    </div>
+
+                    <!-- Step 1: Select Reprint Type -->
+                    <div class="reprint-step" data-step="1">
+                        <h5 class="mb-3">What type of reprint do you need?</h5>
+                        <div class="reprint-type-options">
+                            <div class="form-check mb-3 p-3 border rounded reprint-type-option">
+                                <input class="form-check-input" type="radio" name="ReprintType" id="typeFull" value="Full">
+                                <label class="form-check-label w-100" for="typeFull">
+                                    <strong>Full Job Reprint</strong>
+                                    <br><small class="text-muted">Reprint the entire job</small>
+                                </label>
+                            </div>
+                            <div class="form-check mb-3 p-3 border rounded reprint-type-option">
+                                <input class="form-check-input" type="radio" name="ReprintType" id="typePartial" value="Partial">
+                                <label class="form-check-label w-100" for="typePartial">
+                                    <strong>Partial Item Reprint</strong>
+                                    <br><small class="text-muted">Reprint specific items only</small>
+                                </label>
+                            </div>
+                            <div class="form-check mb-3 p-3 border rounded reprint-type-option">
+                                <input class="form-check-input" type="radio" name="ReprintType" id="typeAdditional" value="Additional">
+                                <label class="form-check-label w-100" for="typeAdditional">
+                                    <strong>Additional Quantity</strong>
+                                    <br><small class="text-muted">Customer needs more (not a mistake)</small>
+                                </label>
+                            </div>
+                            <div class="form-check mb-3 p-3 border rounded reprint-type-option">
+                                <input class="form-check-input" type="radio" name="ReprintType" id="typeSample" value="Sample">
+                                <label class="form-check-label w-100" for="typeSample">
+                                    <strong>Sample/Proof Reprint</strong>
+                                    <br><small class="text-muted">Additional samples or proofs needed</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Select Items (Only for Partial) -->
+                    <div class="reprint-step" data-step="2" style="display:none;">
+                        <h5 class="mb-3">Select items to reprint:</h5>
+                        <div id="itemSelectionContainer">
+                            <p class="text-muted">Loading items...</p>
+                        </div>
+                        <div class="mt-3 p-3 bg-light border rounded">
+                            <strong>Estimated Cost:</strong> <span id="selectedItemsCost">$0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Reason & Cost Allocation -->
+                    <div class="reprint-step" data-step="3" style="display:none;">
+                        <h5 class="mb-3">Why does this need to be reprinted?</h5>
+
+                        <div class="form-group">
+                            <label for="reprintReason">Reason <span class="text-danger">*</span></label>
+                            <select class="form-control" id="reprintReason" name="ReprintReasonId" required>
+                                <option value="">-- Select a reason --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <label>Who pays for this reprint? <span class="text-danger">*</span></label>
+                            <p class="text-muted small mb-3">Estimated Cost: <strong id="estimatedCost">$0.00</strong></p>
+
+                            <div class="form-check mb-3 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="CostAllocation" id="costAbsorb" value="Absorb - Production Error">
+                                <label class="form-check-label w-100" for="costAbsorb">
+                                    <strong>🔴 Absorb - Production Error</strong>
+                                    <br><small class="text-muted">Fifth Press absorbs the cost (our mistake)</small>
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="CostAllocation" id="costBill" value="Bill Customer">
+                                <label class="form-check-label w-100" for="costBill">
+                                    <strong>🟢 Bill Customer</strong>
+                                    <br><small class="text-muted">Charge customer for the reprint</small>
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="CostAllocation" id="costVendor" value="Charge Vendor">
+                                <label class="form-check-label w-100" for="costVendor">
+                                    <strong>🟡 Charge Vendor</strong>
+                                    <br><small class="text-muted">Charge material or service vendor</small>
+                                </label>
+                            </div>
+
+                            <div class="form-check mb-3 p-3 border rounded">
+                                <input class="form-check-input" type="radio" name="CostAllocation" id="costGoodwill" value="Warranty/Goodwill">
+                                <label class="form-check-label w-100" for="costGoodwill">
+                                    <strong>🔵 Warranty/Goodwill</strong>
+                                    <br><small class="text-muted">Absorb as a goodwill gesture</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Description & Confirmation -->
+                    <div class="reprint-step" data-step="4" style="display:none;">
+                        <h5 class="mb-3">Add description and review:</h5>
+
+                        <div class="form-group">
+                            <label for="description">Description <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="description" name="Description" rows="4"
+                                      required minlength="10" maxlength="2000"
+                                      placeholder="Explain what went wrong or why this reprint is needed..."></textarea>
+                            <small class="form-text text-muted">
+                                <span id="descriptionCount">0</span>/2000 characters (minimum 10)
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="internalNotes">Internal Notes (optional)</label>
+                            <textarea class="form-control" id="internalNotes" name="InternalNotes" rows="3"
+                                      maxlength="2000"
+                                      placeholder="Any internal notes or follow-up actions..."></textarea>
+                        </div>
+
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="notifyCustomer" name="NotifyCustomer">
+                            <label class="form-check-label" for="notifyCustomer">
+                                Notify customer about this reprint
+                            </label>
+                        </div>
+
+                        <hr>
+
+                        <div class="alert alert-info">
+                            <h6><strong>📋 Reprint Summary</strong></h6>
+                            <table class="table table-sm table-borderless mb-0">
+                                <tr>
+                                    <td><strong>Type:</strong></td>
+                                    <td id="summaryType">-</td>
+                                </tr>
+                                <tr id="summaryItemsRow" style="display:none;">
+                                    <td><strong>Items:</strong></td>
+                                    <td id="summaryItems">-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Reason:</strong></td>
+                                    <td id="summaryReason">-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cost:</strong></td>
+                                    <td id="summaryCost">-</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td><span class="badge badge-success">✅ Ready to create immediately</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnBack" style="display:none;">
+                    <i class="fa fa-arrow-left"></i> Back
+                </button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnNext">
+                    Next <i class="fa fa-arrow-right"></i>
+                </button>
+                <button type="button" class="btn btn-success" id="btnCreate" style="display:none;">
+                    <i class="fa fa-check"></i> Create Reprint
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Progress Indicator */
+    .reprint-progress {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        position: relative;
+    }
+
+    .reprint-progress::before {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 25%;
+        right: 25%;
+        height: 2px;
+        background: #dee2e6;
+        z-index: -1;
+    }
+
+    .progress-step {
+        text-align: center;
+        flex: 1;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        line-height: 40px;
+        border-radius: 50%;
+        background: #e9ecef;
+        color: #6c757d;
+        font-weight: bold;
+        margin: 0 auto 5px;
+        transition: all 0.3s;
+    }
+
+    .progress-step.active .step-number {
+        background: #007bff;
+        color: white;
+    }
+
+    .progress-step.completed .step-number {
+        background: #28a745;
+        color: white;
+    }
+
+    .step-label {
+        font-size: 12px;
+        color: #6c757d;
+    }
+
+    .progress-step.active .step-label {
+        color: #007bff;
+        font-weight: 600;
+    }
+
+    /* Reprint Type Options */
+    .reprint-type-option {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .reprint-type-option:hover {
+        background-color: #f8f9fa;
+        border-color: #007bff !important;
+    }
+
+    .reprint-type-option input:checked + label {
+        color: #007bff;
+    }
+
+    .reprint-type-option:has(input:checked) {
+        background-color: #e7f1ff;
+        border-color: #007bff !important;
+    }
+
+    /* Item Selection */
+    .item-checkbox-row {
+        padding: 10px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        margin-bottom: 8px;
+        transition: all 0.2s;
+    }
+
+    .item-checkbox-row:hover {
+        background-color: #f8f9fa;
+    }
+
+    .item-checkbox-row.selected {
+        background-color: #e7f1ff;
+        border-color: #007bff;
+    }
+</style>
+
+@section Scripts {
+    <script src="~/Scripts/reprint.js"></script>
+}
