@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data.Entity;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -19,7 +20,11 @@ namespace FifthPress.Controllers
     [CookieFilter(Order = 1)]
     public class McpApiController : Controller
     {
-        private const string RequiredPermissionUrl = "RecordLookup"; // PermissionsManifest row "Record Lookup" (2d)
+        private const string RecordLookupPermissionUrl = "RecordLookup"; // PermissionsManifest row "Record Lookup" (2d)
+        private const string ReportsPermissionUrl = "reports"; // PermissionsManifest row "Reports" (1b)
+        private const int MaxReportDays = 92;
+        private const int MaxReportRows = 500;
+        private static readonly string[] Statuses = { "In progress", "Ready to ship", "Ready to post", "Completed" };
         private const int MaxCandidateLimit = 200;
         private const int CandidateWindowDays = 365;
         private static readonly string[] Modes = { "production", "material", "services", "product", "customer" };
@@ -29,7 +34,7 @@ namespace FifthPress.Controllers
         {
             using (var db = CreateContext())
             {
-                var denied = await Authorize(db, cancellationToken);
+                var denied = await Authorize(db, RecordLookupPermissionUrl, cancellationToken);
                 if (denied != null) return denied;
                 if (!ValidJobNumber(jobNumber)) return Error(HttpStatusCode.BadRequest, "jobNumber must be 1-50 characters.");
 
@@ -47,7 +52,7 @@ namespace FifthPress.Controllers
         {
             using (var db = CreateContext())
             {
-                var denied = await Authorize(db, cancellationToken);
+                var denied = await Authorize(db, RecordLookupPermissionUrl, cancellationToken);
                 if (denied != null) return denied;
                 if (!ValidJobNumber(jobNumber)) return Error(HttpStatusCode.BadRequest, "jobNumber must be 1-50 characters.");
                 if (!Modes.Contains(mode)) return Error(HttpStatusCode.BadRequest, "mode must be one of: " + string.Join(", ", Modes) + ".");
@@ -124,6 +129,86 @@ namespace FifthPress.Controllers
             }
         }
 
+        // Report: jobs created in a date range. Agreed definition: Jobs.CreatedAt (server local wall-clock time),
+        // inclusive dates, at most 92 days and 500 rows, Reports permission. Quantities are listed per item, never summed.
+        [HttpGet]
+        public async Task<ActionResult> GetJobsCreatedReport(string createdFrom, string createdTo, int? customerId = null, string status = null,
+            bool includeCancelled = false, int maxRows = MaxReportRows, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var db = CreateContext())
+            {
+                var denied = await Authorize(db, ReportsPermissionUrl, cancellationToken);
+                if (denied != null) return denied;
+                DateTime fromDate, toDate;
+                if (!DateTime.TryParseExact(createdFrom, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out fromDate)
+                    || !DateTime.TryParseExact(createdTo, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out toDate))
+                    return Error(HttpStatusCode.BadRequest, "createdFrom and createdTo must be yyyy-MM-dd dates.");
+                if (toDate < fromDate || (toDate - fromDate).TotalDays + 1 > MaxReportDays)
+                    return Error(HttpStatusCode.BadRequest, "The inclusive date range must be 1 to " + MaxReportDays + " days.");
+                if (status != null && !Statuses.Contains(status))
+                    return Error(HttpStatusCode.BadRequest, "status must be one of: " + string.Join(", ", Statuses) + ".");
+                if (customerId != null && customerId <= 0) return Error(HttpStatusCode.BadRequest, "customerId must be positive.");
+                maxRows = Math.Max(1, Math.Min(maxRows, MaxReportRows));
+
+                DateTime toExclusive = toDate.AddDays(1);
+                var query = db.Jobs.AsNoTracking().Where(j => j.Deleted == null && j.JobNumber != null && j.JobNumber != ""
+                    && j.CreatedAt >= fromDate && j.CreatedAt < toExclusive);
+                if (!includeCancelled) query = query.Where(j => j.Cancelled == null);
+                if (customerId != null) query = query.Where(j => j.Client == customerId);
+                // Same precedence as Job.SetCurrentJobStatus: Billed, then Shipped, then Complete.
+                switch (status)
+                {
+                    case "Completed": query = query.Where(j => j.Billed != null); break;
+                    case "Ready to post": query = query.Where(j => j.Billed == null && j.Shipped != null); break;
+                    case "Ready to ship": query = query.Where(j => j.Billed == null && j.Shipped == null && j.Complete != null); break;
+                    case "In progress": query = query.Where(j => j.Billed == null && j.Shipped == null && j.Complete == null); break;
+                }
+
+                int total = await query.CountAsync(cancellationToken);
+                var rows = await query.OrderBy(j => j.CreatedAt).ThenBy(j => j.Id).Take(maxRows).Select(j => new
+                {
+                    j.Id, j.JobNumber, j.Title, j.Description, j.Client, j.CreatedAt, j.DueDate, j.InHandDate,
+                    j.Complete, j.Shipped, j.ReleasedToBillingDate, j.Billed, j.Cancelled,
+                    Items = j.JobItems.Where(i => i.Deleted == null).OrderBy(i => i.Ordinal).ThenBy(i => i.Id)
+                        .Select(i => new { i.Id, i.Quantity, i.QuantityBy, i.TotalQuantity }),
+                    OutsourcedItemCount = j.JobOutsourcedItems.Count()
+                }).ToListAsync(cancellationToken);
+
+                return JsonReply(HttpStatusCode.OK, new
+                {
+                    provenance = Provenance(db),
+                    definition = new
+                    {
+                        report = "jobs-created",
+                        dateField = "Jobs.CreatedAt, stored as server local wall-clock time without a timezone",
+                        createdFrom = createdFrom, createdTo = createdTo, inclusive = true,
+                        recordScope = "Non-deleted jobs with a job number" + (includeCancelled ? "; cancelled jobs included and flagged" : "; cancelled jobs excluded"),
+                        customerId, status,
+                        statusDefinition = "Legacy Job.SetCurrentJobStatus timestamp precedence (Billed > Shipped > Complete); cancellation is separate.",
+                        quantitySemantics = "Quantity, QuantityBy and TotalQuantity per non-deleted standard item, unchanged and not summed.",
+                        excluded = "Prices, costs, notes, contacts and addresses."
+                    },
+                    totalJobs = total,
+                    rowsReturned = rows.Count,
+                    truncated = total > rows.Count,
+                    rows = rows.Select(j =>
+                    {
+                        var stage = new Job { Complete = j.Complete, Shipped = j.Shipped, Billed = j.Billed };
+                        stage.SetCurrentJobStatus();
+                        return new
+                        {
+                            legacyId = j.Id, jobNumber = j.JobNumber, title = j.Title, description = j.Description, customerId = j.Client,
+                            status = StatusText(stage.OverallJobStage), isCancelled = j.Cancelled != null,
+                            createdAt = j.CreatedAt, dueDate = j.DueDate, inHandDate = j.InHandDate, productionCompletedAt = j.Complete,
+                            shippedAt = j.Shipped, releasedToBillingAt = j.ReleasedToBillingDate, billedAt = j.Billed, cancelledAt = j.Cancelled,
+                            items = j.Items.Select(i => new { legacyId = i.Id, quantity = i.Quantity, quantityBy = i.QuantityBy, totalQuantity = i.TotalQuantity }),
+                            outsourcedItemCount = j.OutsourcedItemCount
+                        };
+                    })
+                });
+            }
+        }
+
         private static FifthPressEntities CreateContext()
         {
             var db = new FifthPressEntities();
@@ -140,7 +225,7 @@ namespace FifthPress.Controllers
         }
 
         // Same identity and permission rules the app's pages use, but answered as JSON instead of a redirect or HTML page.
-        private async Task<ActionResult> Authorize(FifthPressEntities db, CancellationToken cancellationToken)
+        private async Task<ActionResult> Authorize(FifthPressEntities db, string permissionUrl, CancellationToken cancellationToken)
         {
             if (ConfiguredEnvironment() == null) return Error(HttpStatusCode.ServiceUnavailable, "The MCP API is not enabled in this environment.");
             var cookie = Request.Cookies["ActiveUser"];
@@ -153,10 +238,10 @@ namespace FifthPress.Controllers
             if (user.SuperAdmin) return null;
 
             // Fail closed: unlike the page filter, a missing manifest row denies access.
-            string code = await db.PermissionsManifests.AsNoTracking().Where(p => p.Url == RequiredPermissionUrl)
-                .Select(p => p.PermissionId).FirstOrDefaultAsync(cancellationToken);
-            if (string.IsNullOrEmpty(code) || !(user.PermissionString ?? "").Contains(code))
-                return Error(HttpStatusCode.Forbidden, "This user's role does not have the Record Lookup permission.");
+            var permission = await db.PermissionsManifests.AsNoTracking().Where(p => p.Url == permissionUrl)
+                .Select(p => new { p.Title, p.PermissionId }).FirstOrDefaultAsync(cancellationToken);
+            if (permission == null || string.IsNullOrEmpty(permission.PermissionId) || !(user.PermissionString ?? "").Contains(permission.PermissionId))
+                return Error(HttpStatusCode.Forbidden, "This user's role does not have the " + (permission != null ? permission.Title : permissionUrl) + " permission.");
             return null;
         }
 
