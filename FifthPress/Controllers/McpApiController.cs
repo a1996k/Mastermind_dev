@@ -26,7 +26,8 @@ namespace FifthPress.Controllers
         private const int MaxReportRows = 500;
         private static readonly string[] Statuses = { "In progress", "Ready to ship", "Ready to post", "Completed" };
         private const int MaxCandidateLimit = 200;
-        private const int CandidateWindowDays = 365;
+        private const int CandidateWindowDays = 730; // 2 years, so last year's seasonal and repeat orders stay in range
+        private const int MaxIgnoredServices = 20;
         private static readonly string[] Modes = { "production", "material", "services", "product", "customer" };
 
         [HttpGet]
@@ -48,7 +49,8 @@ namespace FifthPress.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> GetSimilarCandidates(string jobNumber, string mode, bool includeCancelled = false, int maxCandidates = MaxCandidateLimit, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<ActionResult> GetSimilarCandidates(string jobNumber, string mode, bool includeCancelled = false, string ignoreServiceIds = null,
+            int maxCandidates = MaxCandidateLimit, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var db = CreateContext())
             {
@@ -57,6 +59,15 @@ namespace FifthPress.Controllers
                 if (!ValidJobNumber(jobNumber)) return Error(HttpStatusCode.BadRequest, "jobNumber must be 1-50 characters.");
                 if (!Modes.Contains(mode)) return Error(HttpStatusCode.BadRequest, "mode must be one of: " + string.Join(", ", Modes) + ".");
                 maxCandidates = Math.Max(1, Math.Min(maxCandidates, MaxCandidateLimit));
+                // Generic services (e.g. "Outsource") named by the MCP matching rules must not pull jobs into the candidate set.
+                var ignored = new List<int>();
+                foreach (var part in (ignoreServiceIds ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                {
+                    int id;
+                    if (!int.TryParse(part.Trim(), out id) || id <= 0 || ignored.Count >= MaxIgnoredServices)
+                        return Error(HttpStatusCode.BadRequest, "ignoreServiceIds must be at most " + MaxIgnoredServices + " comma-separated positive integers.");
+                    ignored.Add(id);
+                }
 
                 var matches = await FindJobIds(db, jobNumber.Trim(), cancellationToken);
                 if (matches.Count > 1) return Error(HttpStatusCode.Conflict, "More than one non-deleted job has this number.");
@@ -64,7 +75,7 @@ namespace FifthPress.Controllers
                 int sourceId = matches[0];
                 var sourceJob = (await LoadJobs(db, new List<int> { sourceId }, cancellationToken)).Single();
 
-                // Candidate scope: non-deleted jobs with a number, created in the last year, newest first, capped.
+                // Candidate scope: non-deleted jobs with a number, created in the last two years, newest first, capped.
                 // SQL only narrows by the mode's cheap keys; the MCP server applies the actual scoring rules.
                 DateTime since = DateTime.Now.AddDays(-CandidateWindowDays);
                 var query = db.Jobs.AsNoTracking().Where(j => j.Id != sourceId && j.Deleted == null
@@ -75,7 +86,7 @@ namespace FifthPress.Controllers
                 var materialIds = await items.Where(i => i.Material > 0).Select(i => i.Material.Value).Distinct().ToListAsync(cancellationToken);
                 var pressIds = await items.Where(i => i.Press > 0).Select(i => i.Press.Value).Distinct().ToListAsync(cancellationToken);
                 var serviceIds = await db.JobItemServices.AsNoTracking()
-                    .Where(s => s.JobItem.Job == sourceId && s.JobItem.Deleted == null && s.Deleted == null && s.ServiceId > 0)
+                    .Where(s => s.JobItem.Job == sourceId && s.JobItem.Deleted == null && s.Deleted == null && s.ServiceId > 0 && !ignored.Contains(s.ServiceId))
                     .Select(s => s.ServiceId).Distinct().ToListAsync(cancellationToken);
                 int? customerId = await db.Jobs.Where(j => j.Id == sourceId).Select(j => j.Client).SingleAsync(cancellationToken);
 
@@ -103,6 +114,8 @@ namespace FifthPress.Controllers
                         filter = "no pre-filter (product wording is compared by the MCP server)";
                         break;
                 }
+                if ((mode == "services" || mode == "production") && ignored.Count > 0)
+                    filter += "; service IDs " + string.Join(", ", ignored) + " are ignored as generic";
 
                 int inScope = await query.CountAsync(cancellationToken);
                 var ids = await query.OrderByDescending(j => j.CreatedAt).ThenByDescending(j => j.Id)
@@ -118,6 +131,8 @@ namespace FifthPress.Controllers
                         description = string.Format("Non-deleted jobs with a job number, created on or after {0:yyyy-MM-dd} (server local time; jobs without a creation date are excluded), {1}, matching {2}. Newest first, at most {3}.",
                             since, includeCancelled ? "cancelled jobs included" : "cancelled jobs excluded", filter, maxCandidates),
                         createdOnOrAfter = since,
+                        windowDays = CandidateWindowDays,
+                        ignoredServiceIds = ignored,
                         maxCandidates,
                         candidatesInScope = inScope,
                         candidatesReturned = candidates.Count,
@@ -269,10 +284,16 @@ namespace FifthPress.Controllers
                 {
                     i.Id, i.Ordinal, i.SubitemOf, i.Title, i.Description, i.Quantity, i.QuantityBy, i.TotalQuantity, i.Width, i.Length,
                     i.Material, MaterialTitle = i.Material1.Title, MaterialFriendlyName = i.Material1.FriendlyName,
-                    i.Press, PressTitle = i.Press1.Title, i.PressColorProfileFront, i.PressColorCountFront,
+                    MaterialCategoryId = i.Material1.MaterialCategory_Id, MaterialCategoryTitle = i.Material1.MaterialCategory.Title,
+                    i.Press, PressTitle = i.Press1.Title, PressCategoryId = i.Press1.Category, PressCategoryTitle = i.Press1.PressCategory.Title,
+                    i.PressColorProfileFront, i.PressColorCountFront,
                     i.PressColorProfileBack, i.PressColorCountBack, i.Collate, i.Staple, i.Numbering,
                     Services = i.JobItemServices.Where(s => s.Deleted == null)
-                        .Select(s => new { s.Id, s.ServiceId, s.Ordinal, s.Title, s.FriendlyName, s.IsFinishingService, s.IsCuttingService })
+                        .Select(s => new { s.Id, s.ServiceId, s.Ordinal, s.Title, s.FriendlyName, s.IsFinishingService, s.IsCuttingService,
+                            CategoryId = s.Service.CatNo, CategoryTitle = s.Service.ServiceCategory.Title }),
+                    // Finishing materials (e.g. lamination) as material IDs only; their costs and prices are left out.
+                    Finishing = i.JobItemFinishingMaterials.Select(f => new { f.Id, f.Material, Title = f.Material1.Title,
+                        CategoryId = f.Material1.MaterialCategory_Id, Application = f.FinishingMaterialApplication.Title })
                 }),
                 Outsourced = j.JobOutsourcedItems.Select(o => new { o.Id, o.Ordinal, o.SubitemOf, o.Description, o.Quantity, o.Vendor })
             }).ToListAsync(cancellationToken);
@@ -288,14 +309,20 @@ namespace FifthPress.Controllers
                     title = i.Title, description = i.Description, quantity = i.Quantity, quantityBy = i.QuantityBy, totalQuantity = i.TotalQuantity,
                     widthInchesText = i.Width, lengthInchesText = i.Length,
                     materialId = i.Material, materialTitle = i.MaterialTitle, materialFriendlyName = i.MaterialFriendlyName,
-                    pressId = i.Press, pressTitle = i.PressTitle,
+                    materialCategoryId = i.MaterialCategoryId, materialCategoryTitle = i.MaterialCategoryTitle,
+                    pressId = i.Press, pressTitle = i.PressTitle, pressCategoryId = i.PressCategoryId, pressCategoryTitle = i.PressCategoryTitle,
                     colorProfileFront = i.PressColorProfileFront, colorCountFront = i.PressColorCountFront,
                     colorProfileBack = i.PressColorProfileBack, colorCountBack = i.PressColorCountBack,
                     collate = i.Collate, staple = i.Staple, numbering = i.Numbering,
                     services = NullIfEmpty(i.Services.OrderBy(s => s.Ordinal).ThenBy(s => s.Id).Select(s => (object)new
                     {
                         legacyId = s.Id, serviceId = s.ServiceId, ordinal = s.Ordinal, title = s.Title, friendlyName = s.FriendlyName,
-                        isFinishingService = s.IsFinishingService, isCuttingService = s.IsCuttingService
+                        isFinishingService = s.IsFinishingService, isCuttingService = s.IsCuttingService,
+                        serviceCategoryId = s.CategoryId, serviceCategoryTitle = s.CategoryTitle
+                    })),
+                    finishingMaterials = NullIfEmpty(i.Finishing.OrderBy(f => f.Id).Select(f => (object)new
+                    {
+                        legacyId = f.Id, materialId = f.Material, title = f.Title, materialCategoryId = f.CategoryId, application = f.Application
                     }))
                 });
                 var outsourced = j.Outsourced.OrderBy(o => o.Ordinal).ThenBy(o => o.Id).Select(o => (object)new
