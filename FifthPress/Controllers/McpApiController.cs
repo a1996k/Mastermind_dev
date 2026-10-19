@@ -50,6 +50,7 @@ namespace FifthPress.Controllers
 
         [HttpGet]
         public async Task<ActionResult> GetSimilarCandidates(string jobNumber, string mode, bool includeCancelled = false, string ignoreServiceIds = null,
+            string ignoreServiceCategoryIds = null, string keepServiceIds = null,
             int maxCandidates = MaxCandidateLimit, CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var db = CreateContext())
@@ -59,15 +60,13 @@ namespace FifthPress.Controllers
                 if (!ValidJobNumber(jobNumber)) return Error(HttpStatusCode.BadRequest, "jobNumber must be 1-50 characters.");
                 if (!Modes.Contains(mode)) return Error(HttpStatusCode.BadRequest, "mode must be one of: " + string.Join(", ", Modes) + ".");
                 maxCandidates = Math.Max(1, Math.Min(maxCandidates, MaxCandidateLimit));
-                // Generic services (e.g. "Outsource") named by the MCP matching rules must not pull jobs into the candidate set.
-                var ignored = new List<int>();
-                foreach (var part in (ignoreServiceIds ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    int id;
-                    if (!int.TryParse(part.Trim(), out id) || id <= 0 || ignored.Count >= MaxIgnoredServices)
-                        return Error(HttpStatusCode.BadRequest, "ignoreServiceIds must be at most " + MaxIgnoredServices + " comma-separated positive integers.");
-                    ignored.Add(id);
-                }
+                // Generic services named by the MCP matching rules (e.g. "Outsource", or whole workflow categories such as
+                // Pre-Press, except kept services) must not pull jobs into the candidate set.
+                var ignored = ParseIds(ignoreServiceIds);
+                var ignoredCategories = ParseIds(ignoreServiceCategoryIds);
+                var kept = ParseIds(keepServiceIds);
+                if (ignored == null || ignoredCategories == null || kept == null)
+                    return Error(HttpStatusCode.BadRequest, "ignoreServiceIds, ignoreServiceCategoryIds and keepServiceIds must each be at most " + MaxIgnoredServices + " comma-separated positive integers.");
 
                 var matches = await FindJobIds(db, jobNumber.Trim(), cancellationToken);
                 if (matches.Count > 1) return Error(HttpStatusCode.Conflict, "More than one non-deleted job has this number.");
@@ -86,7 +85,8 @@ namespace FifthPress.Controllers
                 var materialIds = await items.Where(i => i.Material > 0).Select(i => i.Material.Value).Distinct().ToListAsync(cancellationToken);
                 var pressIds = await items.Where(i => i.Press > 0).Select(i => i.Press.Value).Distinct().ToListAsync(cancellationToken);
                 var serviceIds = await db.JobItemServices.AsNoTracking()
-                    .Where(s => s.JobItem.Job == sourceId && s.JobItem.Deleted == null && s.Deleted == null && s.ServiceId > 0 && !ignored.Contains(s.ServiceId))
+                    .Where(s => s.JobItem.Job == sourceId && s.JobItem.Deleted == null && s.Deleted == null && s.ServiceId > 0 && !ignored.Contains(s.ServiceId)
+                        && (kept.Contains(s.ServiceId) || s.Service.CatNo == null || !ignoredCategories.Contains(s.Service.CatNo.Value)))
                     .Select(s => s.ServiceId).Distinct().ToListAsync(cancellationToken);
                 int? customerId = await db.Jobs.Where(j => j.Id == sourceId).Select(j => j.Client).SingleAsync(cancellationToken);
 
@@ -114,8 +114,9 @@ namespace FifthPress.Controllers
                         filter = "no pre-filter (product wording is compared by the MCP server)";
                         break;
                 }
-                if ((mode == "services" || mode == "production") && ignored.Count > 0)
-                    filter += "; service IDs " + string.Join(", ", ignored) + " are ignored as generic";
+                if ((mode == "services" || mode == "production") && ignored.Count + ignoredCategories.Count > 0)
+                    filter += "; generic services are ignored (service IDs " + string.Join(", ", ignored) + "; service categories " + string.Join(", ", ignoredCategories)
+                        + (kept.Count > 0 ? " except service IDs " + string.Join(", ", kept) : "") + ")";
 
                 int inScope = await query.CountAsync(cancellationToken);
                 var ids = await query.OrderByDescending(j => j.CreatedAt).ThenByDescending(j => j.Id)
@@ -133,6 +134,8 @@ namespace FifthPress.Controllers
                         createdOnOrAfter = since,
                         windowDays = CandidateWindowDays,
                         ignoredServiceIds = ignored,
+                        ignoredServiceCategoryIds = ignoredCategories,
+                        keptServiceIds = kept,
                         maxCandidates,
                         candidatesInScope = inScope,
                         candidatesReturned = candidates.Count,
@@ -258,6 +261,19 @@ namespace FifthPress.Controllers
             if (permission == null || string.IsNullOrEmpty(permission.PermissionId) || !(user.PermissionString ?? "").Contains(permission.PermissionId))
                 return Error(HttpStatusCode.Forbidden, "This user's role does not have the " + (permission != null ? permission.Title : permissionUrl) + " permission.");
             return null;
+        }
+
+        // Up to MaxIgnoredServices comma-separated positive integers; null when the text is not valid.
+        private static List<int> ParseIds(string text)
+        {
+            var ids = new List<int>();
+            foreach (var part in (text ?? "").Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                int id;
+                if (!int.TryParse(part.Trim(), out id) || id <= 0 || ids.Count >= MaxIgnoredServices) return null;
+                ids.Add(id);
+            }
+            return ids;
         }
 
         private static bool ValidJobNumber(string jobNumber)
