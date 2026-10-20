@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -74,8 +75,8 @@ namespace FifthPress.Controllers
                 int sourceId = matches[0];
                 var sourceJob = (await LoadJobs(db, new List<int> { sourceId }, cancellationToken)).Single();
 
-                // Candidate scope: non-deleted jobs with a number, created in the last two years, newest first, capped.
-                // SQL only narrows by the mode's cheap keys; the MCP server applies the actual scoring rules.
+                // Candidate scope: non-deleted jobs with a number, created in the last two years, most relevant first, capped.
+                // SQL only narrows and orders by cheap estimates; the MCP server applies the actual scoring rules.
                 DateTime since = DateTime.Now.AddDays(-CandidateWindowDays);
                 var query = db.Jobs.AsNoTracking().Where(j => j.Id != sourceId && j.Deleted == null
                     && j.JobNumber != null && j.JobNumber != "" && j.CreatedAt >= since);
@@ -89,6 +90,14 @@ namespace FifthPress.Controllers
                         && (kept.Contains(s.ServiceId) || s.Service.CatNo == null || !ignoredCategories.Contains(s.Service.CatNo.Value)))
                     .Select(s => s.ServiceId).Distinct().ToListAsync(cancellationToken);
                 int? customerId = await db.Jobs.Where(j => j.Id == sourceId).Select(j => j.Client).SingleAsync(cancellationToken);
+                // Exact size text of the source's items in either orientation, and its most distinctive description words,
+                // for the relevance estimates below.
+                var sizes = await items.Where(i => i.Width != null && i.Length != null).Select(i => new { i.Width, i.Length }).ToListAsync(cancellationToken);
+                var sizeKeys = sizes.Select(s => new { W = s.Width.Trim(), L = s.Length.Trim() })
+                    .Where(s => s.W != "" && s.L != "" && s.W != "0" && s.L != "0")
+                    .SelectMany(s => new[] { s.W + "x" + s.L, s.L + "x" + s.W }).Distinct().ToList();
+                var sourceText = await db.Jobs.Where(j => j.Id == sourceId).Select(j => new { j.Title, j.Description }).SingleAsync(cancellationToken);
+                var words = RelevanceWords(sourceText.Title + " " + sourceText.Description);
 
                 string filter;
                 switch (mode)
@@ -118,9 +127,41 @@ namespace FifthPress.Controllers
                     filter += "; generic services are ignored (service IDs " + string.Join(", ", ignored) + "; service categories " + string.Join(", ", ignoredCategories)
                         + (kept.Count > 0 ? " except service IDs " + string.Join(", ", kept) : "") + ")";
 
+                // When more jobs are in scope than the cap, keep the ones most likely to score well rather than the newest:
+                // a cheap SQL estimate of the MCP's rules, newest first among equals. The MCP server still scores every candidate exactly.
                 int inScope = await query.CountAsync(cancellationToken);
-                var ids = await query.OrderByDescending(j => j.CreatedAt).ThenByDescending(j => j.Id)
-                    .Select(j => j.Id).Take(maxCandidates).ToListAsync(cancellationToken);
+                IQueryable<int> ordered;
+                string orderedBy;
+                if (mode == "customer" || mode == "product")
+                {
+                    string w0 = WordOrNone(words, 0), w1 = WordOrNone(words, 1), w2 = WordOrNone(words, 2), w3 = WordOrNone(words, 3),
+                        w4 = WordOrNone(words, 4), w5 = WordOrNone(words, 5), w6 = WordOrNone(words, 6), w7 = WordOrNone(words, 7);
+                    ordered = query.Select(j => new
+                    {
+                        j.Id, j.CreatedAt,
+                        Relevance = (j.Description.Contains(w0) || j.Title.Contains(w0) ? 1 : 0) + (j.Description.Contains(w1) || j.Title.Contains(w1) ? 1 : 0)
+                            + (j.Description.Contains(w2) || j.Title.Contains(w2) ? 1 : 0) + (j.Description.Contains(w3) || j.Title.Contains(w3) ? 1 : 0)
+                            + (j.Description.Contains(w4) || j.Title.Contains(w4) ? 1 : 0) + (j.Description.Contains(w5) || j.Title.Contains(w5) ? 1 : 0)
+                            + (j.Description.Contains(w6) || j.Title.Contains(w6) ? 1 : 0) + (j.Description.Contains(w7) || j.Title.Contains(w7) ? 1 : 0)
+                    }).OrderByDescending(x => x.Relevance).ThenByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).Select(x => x.Id);
+                    orderedBy = words.Count == 0 ? "newest first (the source has no usable description words)"
+                        : "most of the source's description words (" + string.Join(", ", words) + ") found in the job title or description, then newest";
+                }
+                else
+                {
+                    int serviceCount = Math.Max(1, serviceIds.Count);
+                    ordered = query.Select(j => new
+                    {
+                        j.Id, j.CreatedAt,
+                        Relevance = (j.JobItems.Any(i => i.Deleted == null && materialIds.Contains(i.Material.Value)) ? 30 : 0)
+                            + (j.JobItems.Any(i => i.Deleted == null && pressIds.Contains(i.Press.Value)) ? 15 : 0)
+                            + (j.JobItems.Any(i => i.Deleted == null && sizeKeys.Contains(i.Width.Trim() + "x" + i.Length.Trim())) ? 25 : 0)
+                            + j.JobItems.Where(i => i.Deleted == null).SelectMany(i => i.JobItemServices)
+                                .Where(s => s.Deleted == null && serviceIds.Contains(s.ServiceId)).Select(s => s.ServiceId).Distinct().Count() * 15 / serviceCount
+                    }).OrderByDescending(x => x.Relevance).ThenByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id).Select(x => x.Id);
+                    orderedBy = "estimated production relevance (shared material 30, press 15, exact size text 25, shared non-generic services up to 15), then newest";
+                }
+                var ids = await ordered.Take(maxCandidates).ToListAsync(cancellationToken);
                 var candidates = await LoadJobs(db, ids, cancellationToken);
 
                 return JsonReply(HttpStatusCode.OK, new
@@ -129,8 +170,9 @@ namespace FifthPress.Controllers
                     source = sourceJob,
                     scope = new
                     {
-                        description = string.Format("Non-deleted jobs with a job number, created on or after {0:yyyy-MM-dd} (server local time; jobs without a creation date are excluded), {1}, matching {2}. Newest first, at most {3}.",
-                            since, includeCancelled ? "cancelled jobs included" : "cancelled jobs excluded", filter, maxCandidates),
+                        description = string.Format("Non-deleted jobs with a job number, created on or after {0:yyyy-MM-dd} (server local time; jobs without a creation date are excluded), {1}, matching {2}. Ordered by {4}; at most {3}.",
+                            since, includeCancelled ? "cancelled jobs included" : "cancelled jobs excluded", filter, maxCandidates, orderedBy),
+                        orderedBy,
                         createdOnOrAfter = since,
                         windowDays = CandidateWindowDays,
                         ignoredServiceIds = ignored,
@@ -261,6 +303,24 @@ namespace FifthPress.Controllers
             if (permission == null || string.IsNullOrEmpty(permission.PermissionId) || !(user.PermissionString ?? "").Contains(permission.PermissionId))
                 return Error(HttpStatusCode.Forbidden, "This user's role does not have the " + (permission != null ? permission.Title : permissionUrl) + " permission.");
             return null;
+        }
+
+        private static readonly HashSet<string> StopWords = new HashSet<string>("a an and the for of to in on with by x job print printing order qty quantity".Split(' '));
+        // Fills unused word slots in the relevance estimate; no title or description contains it.
+        private const string NoWord = "\u0001";
+
+        // Up to 8 of the source's most distinctive words (3+ characters with a letter, longest first) for the relevance estimate.
+        // SQL matches them as substrings ("tree" also matches "street"); the MCP server then compares whole words exactly.
+        private static List<string> RelevanceWords(string text)
+        {
+            return Regex.Matches((text ?? "").ToLowerInvariant(), @"[\p{L}\p{N}]+").Cast<Match>().Select(m => m.Value)
+                .Where(w => w.Length >= 3 && w.Any(char.IsLetter) && !StopWords.Contains(w))
+                .Distinct().OrderByDescending(w => w.Length).ThenBy(w => w, StringComparer.Ordinal).Take(8).ToList();
+        }
+
+        private static string WordOrNone(List<string> words, int index)
+        {
+            return index < words.Count ? words[index] : NoWord;
         }
 
         // Up to MaxIgnoredServices comma-separated positive integers; null when the text is not valid.
