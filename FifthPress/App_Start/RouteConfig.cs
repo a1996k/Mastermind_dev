@@ -2184,6 +2184,30 @@ namespace FifthPress
             );
 
             routes.MapRoute(
+                name: "McpApiJobsSearch",
+                url: "mcp-api/jobs-search",
+                defaults: new { controller = "McpApi", action = "SearchJobs" }
+            );
+
+            routes.MapRoute(
+                name: "McpApiMaterials",
+                url: "mcp-api/materials",
+                defaults: new { controller = "McpApi", action = "FindMaterials" }
+            );
+
+            routes.MapRoute(
+                name: "McpApiCustomers",
+                url: "mcp-api/customers",
+                defaults: new { controller = "McpApi", action = "FindCustomers" }
+            );
+
+            routes.MapRoute(
+                name: "McpApiJobLineage",
+                url: "mcp-api/job-lineage",
+                defaults: new { controller = "McpApi", action = "GetJobLineage" }
+            );
+
+            routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
                 defaults: new { controller = "Splash", action = "Index", id = UrlParameter.Optional }

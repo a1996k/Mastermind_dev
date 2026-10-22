@@ -29,6 +29,9 @@ namespace FifthPress.Controllers
         private const int MaxCandidateLimit = 200;
         private const int CandidateWindowDays = 730; // 2 years, so last year's seasonal and repeat orders stay in range
         private const int MaxIgnoredServices = 20;
+        private const int MaxSearchRows = 50;
+        private const int MaxSearchDays = 730;
+        private const int MaxLineageJobs = 10;
         private static readonly string[] Modes = { "production", "material", "services", "product", "customer" };
 
         [HttpGet]
@@ -215,14 +218,7 @@ namespace FifthPress.Controllers
                     && j.CreatedAt >= fromDate && j.CreatedAt < toExclusive);
                 if (!includeCancelled) query = query.Where(j => j.Cancelled == null);
                 if (customerId != null) query = query.Where(j => j.Client == customerId);
-                // Same precedence as Job.SetCurrentJobStatus: Billed, then Shipped, then Complete.
-                switch (status)
-                {
-                    case "Completed": query = query.Where(j => j.Billed != null); break;
-                    case "Ready to post": query = query.Where(j => j.Billed == null && j.Shipped != null); break;
-                    case "Ready to ship": query = query.Where(j => j.Billed == null && j.Shipped == null && j.Complete != null); break;
-                    case "In progress": query = query.Where(j => j.Billed == null && j.Shipped == null && j.Complete == null); break;
-                }
+                query = WhereStatus(query, status);
 
                 int total = await query.CountAsync(cancellationToken);
                 var rows = await query.OrderBy(j => j.CreatedAt).ThenBy(j => j.Id).Take(maxRows).Select(j => new
@@ -265,6 +261,276 @@ namespace FifthPress.Controllers
                             outsourcedItemCount = j.OutsourcedItemCount
                         };
                     })
+                });
+            }
+        }
+
+        // Search: jobs matching filters, newest first by Jobs.CreatedAt. Bounded to a 2-year range and 50 rows.
+        [HttpGet]
+        public async Task<ActionResult> SearchJobs(int? materialId = null, string sameMaterialAsJob = null, int? customerId = null,
+            string createdFrom = null, string createdTo = null, string status = null, bool includeCancelled = false,
+            int maxRows = 20, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var db = CreateContext())
+            {
+                var denied = await Authorize(db, RecordLookupPermissionUrl, cancellationToken);
+                if (denied != null) return denied;
+                if (materialId != null && !string.IsNullOrWhiteSpace(sameMaterialAsJob))
+                    return Error(HttpStatusCode.BadRequest, "Use materialId or sameMaterialAsJob, not both.");
+                if (materialId != null && materialId <= 0) return Error(HttpStatusCode.BadRequest, "materialId must be positive.");
+                if (customerId != null && customerId <= 0) return Error(HttpStatusCode.BadRequest, "customerId must be positive.");
+                if (status != null && !Statuses.Contains(status))
+                    return Error(HttpStatusCode.BadRequest, "status must be one of: " + string.Join(", ", Statuses) + ".");
+                DateTime toDate = DateTime.Today, fromDate;
+                if (createdTo != null && !DateTime.TryParseExact(createdTo, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out toDate))
+                    return Error(HttpStatusCode.BadRequest, "createdTo must be a yyyy-MM-dd date.");
+                fromDate = toDate.AddDays(-MaxSearchDays);
+                if (createdFrom != null && !DateTime.TryParseExact(createdFrom, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out fromDate))
+                    return Error(HttpStatusCode.BadRequest, "createdFrom must be a yyyy-MM-dd date.");
+                if (toDate < fromDate || (toDate - fromDate).TotalDays > MaxSearchDays)
+                    return Error(HttpStatusCode.BadRequest, "The created date range must run forwards and span at most " + MaxSearchDays + " days.");
+                maxRows = Math.Max(1, Math.Min(maxRows, MaxSearchRows));
+
+                // "Same material as job X" means any material on that job's non-deleted items; the job itself is left out.
+                var materialIds = new List<int>();
+                int? excludedJobId = null;
+                if (materialId != null) materialIds.Add(materialId.Value);
+                if (!string.IsNullOrWhiteSpace(sameMaterialAsJob))
+                {
+                    if (!ValidJobNumber(sameMaterialAsJob)) return Error(HttpStatusCode.BadRequest, "sameMaterialAsJob must be 1-50 characters.");
+                    var matches = await FindJobIds(db, sameMaterialAsJob.Trim(), cancellationToken);
+                    if (matches.Count > 1) return Error(HttpStatusCode.Conflict, "More than one non-deleted job has this number.");
+                    if (matches.Count == 0) return JsonReply(HttpStatusCode.NotFound, new { provenance = Provenance(db) });
+                    int sourceId = matches[0];
+                    excludedJobId = sourceId;
+                    materialIds = await db.JobItems.AsNoTracking().Where(i => i.Job == sourceId && i.Deleted == null && i.Material > 0)
+                        .Select(i => i.Material.Value).Distinct().ToListAsync(cancellationToken);
+                    if (materialIds.Count == 0)
+                        return JsonReply(HttpStatusCode.OK, new
+                        {
+                            provenance = Provenance(db), filters = new { sameMaterialAsJob = sameMaterialAsJob.Trim() },
+                            totalJobs = 0, rowsReturned = 0, truncated = false, rows = new object[0],
+                            message = "Job " + sameMaterialAsJob.Trim() + " has no known material on its items, so there is nothing to match."
+                        });
+                }
+
+                DateTime toExclusive = toDate.AddDays(1);
+                var query = db.Jobs.AsNoTracking().Where(j => j.Deleted == null && j.JobNumber != null && j.JobNumber != ""
+                    && j.CreatedAt >= fromDate && j.CreatedAt < toExclusive);
+                if (excludedJobId != null) { int excluded = excludedJobId.Value; query = query.Where(j => j.Id != excluded); }
+                if (!includeCancelled) query = query.Where(j => j.Cancelled == null);
+                if (customerId != null) query = query.Where(j => j.Client == customerId);
+                if (materialIds.Count > 0) query = query.Where(j => j.JobItems.Any(i => i.Deleted == null && materialIds.Contains(i.Material.Value)));
+                query = WhereStatus(query, status);
+
+                bool byMaterial = materialIds.Count > 0;
+                int total = await query.CountAsync(cancellationToken);
+                var rows = await query.OrderByDescending(j => j.CreatedAt).ThenByDescending(j => j.Id).Take(maxRows).Select(j => new
+                {
+                    j.Id, j.JobNumber, j.Description, j.Client, j.CreatedAt, j.DueDate, j.Complete, j.Shipped, j.Billed, j.Cancelled,
+                    ItemCount = j.JobItems.Count(i => i.Deleted == null),
+                    // With a material filter, only the matching items; otherwise the first items.
+                    Items = j.JobItems.Where(i => i.Deleted == null && (!byMaterial || materialIds.Contains(i.Material.Value)))
+                        .OrderBy(i => i.Ordinal).ThenBy(i => i.Id).Take(5)
+                        .Select(i => new { i.Id, i.Material, MaterialTitle = i.Material1.Title, i.Width, i.Length, i.Quantity, i.QuantityBy, i.TotalQuantity, PressTitle = i.Press1.Title })
+                }).ToListAsync(cancellationToken);
+                var materials = await db.Materials.AsNoTracking().Where(m => materialIds.Contains(m.Id))
+                    .Select(m => new { materialId = m.Id, title = m.Title, friendlyName = m.FriendlyName }).ToListAsync(cancellationToken);
+
+                return JsonReply(HttpStatusCode.OK, new
+                {
+                    provenance = Provenance(db),
+                    filters = new
+                    {
+                        materials, sameMaterialAsJob = string.IsNullOrWhiteSpace(sameMaterialAsJob) ? null : sameMaterialAsJob.Trim(),
+                        customerId, createdFrom = fromDate.ToString("yyyy-MM-dd"), createdTo = toDate.ToString("yyyy-MM-dd"), status, includeCancelled,
+                        recordScope = "Non-deleted jobs with a job number" + (excludedJobId != null ? ", excluding the job whose materials were used" : "")
+                            + (includeCancelled ? "; cancelled jobs included and flagged" : "; cancelled jobs excluded"),
+                        order = "Newest first by Jobs.CreatedAt (server local time)"
+                    },
+                    totalJobs = total,
+                    rowsReturned = rows.Count,
+                    truncated = total > rows.Count,
+                    rows = rows.Select(j => new
+                    {
+                        legacyId = j.Id, jobNumber = j.JobNumber, description = j.Description, customerId = j.Client,
+                        status = StatusOf(j.Complete, j.Shipped, j.Billed), isCancelled = j.Cancelled != null,
+                        createdAt = j.CreatedAt, dueDate = j.DueDate, itemCount = j.ItemCount,
+                        items = j.Items.Select(i => new
+                        {
+                            legacyId = i.Id, materialId = i.Material, materialTitle = i.MaterialTitle, widthInchesText = i.Width, lengthInchesText = i.Length,
+                            quantity = i.Quantity, quantityBy = i.QuantityBy, totalQuantity = i.TotalQuantity, pressTitle = i.PressTitle
+                        })
+                    })
+                });
+            }
+        }
+
+        // Material lookup by name, stock code or category (every word must match; spaces ignored, so "6mm" finds "6 mm"),
+        // with recent usage so look-alike materials can be told apart. No costs or inventory.
+        [HttpGet]
+        public async Task<ActionResult> FindMaterials(string query, int maxRows = 20, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var db = CreateContext())
+            {
+                var denied = await Authorize(db, RecordLookupPermissionUrl, cancellationToken);
+                if (denied != null) return denied;
+                var words = (query ?? "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Take(5).ToList();
+                if (words.Count == 0 || query.Trim().Length > 50) return Error(HttpStatusCode.BadRequest, "query must be 1-50 characters.");
+                maxRows = Math.Max(1, Math.Min(maxRows, MaxSearchRows));
+
+                var materials = db.Materials.AsNoTracking().AsQueryable();
+                foreach (var word in words)
+                {
+                    string w = word;
+                    materials = materials.Where(m => ((m.Title ?? "") + "|" + (m.FriendlyName ?? "") + "|" + (m.MaterialCategory.Title ?? "")).Replace(" ", "").Contains(w));
+                }
+                DateTime since = DateTime.Now.AddDays(-CandidateWindowDays);
+                int total = await materials.CountAsync(cancellationToken);
+                var rows = await materials.Select(m => new
+                {
+                    m.Id, m.Title, m.FriendlyName, m.MaterialCategory_Id, CategoryTitle = m.MaterialCategory.Title, Retired = m.Deleted != null,
+                    JobsLast2Years = m.JobItems.Where(i => i.Deleted == null && i.Job1.Deleted == null && i.Job1.CreatedAt >= since).Select(i => i.Job).Distinct().Count()
+                }).OrderBy(m => m.Retired).ThenByDescending(m => m.JobsLast2Years).ThenBy(m => m.Title).Take(maxRows).ToListAsync(cancellationToken);
+
+                return JsonReply(HttpStatusCode.OK, new
+                {
+                    provenance = Provenance(db), query = query.Trim(), totalMaterials = total, rowsReturned = rows.Count, truncated = total > rows.Count,
+                    order = "Active before retired, then most used in the last 2 years",
+                    rows = rows.Select(m => new
+                    {
+                        materialId = m.Id, title = m.Title, friendlyName = m.FriendlyName, categoryId = m.MaterialCategory_Id,
+                        categoryTitle = m.CategoryTitle, retired = m.Retired, jobsLast2Years = m.JobsLast2Years
+                    })
+                });
+            }
+        }
+
+        // Customer lookup by company name words, or the names for given customer IDs. Only the ID and company name are returned:
+        // no contacts, addresses, pricing or credit fields. The Record Lookup page already lists every customer's name.
+        [HttpGet]
+        public async Task<ActionResult> FindCustomers(string query = null, string customerIds = null, int maxRows = 20,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using (var db = CreateContext())
+            {
+                var denied = await Authorize(db, RecordLookupPermissionUrl, cancellationToken);
+                if (denied != null) return denied;
+                bool byName = !string.IsNullOrWhiteSpace(query);
+                if (byName == (customerIds != null)) return Error(HttpStatusCode.BadRequest, "Give either query or customerIds, not both.");
+                maxRows = Math.Max(1, Math.Min(maxRows, MaxSearchRows));
+
+                if (!byName)
+                {
+                    var ids = ParseIds(customerIds);
+                    if (ids == null || ids.Count == 0)
+                        return Error(HttpStatusCode.BadRequest, "customerIds must be 1-" + MaxIgnoredServices + " comma-separated positive IDs.");
+                    // Deleted customers are included here, because older jobs can still point at them.
+                    var found = await db.Clients.AsNoTracking().Where(c => ids.Contains(c.Id))
+                        .Select(c => new { customerId = c.Id, companyName = c.Title }).ToListAsync(cancellationToken);
+                    return JsonReply(HttpStatusCode.OK, new
+                    {
+                        provenance = Provenance(db), customerIds = ids, totalCustomers = found.Count, rowsReturned = found.Count, truncated = false,
+                        rows = found.OrderBy(c => ids.IndexOf(c.customerId)),
+                        notFoundIds = ids.Where(id => !found.Any(c => c.customerId == id))
+                    });
+                }
+
+                // Every word must appear in the name, spaces ignored, as in FindMaterials. Deleted customers are left out, as in the app's autocomplete.
+                if (query.Trim().Length > 50) return Error(HttpStatusCode.BadRequest, "query must be 1-50 characters.");
+                var words = query.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Take(5).ToList();
+                var customers = db.Clients.AsNoTracking().Where(c => c.Deleted == null);
+                foreach (var word in words)
+                {
+                    string w = word;
+                    customers = customers.Where(c => (c.Title ?? "").Replace(" ", "").Contains(w));
+                }
+                string first = words[0];
+                int total = await customers.CountAsync(cancellationToken);
+                var rows = await customers.OrderBy(c => (c.Title ?? "").StartsWith(first) ? 0 : 1).ThenBy(c => c.Title).ThenBy(c => c.Id).Take(maxRows)
+                    .Select(c => new { customerId = c.Id, companyName = c.Title }).ToListAsync(cancellationToken);
+
+                return JsonReply(HttpStatusCode.OK, new
+                {
+                    provenance = Provenance(db), query = query.Trim(), totalCustomers = total, rowsReturned = rows.Count, truncated = total > rows.Count,
+                    order = "Names starting with the first word first, then alphabetical; deleted customers are left out",
+                    rows
+                });
+            }
+        }
+
+        // Lineage: links Mastermind itself recorded (Convert To Quote, shared quote numbers, reprints). Facts, not similarity.
+        [HttpGet]
+        public async Task<ActionResult> GetJobLineage(string jobNumber, CancellationToken cancellationToken)
+        {
+            using (var db = CreateContext())
+            {
+                var denied = await Authorize(db, RecordLookupPermissionUrl, cancellationToken);
+                if (denied != null) return denied;
+                if (!ValidJobNumber(jobNumber)) return Error(HttpStatusCode.BadRequest, "jobNumber must be 1-50 characters.");
+                var matches = await FindJobIds(db, jobNumber.Trim(), cancellationToken);
+                if (matches.Count > 1) return Error(HttpStatusCode.Conflict, "More than one non-deleted job has this number.");
+                if (matches.Count == 0) return JsonReply(HttpStatusCode.NotFound, new { provenance = Provenance(db) });
+                int id = matches[0];
+                var job = await db.Jobs.AsNoTracking().Where(j => j.Id == id).Select(j => new { j.QuoteNumber, j.IsReprint, j.OriginalJobId }).SingleAsync(cancellationToken);
+                string quoteNumber = (job.QuoteNumber ?? "").Trim();
+                bool hasQuote = quoteNumber != "" && !string.Equals(quoteNumber, "N/A", StringComparison.OrdinalIgnoreCase);
+
+                // 1. The quote this job was created from, and the earlier job that quote was converted from (Convert To Quote).
+                object createdFromQuote = null;
+                if (hasQuote)
+                {
+                    var quotes = await db.Quotes.AsNoTracking().Where(q => q.JobNumber == quoteNumber && q.Deleted == null)
+                        .Select(q => new { q.CreatedAt, q.FromJob }).Take(2).ToListAsync(cancellationToken);
+                    if (quotes.Count == 1)
+                    {
+                        var origin = quotes[0].FromJob != null ? await JobRefs(db, new List<int> { quotes[0].FromJob.Value }, cancellationToken) : new List<object>();
+                        createdFromQuote = new { quoteNumber, quoteCreatedAt = quotes[0].CreatedAt, convertedFromJob = origin.FirstOrDefault() };
+                    }
+                    else createdFromQuote = new { quoteNumber, note = quotes.Count == 0 ? "No live quote has this number." : "More than one quote has this number, so the link is ambiguous." };
+                }
+
+                // 2. Other jobs with the same quote number: "Duplicate" copies it, and one quote can become several jobs.
+                var sameQuoteNumber = await LinkedJobs(db, db.Jobs.AsNoTracking()
+                    .Where(j => hasQuote && j.Id != id && j.Deleted == null && j.QuoteNumber == quoteNumber), cancellationToken);
+
+                // 3. Quotes converted from this job, and the later jobs those quotes became.
+                var quotesFromThis = db.Quotes.AsNoTracking().Where(q => q.FromJob == id && q.Deleted == null);
+                var quoteNumbersFromThis = await quotesFromThis.Where(q => q.JobNumber != null && q.JobNumber != "")
+                    .Select(q => q.JobNumber).Distinct().Take(50).ToListAsync(cancellationToken);
+                var laterJobs = await LinkedJobs(db, db.Jobs.AsNoTracking()
+                    .Where(j => j.Id != id && j.Deleted == null && quoteNumbersFromThis.Contains(j.QuoteNumber)), cancellationToken);
+                int quoteCount = await quotesFromThis.CountAsync(cancellationToken);
+                var quoteRefs = await quotesFromThis.OrderByDescending(q => q.CreatedAt).Take(MaxLineageJobs)
+                    .Select(q => new { quoteNumber = q.JobNumber, createdAt = q.CreatedAt }).ToListAsync(cancellationToken);
+
+                // 4. Reprint records in both directions (type and category only; reasons and costs are left out).
+                var reprintRecords = await db.Reprint_Jobs.AsNoTracking().Where(r => r.ReprintJobId == id)
+                    .Select(r => new { r.OriginalJobId, r.ReprintType, r.ReprintCategory, r.DateCreated }).Take(5).ToListAsync(cancellationToken);
+                var reprintOf = new List<object>();
+                foreach (var r in reprintRecords)
+                    reprintOf.Add(new { job = (await JobRefs(db, new List<int> { r.OriginalJobId }, cancellationToken)).FirstOrDefault(),
+                        reprintType = r.ReprintType, reprintCategory = r.ReprintCategory, recordedAt = (DateTime?)r.DateCreated });
+                if (reprintOf.Count == 0 && job.OriginalJobId != null)
+                    reprintOf.Add(new { job = (await JobRefs(db, new List<int> { job.OriginalJobId.Value }, cancellationToken)).FirstOrDefault(),
+                        reprintType = (string)null, reprintCategory = (string)null, recordedAt = (DateTime?)null });
+                var reprints = await LinkedJobs(db, db.Jobs.AsNoTracking()
+                    .Where(j => j.Deleted == null && db.Reprint_Jobs.Any(r => r.OriginalJobId == id && r.ReprintJobId == j.Id)), cancellationToken);
+
+                return JsonReply(HttpStatusCode.OK, new
+                {
+                    provenance = Provenance(db),
+                    jobNumber = jobNumber.Trim(),
+                    meaning = "Links Mastermind recorded when jobs were made: Convert To Quote (an earlier job became a quote, then a job), shared quote numbers "
+                        + "(Duplicate copies the number; one quote can become several jobs) and reprint records. They are facts, not similarity scores. "
+                        + "A job typed from scratch has no links, which does not mean it was never made before.",
+                    createdFromQuote,
+                    sameQuoteNumber,
+                    laterJobsFromThisJob = laterJobs,
+                    quotesFromThisJob = new { count = quoteCount, quotes = quoteRefs },
+                    isReprint = job.IsReprint,
+                    reprintOf,
+                    reprints
                 });
             }
         }
@@ -421,6 +687,47 @@ namespace FifthPress.Controllers
         {
             var list = values.ToList();
             return list.Count == 0 ? null : list;
+        }
+
+        // Same precedence as Job.SetCurrentJobStatus: Billed, then Shipped, then Complete.
+        private static IQueryable<Job> WhereStatus(IQueryable<Job> query, string status)
+        {
+            switch (status)
+            {
+                case "Completed": return query.Where(j => j.Billed != null);
+                case "Ready to post": return query.Where(j => j.Billed == null && j.Shipped != null);
+                case "Ready to ship": return query.Where(j => j.Billed == null && j.Shipped == null && j.Complete != null);
+                case "In progress": return query.Where(j => j.Billed == null && j.Shipped == null && j.Complete == null);
+                default: return query;
+            }
+        }
+
+        private static string StatusOf(DateTime? complete, DateTime? shipped, DateTime? billed)
+        {
+            var stage = new Job { Complete = complete, Shipped = shipped, Billed = billed };
+            stage.SetCurrentJobStatus();
+            return StatusText(stage.OverallJobStage);
+        }
+
+        // Compact job references for lists: number, dates, customer, description and status only.
+        private static async Task<List<object>> JobRefs(FifthPressEntities db, List<int> ids, CancellationToken cancellationToken)
+        {
+            var rows = await db.Jobs.AsNoTracking().Where(j => ids.Contains(j.Id) && j.Deleted == null)
+                .Select(j => new { j.Id, j.JobNumber, j.CreatedAt, j.Client, j.Description, j.Complete, j.Shipped, j.Billed, j.Cancelled })
+                .ToListAsync(cancellationToken);
+            return rows.OrderBy(r => ids.IndexOf(r.Id)).Select(r => (object)new
+            {
+                jobNumber = r.JobNumber, createdAt = r.CreatedAt, customerId = r.Client, description = r.Description,
+                status = StatusOf(r.Complete, r.Shipped, r.Billed), isCancelled = r.Cancelled != null
+            }).ToList();
+        }
+
+        // A count plus the most recent linked jobs: one quote can link 100+ jobs.
+        private static async Task<object> LinkedJobs(FifthPressEntities db, IQueryable<Job> jobs, CancellationToken cancellationToken)
+        {
+            int count = await jobs.CountAsync(cancellationToken);
+            var ids = await jobs.OrderByDescending(j => j.CreatedAt).ThenByDescending(j => j.Id).Select(j => j.Id).Take(MaxLineageJobs).ToListAsync(cancellationToken);
+            return new { count, shown = ids.Count, jobs = await JobRefs(db, ids, cancellationToken) };
         }
 
         private static string StatusText(JobStage stage)
